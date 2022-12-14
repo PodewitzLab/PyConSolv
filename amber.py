@@ -101,33 +101,35 @@ frcmod_files {}.frcmod'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.join
         
     def equilibrate(self, cpus = 8):
         
-        equilibrateCommand = ['mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#1
-                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#2
-                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#3
-                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#4
-                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#5
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #6
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #7
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #8
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #9
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #10
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #11
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #12
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #13
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #14
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #15
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #16
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #17
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #18
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #19
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #20
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIP_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7' #21
+        os.chdir(self.path+'/../equilibration')
+        equilibrateCommand = ['mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#1
+                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#2
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#3
+                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#4
+                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#5
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #6
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #7
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #8
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #9
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #10
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #11
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #12
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #13
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #14
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #15
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #16
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #17
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #18
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #19
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #20
+                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7' #21
                              ]
         
         for i in range(1,22):
             if 'pmemd.cuda' in equilibrateCommand[i]:
                 calc = subprocess.run(equilibrateCommand[i].format(i,i,i-1,i,i-1), shell = True)
             else:
+                print(equilibrateCommand[i].format(cpus, i,i,i-1,i,i-1))
                 calc = subprocess.run(equilibrateCommand[i].format(cpus, i,i,i-1,i,i-1), shell = True)
             if calc.returncode == 0:
                 print('Equlibration step {} completed successfully\n'.format(i))
