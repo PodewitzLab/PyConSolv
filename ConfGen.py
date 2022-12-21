@@ -53,7 +53,7 @@ Calculations will be set up in:
         ############################################
         '''.format(step) + color.END)
     
-    def run(self, cores = 8, solvent = 'water'):
+    def run(self, cores = 8, solvent = 'water', charge = 0):
         print(color.GREEN + 'Entering initial setup...\n\n' + color.END)
         
         if os.path.exists(self.inputpath+'/pyconsolv.restart'):
@@ -63,7 +63,7 @@ Calculations will be set up in:
             os.remove(self.inputpath+'/pyconsolv.restart')
         
         if self.restart == 0:
-            setup = Setup(self.path)
+            setup = Setup(self.path, charge = charge)
             self.status = setup.run()
             if self.status == 0:
                 self.error('Setup')
