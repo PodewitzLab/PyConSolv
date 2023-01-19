@@ -2,12 +2,13 @@ import numpy as np
 import pandas as pd
 
 class XYZ:
-    def __init__(self,db_file):
+    def __init__(self, db_file, db_metal_file):
         '''
         Initialize database of ionic radii from db_file
         
         Parameters:
             - db_file: file that contains the ionic radii for all elements
+            - db_metal_file: file that contains the ionic radii for metals
             
         Class variables:
             - self.db = dictionary which contains element names and corresponding ionic radius
@@ -15,10 +16,16 @@ class XYZ:
             - self.metals = list of metals detected in the xyz file and the corresponding filename
             - self.ligands = list of non-metal ligands detected in the xyz file and the corresponding filename
         '''
-        df = pd.read_csv(db_file,delimiter = '\t')
+        df = pd.read_csv(db_file, delimiter = '\t')
         self.db = {}
         for A,B in zip(df.values[:,1],df.values[:,5]):
             self.db[A] = B
+
+        df = pd.read_csv(r'/home/rat/PyPer/Nov_22/metal-radius.txt', sep='\t')
+        df = df.drop(columns=['Charge', 'Crystal Radius'])
+        df['Ion'] = df['Ion'].apply(str.upper)
+        df = df.groupby(['Ion']).max()
+        self.metalRadius = df.to_dict().get('Ionic Radius')
 
         self.metalList = ['LI', 'BE', 'F ', 'NA', 'MG', 'AL', 'SI', 'CL', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE', 'CO', 'NI', 'CU', 'ZN',
                           'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG', 'CD', 'IN', 'SN', 'SB',
@@ -27,6 +34,8 @@ class XYZ:
                           'PU', 'AM', 'CM', 'BK', 'CF', 'ES', 'FM', 'MD', 'NO', 'LR'] # Metals supported by MCPB
         self.metals = []
         self.ligands = []
+        self.filenames = []
+        self.metalBonds = []
         
         
         
@@ -76,22 +85,34 @@ class XYZ:
                 
     def generateAdjacencyMatrix(self):
         '''
-        Check whether atoms are connected to eachother; atoms are considered bonded, based on ionic radius from http://crystalmaker.com/support/tutorials/atomic-radii/index.html
-        
+        Check whether atoms are connected to eachother; atoms are considered bonded, based on ionic radius from http://crystalmaker.com/support/tutorials/atomic-radii/index.html and http://abulafia.mt.ic.ac.uk/shannon/radius.php#R
+        Bonds to metal are recorded in self.metalBonds. This is needed to check if all the residues are correctly found in MCPB.py, as Metal-C bonds are not autodetected.
+
         Parameters:
-            
+
         Class variables:
             - self.Adjmat - [x,x] shaped array which contains information about bonding, where 1 means bonded, 0 means unbonded
         '''
+
         self.Adjmat = np.zeros(self.Dmat.shape)
         for i in range(self.Dmat.shape[0]):
             for j in range(self.Dmat.shape[1]):
+                met = False
                 a = self.Amat[i][j].split('-')
                 dist = self.db[a[0]] + self.db[a[1]]
-                if (i==j):
+                if (i == j):
                     continue
-                if (self.Dmat[i][j] <= dist*0.6):
+                if (self.Dmat[i][j] <= dist * 0.6):
                     self.Adjmat[i][j] = 1
+                if self.isMetal(a[0]) and self.isMetal(a[1]):
+                    dist = self.metalRadius.get(a[0].upper()) + self.metalRadius.get(a[1].upper())
+                    met = True
+                elif self.isMetal(a[0]):
+                    dist = self.metalRadius.get(a[0].upper()) + self.db[a[1]]
+                    met = True
+                if met == True:
+                    if (self.Dmat[i][j] <= dist * 1.0):
+                        self.metalBonds.append('{} @{}{} {}'.format(str(i),a[1],str(j),str(j)))
                     
     def generateLinkList(self):
         '''
@@ -294,10 +315,9 @@ class XYZ:
             - path - file output path
             
         Class variables:
-            - self.filenames - contains the names of the PDB files which are written out
             - self.path - path where pdb files are generated
         '''
-        self.filenames = []
+
         self.path = path + '/'
         
         atomid = 0
@@ -347,7 +367,8 @@ class XYZ:
             f.write(tmp[i])
         f.write('END')
         f.close()
-        
+        self.writeFilenames(path)
+
     def writeMol2Files(self, path):
         '''
         Write out mol2 files
@@ -420,6 +441,9 @@ USER_CHARGES
         Class variables:
         
         '''
+
+        if self.filenames == []:
+          self.readFilenames(path+ '/MCPB_setup')
         self.readRESP(path+'/orca_calculations')
         self.readMAP(path + '/MCPB_setup')
         iterator = 0 # keeps track of current atom id
@@ -540,3 +564,27 @@ USER_CHARGES
         self.assignChain()
         self.createPDB()
         self.writePDBFiles(path)
+
+    def readFilenames(self, path):
+        f = open(path + '/filenames.restart', 'r')
+        for line in f:
+            self.filenames.append(line)
+        f.close()
+
+    def writeFilenames(self, path):
+        f = open(path + '/filenames.restart', 'w')
+        for filename in self.filenames:
+            f.write(filename + '\n')
+        f.close()
+
+    def writeMetalConnections(self, path):
+        f = open(path + '/metalConnections', 'w')
+        for bond in self.metalBonds:
+            f.write(bond + '\n')
+        f.close()
+
+    def writeConnections(self,path):
+        f = open(path+'/Connections', 'w')
+        for bond in self.connected:
+            f.write(' '.join(str(x) for x in bond) + '\n')
+        f.close()

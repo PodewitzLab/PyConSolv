@@ -54,7 +54,7 @@ ion_ids 1
 software_version g16
 ion_mol2files {}.mol2
 naa_mol2files {}.mol2
-frcmod_files {}.frcmod'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.join(ligands))
+frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.join(ligands))
         
         f = open(self.path + '/input.in', 'w')
         f.write(self.inputfile)
@@ -102,27 +102,27 @@ frcmod_files {}.frcmod'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.join
     def equilibrate(self, cpus = 8):
         
         os.chdir(self.path+'/../equilibration')
-        equilibrateCommand = ['mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#1
-                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#2
+        equilibrateCommand = ['pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#1
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#2
                               'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#3
-                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#4
-                              'mpiexec --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#5
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #6
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #7
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #8
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #9
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #10
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #11
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #12
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #13
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #14
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #15
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #16
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #17
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #18
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #19
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #20
-                              'mpirun --use-hwthread-cpus -np {} pmemd.MPI -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7' #21
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#4
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',#5
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #6
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #7
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #8
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #9
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #10
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #11
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #12
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #13
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #14
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #15
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #16
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #17
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #18
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #19
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7', #20
+                              'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7' #21
                              ]
         
         for i in range(1,22):
@@ -215,3 +215,61 @@ frcmod_files {}.frcmod'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.join
             f.write(data[i][1])
             f.close()
 
+    def readMetalBonds(self, path):
+        metalbonds = []
+        f = open(path + '/metalConnections', 'r')
+        for line in f:
+            metalbonds.append('{}-{} {}'.format(line.split()[0], line.split()[2], line.split()[1]))
+        f.close()
+        return metalbonds
+
+    def readConnections(self, path):
+        connections = []
+        f = open(path + '/Connections', 'r')
+        for line in f:
+            connections = connections + line.split()
+        f.close()
+        return connections
+
+    def checkMCPBBonds(self, path):
+        flag = 0
+        residues = []
+        f = open(path + '/MCPB_s1.out', 'r')
+        for line in f:
+            if 'Metal Site Information' in line:
+                flag = 1
+                continue
+            if flag == 1:
+                if 'The following residues are in the Metal Site' in line:
+                    break
+                if '@' in line:
+                    residues.append(line.split()[0])
+        f.close()
+
+        print(residues)
+
+        metalbonds = self.readMetalBonds(path)
+        connections = self.readConnections(path)
+        print(metalbonds)
+        inputAppend = []
+
+        for bond in metalbonds:
+            flag = 0
+            for el in residues:
+                if bond.split()[-1] in el:
+                    flag = 1
+            if flag == 0:
+                a = int(bond.split()[0].split('-')[0]) + 1  # MCPB.py counts from 1
+                tmp = bond.split()[0].split('-')[1]
+                b = int(connections.index(tmp)) + 1  # MCPB.py counts from 1
+                inputAppend.append('add_bonded_pairs {}-{}\n'.format(a, b))
+        print(inputAppend)
+
+        if inputAppend == []:
+            return True
+        else:
+            f = open(path + '/input.in', 'a')
+            for el in inputAppend:
+                f.write(el)
+            f.close()
+            return False
