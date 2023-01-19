@@ -346,3 +346,4 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         for line in tmp:
             f.write(line)
         f.close()
+        # todo add options for changing tleap input
