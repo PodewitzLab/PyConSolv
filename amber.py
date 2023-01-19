@@ -145,6 +145,14 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
                 
     
     def runTleap(self):
+        '''
+        Run tleap
+
+        Parameters:
+
+        Class variables:
+        '''
+
         tleapCommand = 'tleap -f LIG_tleap.in > tleap.log'
         calc = subprocess.run([tleapCommand], shell = True)
         if calc.returncode == 0:
@@ -175,7 +183,15 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             return self.status
         
     def equil(self, path, restrained_residue = '1'):
-        
+        '''
+        Create input files for a stepwise equilibration
+
+        Parameters:
+            - path = full path to the location of the solvated structure
+            - restrained_residue = residue to be restrained in steps 1-19
+
+        Class variables:
+        '''
         minseq=[1000,500,200,100,50,20,10,5,4,3,2,1,0.5]
 
         #default amber settings
@@ -216,6 +232,17 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             f.close()
 
     def readMetalBonds(self, path):
+        '''
+        Read atom-metal bond file
+
+        Parameters:
+            - path = full path to the folder containing the metalConnections file
+
+        Returns:
+            - metalbonds = [a] list of strings formatted as 'metalID @atomElementatomID atomID'
+        Class variables:
+        '''
+
         metalbonds = []
         f = open(path + '/metalConnections', 'r')
         for line in f:
@@ -224,6 +251,17 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         return metalbonds
 
     def readConnections(self, path):
+        '''
+        Read atom-atom bond file
+
+        Parameters:
+            - path = full path to the folder containing the Connections file
+
+        Returns:
+            - connections = [a] list of atom ids, in the new pdb order
+        Class variables:
+        '''
+
         connections = []
         f = open(path + '/Connections', 'r')
         for line in f:
@@ -232,6 +270,18 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         return connections
 
     def checkMCPBBonds(self, path):
+        '''
+        Check whether all the bonds have been detected by MCPB.py. If not, the input.in file is modified to contain the additional bonds that are misssing.
+        This overcomes the lack of support for metal-C bonds by default in MCPB.py
+
+        Parameters:
+            - path = full path to the folder containing the Connections file
+
+        Returns:
+            - Bool: False when connections are missing; True when all connections are present
+        Class variables:
+        '''
+
         flag = 0
         residues = []
         f = open(path + '/MCPB_s1.out', 'r')
@@ -246,11 +296,9 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
                     residues.append(line.split()[0])
         f.close()
 
-        print(residues)
-
         metalbonds = self.readMetalBonds(path)
         connections = self.readConnections(path)
-        print(metalbonds)
+
         inputAppend = []
 
         for bond in metalbonds:
@@ -263,13 +311,38 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
                 tmp = bond.split()[0].split('-')[1]
                 b = int(connections.index(tmp)) + 1  # MCPB.py counts from 1
                 inputAppend.append('add_bonded_pairs {}-{}\n'.format(a, b))
-        print(inputAppend)
 
         if inputAppend == []:
             return True
         else:
+            print('Not all connections were autodetected by MCPB.py\n')
             f = open(path + '/input.in', 'a')
             for el in inputAppend:
+                print('Adding : {}\n'.format(el.split()[-1]))
                 f.write(el)
             f.close()
             return False
+
+    def tleapChecker(self, path):
+        '''
+        Remove duplicate lines that can sometimes appear within tleap
+
+        Parameters:
+            - path = full path to the folder containing the LIG_tleap.in file
+
+        Class variables:
+        '''
+
+        tmp = []
+        f = open(path + '/LIG_tleap.in', 'r')
+        for line in f:
+            if line in tmp:
+                continue
+            else:
+                tmp.append(line)
+        f.close()
+
+        f = open(path + '/LIG_tleap.in', 'w')
+        for line in tmp:
+            f.write(line)
+        f.close()

@@ -15,7 +15,11 @@ class XYZ:
             - self.metalList = list of all metal (as suppoterd by MCPB.py) atomic symbols, used to cross-reference whether element is metal or not
             - self.metals = list of metals detected in the xyz file and the corresponding filename
             - self.ligands = list of non-metal ligands detected in the xyz file and the corresponding filename
+            - self.filenames = contains the names of the PDB files which are written out
+            - self.metalBonds = contains the atoms bonded to the metal center
+            - self.metalRadius = contains the radius of the metal ion
         '''
+
         df = pd.read_csv(db_file, delimiter = '\t')
         self.db = {}
         for A,B in zip(df.values[:,1],df.values[:,5]):
@@ -566,24 +570,56 @@ USER_CHARGES
         self.writePDBFiles(path)
 
     def readFilenames(self, path):
+        '''
+        Reads filenames from file. This is useful for restarting calculations
+
+        Parameters:
+            - path = full path to the folder containing the filenames.restart file
+
+        Class variables:
+        '''
         f = open(path + '/filenames.restart', 'r')
         for line in f:
             self.filenames.append(line)
         f.close()
 
     def writeFilenames(self, path):
+        '''
+        writes filenames from file. This is useful for restarting calculations
+
+        Parameters:
+            - path = full path to the folder containing the filenames.restart file
+
+        Class variables:
+        '''
         f = open(path + '/filenames.restart', 'w')
         for filename in self.filenames:
             f.write(filename + '\n')
         f.close()
 
     def writeMetalConnections(self, path):
+        '''
+        Writes metal-atom connections to file. This is useful for restarting calculations
+
+        Parameters:
+            - path = full path to the folder containing the metalConnections file
+
+        Class variables:
+        '''
         f = open(path + '/metalConnections', 'w')
         for bond in self.metalBonds:
             f.write(bond + '\n')
         f.close()
 
     def writeConnections(self,path):
+        '''
+        Writes initial atom ids for each chain to file. This is useful for restarting calculations
+
+        Parameters:
+            - path = full path to the folder containing the Connections file
+
+        Class variables:
+        '''
         f = open(path+'/Connections', 'w')
         for bond in self.connected:
             f.write(' '.join(str(x) for x in bond) + '\n')
