@@ -13,16 +13,35 @@ from .outgen import Faker
 from .ui import GUI
 from .restart import RestartFile
 
-class PyConSolv():
+
+class PyConSolv:
+    '''
+    Run conformer generation in explicit solvent via MD simulations. This package relies on Ambertools(MCPB.py/antechamber/tleap), ORCA 5 and Multiwfn 3.8
+
+    Parameters:
+        - path: location of XYZ file
+
+    Class variables:
+        - self.inputpath - full path to the folder where the input.xyz file is located
+        - self.path - full path to the input.xyz file is located
+        - self.status - variable used for error checking. 0 means error, 1 means all is well
+        - self.restart - variable used to check the restart point
+        - self.db_file - location of the atom-radius.txt file which contains ionic radius information
+        - self.db_metal_file - location of the atom-radius.txt file which contains ionic radius information for metals
+        - self.amber - Object containing an amberInterface (see amber.py)
+        - self.MCPB - full path to the MCPB_setup folder
+        - self.xyz - Object containing an XYZ (see inputparser.py)
+    '''
+
     def __init__(self, path):
-        self.inputpath = '/'.join(path.split('/')[:-1])
         self.path = path
+        self.inputpath = '/'.join(path.split('/')[:-1])
         self.status = 0
         self.restart = 0
         self.db_file = os.path.split(__file__)[0] + '/db/atom-radius.txt'
         self.db_metal_file = os.path.split(__file__)[0] + '/db/metal-radius.txt'
         self.amber = None
-        self.MCPB = self.inputpath+'/MCPB_setup'
+        self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
 
         print(color.BLUE + '''
@@ -44,9 +63,17 @@ Calculations will be set up in:
 {}
 
         '''.format(self.inputpath) + color.END)
-        
-    
+
     def error(self, step):
+        '''
+        Print out an error message
+
+        Parameters:
+            - step: step at which the error happened
+
+        Class variables:
+        '''
+
         print(color.RED + 'Something went wrong, please check your input/output' + color.END)
         print(color.RED + '''
         ############################################
@@ -55,199 +82,288 @@ Calculations will be set up in:
         ######{:^32}######
         ############################################
         '''.format(step) + color.END)
-    
-    def run(self, cores = 8, solvent = 'water', charge = 0):
-        print(color.GREEN + 'Entering initial setup...\n\n' + color.END)
 
-        #####################
-        ########SETUP########
-        #####################
-        if os.path.exists(self.inputpath+'/pyconsolv.restart'):
-            restarter = RestartFile(self.inputpath)
-            self.restart = restarter.getstate()
+    def checkRestart(self):
+        '''
+        Check for the existence of a restart file (pyconsolv.restart) and get last completed step
+
+        Parameters:
+
+        Class variables:
+            - self.restarter - RestartFile object used for checking and writing restart file (see restart.py)
+        '''
+        if os.path.exists(self.inputpath + '/pyconsolv.restart'):
+            self.restarter = RestartFile(self.inputpath)
+            self.restart = self.restarter.getstate()
             print(color.PURPLE + 'Restart file found!\n' + color.END)
-            os.remove(self.inputpath+'/pyconsolv.restart')
-        
+            os.remove(self.inputpath + '/pyconsolv.restart')
+
+    def setup(self, charge):
+        '''
+        Run setup for creating the appropriate folders
+
+        Parameters:
+            - charge: charge of the complete system
+
+        Class variables:
+        '''
         if self.restart == 0:
-            setup = Setup(self.path, charge = charge)
+            setup = Setup(self.path, charge=charge)
             self.status = setup.run()
             if self.status == 0:
                 self.error('Setup')
-                return
+                return 0
             print(color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + color.END)
-        
-        restarter = RestartFile(self.inputpath)
 
-        #####################
-        ########ORCA#########
-        #####################
-        if self.restart < 2:
-            restarter.write('setup')
-            calculation = Calculation(self.inputpath+'/orca_calculations')
-            self.status = calculation.run()
+        self.restarter = RestartFile(self.inputpath)
+        return 1
+
+    def orca(self):
+        '''
+        pRun ORCA optimization and frequency calculations
+
+        Parameters:
+
+        Class variables:
+        '''
+        self.restarter.write('setup')
+        calculation = Calculation(self.inputpath + '/orca_calculations')
+        self.status = calculation.run()
+        if self.status == 0:
+            self.error('ORCA Calculations')
+            return 0
+
+        print(color.GREEN + 'ORCA Calculations complete, moving on to MCPB setup...' + color.END)
+        self.restarter.write('orca')
+        return 1
+
+    def antechamber(self):
+        '''
+        Run antechamber for each generated fragment
+
+        Parameters:
+
+        Class variables:
+        '''
+        self.restarter.write('orca')
+        shutil.copyfile(self.inputpath + '/orca_calculations/freq/input.xyz', self.inputpath + '/MCPB_setup/input.xyz')
+
+        self.xyz = XYZ(self.db_file, self.db_metal_file)
+        self.xyz.prepareMCPB(self.inputpath + '/MCPB_setup/input.xyz')
+        pdbs = self.xyz.filenames
+
+        print('The following pdb files were created: \n {}\n'.format(' '.join(pdbs)))
+        print('Please enter fragment charges:\n')
+
+        # get charges from user
+        window = Tk()
+        start = GUI(window, self.MCPB, pdbs)
+        window.mainloop()
+
+        # create mol2 files and run antechamber
+        self.xyz.writeMol2Files(self.path)
+
+        antechamberFiles = self.xyz.molNotCreated
+        metals = self.xyz.metals
+        ligands = np.array(self.xyz.ligands)
+        self.xyz.writeMetalConnections(self.MCPB)  # write out metal connections file
+
+        self.amber = amberInterface(self.MCPB)
+        for filename in antechamberFiles:
+            self.status = self.amber.antechamber(*filename)
             if self.status == 0:
-                self.error('ORCA Calculations')
-                return
-        
-            print(color.GREEN + 'ORCA Calculations complete, moving on to MCPB setup...' + color.END)
-            restarter.write('orca')
+                self.error('antechamber for {}'.format(filename))
+                return 0
 
-        #####################
-        ##GUI + Antechamber##
-        #####################
-        if self.restart < 3:
-            restarter.write('orca')
-            shutil.copyfile(self.inputpath+'/orca_calculations/freq/input.xyz',self.inputpath+'/MCPB_setup/input.xyz')
-        
-            self.xyz = XYZ(self.db_file, self.db_metal_file)
-            self.xyz.prepareMCPB(self.inputpath+'/MCPB_setup/input.xyz')
-            pdbs = self.xyz.filenames
-        
-            print('The following pdb files were created: \n {}\n'.format(' '.join(pdbs)))
-            print('Please enter fragment charges:\n')
-        
-            # get charges from user
-            window = Tk()
-            start = GUI (window, self.MCPB, pdbs)
-            window.mainloop()
-        
-            # create mol2 files and run antechamber
-            self.xyz.writeMol2Files(self.path)
-        
-            antechamberFiles = self.xyz.molNotCreated
-            metals = self.xyz.metals
-            ligands = np.array(self.xyz.ligands)
-            self.xyz.writeMetalConnections(self.MCPB)  # write out metal connections file
+        print('Generating frcmod files for ligands:\n')
+        for filename in ligands:
+            self.status = self.amber.runParmchk2(filename)
+            if self.status == 0:
+                self.error('parmchk2 for {}'.format(filename))
+                return 0
 
+        self.amber.inputFileGenerator(metals[0][1], ligands[:, 1])
+        self.restarter.write('frcmod')
+        return 1
+
+    def multiwfn(self, cores):
+        '''
+        Run Multiwfn charge calculations
+
+        Parameters:
+            - cores: number of cpu cores for Multiwfn
+
+        Class variables:
+        '''
+        self.restarter.write('frcmod')
+        print(color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + color.END)
+
+        multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
+        self.status = multiwfn.run(cores)
+
+        if self.status == 0:
+            self.error('MultiWfn Calculations')
+            return 0
+        self.restarter.write('multiwfn')
+        return 1
+
+    def MCPB_script(self):
+        '''
+        Run MCPB.py for the system
+
+        Parameters:
+
+        Class variables:
+        '''
+        self.restarter.write('multiwfn')
+
+        print(color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + color.END)
+
+        faker = Faker(self.inputpath + '/orca_calculations/freq/')
+        faker.fakecrds()
+        # faker.fakeesp()
+        faker.fakeforce()
+
+        shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakechk.fchk',
+                        self.inputpath + '/MCPB_setup/LIG_small_opt.fchk')
+        shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakelog.log',
+                        self.inputpath + '/MCPB_setup/LIG_small_fc.log')
+
+        print(color.GREEN + 'Proceeding with MCPB steps...\n' + color.END)
+
+        if self.amber == None:
             self.amber = amberInterface(self.MCPB)
-            for filename in antechamberFiles:
-                self.status = self.amber.antechamber(*filename)
-                if self.status == 0:
-                    self.error('antechamber for {}'.format(filename))
-                    return
 
-            print('Generating frcmod files for ligands:\n')
-            for filename in ligands:
-                self.status = self.amber.runParmchk2(filename)
-                if self.status == 0:
-                    self.error('parmchk2 for {}'.format(filename))
-                    return
+        self.status = self.amber.runMCPB('1')
 
-            self.amber.inputFileGenerator(metals[0][1], ligands[:, 1])
-            restarter.write('frcmod')
+        if self.status == 0:
+            self.error('MCPB step 1')
+            return 0
 
-        #####################
-        #######Multiwfn######
-        #####################
-        if self.restart < 5:
-            restarter.write('frcmod')
-            print(color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + color.END)
-        
-            multiwfn = MultiWfnInterface(self.inputpath+'/orca_calculations/freq/')
-            self.status = multiwfn.run(cores)
-        
-            if self.status == 0:
-                self.error('MultiWfn Calculations')
-                return
-            restarter.write('multiwfn')
-
-
-        #####################
-        #######MCPB.py#######
-        #####################
-        if self.restart < 6:
-            restarter.write('multiwfn')
-
-            print(color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + color.END)
-        
-            faker = Faker(self.inputpath+'/orca_calculations/freq/')
-            faker.fakecrds()
-            # faker.fakeesp()
-            faker.fakeforce()
-        
-            shutil.copyfile(self.inputpath+'/orca_calculations/freq/fakechk.fchk',self.inputpath+'/MCPB_setup/LIG_small_opt.fchk')
-            shutil.copyfile(self.inputpath+'/orca_calculations/freq/fakelog.log',self.inputpath+'/MCPB_setup/LIG_small_fc.log')
-        
-            print(color.GREEN + 'Proceeding with MCPB steps...\n' + color.END)
-
-            if self.amber == None:
-                self.amber = amberInterface(self.MCPB)
-
+        if self.amber.checkMCPBBonds(self.MCPB) == False:
             self.status = self.amber.runMCPB('1')
-        
+
             if self.status == 0:
                 self.error('MCPB step 1')
+                return 0
+
+        self.status = self.amber.runMCPB('2')
+
+        if self.status == 0:
+            self.error('MCPB step 2')
+            return 0
+
+        if self.xyz == None:
+            self.xyz = XYZ(self.db_file, self.db_metal_file)
+        self.xyz.createFinalMol2(self.inputpath)
+
+        self.status = self.amber.runMCPB('4')
+
+        if self.status == 0:
+            self.error('MCPB step 4')
+            return 0
+
+        self.restarter.write('mcpb')
+        return 1
+
+    def tleap(self, solvent):
+        '''
+        Run tleap
+
+        Parameters:
+            - solvent: solvent for your box. Currently only water is available
+
+        Class variables:
+        '''
+        self.restarter.write('mcpb')
+
+        print('Solvent of choice is: {}'.format(solvent))
+
+        if self.amber == None:
+            self.amber = amberInterface(self.MCPB)
+
+        self.status = self.amber.runTleap()
+
+        if self.status == 0:
+            self.error('Tleap')
+            return 0
+
+        self.restarter.write('tleap')
+
+        print('Parametrization complete!\n')
+        print('Solvent of choice is: {}'.format(solvent))
+        return 1
+
+    def equilibration(self):
+        '''
+        Run system equilibration
+
+        Parameters:
+
+        Class variables:
+        '''
+        self.restarter.write('tleap')
+
+        print(color.GREEN + 'Setting up system equilibration...\n' + color.END)
+        print('Writing input files in the equlibration folder...\n')
+        shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
+        shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.prmtop',
+                        self.inputpath + '/equilibration/LIG_solv.prmtop')
+
+        if self.amber == None:
+            self.amber = amberInterface(self.MCPB)
+        self.amber.equil(self.inputpath)
+
+        print('Done!\n')
+        print(color.GREEN + 'Starting equilibration...' + color.END)
+
+        if self.amber == None:
+            self.amber = amberInterface(self.MCPB)
+
+        self.status = self.amber.equilibrate()
+
+        if self.status == 0:
+            self.error('Equilibration')
+            return 0
+        self.restarter.write('equilibration')
+        return 1
+
+    def run(self, cores=8, solvent='water', charge=0):
+        '''
+        Run the conformer generation
+
+        Parameters:
+            - cores: number of cpu cores to use for calculations, default is 8
+            - solvent: solvent to be used for ORCA/Tleap, default is water
+            - charge: total system charge
+
+        Class variables:
+        '''
+        print(color.GREEN + 'Entering initial setup...\n\n' + color.END)
+
+        self.checkRestart()
+        self.setup(charge)
+
+        if self.restart < 2:
+            if self.orca() == 0:
                 return
 
-            if self.amber.checkMCPBBonds('/home/rat/PyPer/mo-cat/MCPB_setup') == False:
-                self.status = self.amber.runMCPB('1')
-
-                if self.status == 0:
-                    self.error('MCPB step 1')
-                    return
-
-            self.status = self.amber.runMCPB('2')
-        
-            if self.status == 0:
-                self.error('MCPB step 2')
+        if self.restart < 3:
+            if self.antechamber() == 0:
                 return
 
-            if self.xyz == None:
-                self.xyz = XYZ(self.db_file, self.db_metal_file)
-            self.xyz.createFinalMol2(self.inputpath)
-        
-        
-            self.status = self.amber.runMCPB('4')
-        
-            if self.status == 0:
-                self.error('MCPB step 4')
+        if self.restart < 5:
+            if self.multiwfn(cores) == 0:
                 return
-        
-            restarter.write('mcpb')
 
-        #####################
-        #######Tleap#########
-        #####################
+        if self.restart < 6:
+            if self.MCPB_script() == 0:
+                return
+
         if self.restart < 7:
-            
-            restarter.write('mcpb')
-
-            print('Solvent of choice is: {}'.format(solvent))
-
-            if self.amber == None:
-                self.amber = amberInterface(self.MCPB)
-
-            self.status = self.amber.runTleap()
-        
-            if self.status == 0:
-                self.error('Tleap')
+            if self.tleap(solvent) == 0:
                 return
-        
-            restarter.write('tleap')
-        
-            print('Parametrization complete!\n')
-            print('Solvent of choice is: {}'.format(solvent))
-        
-        
+
         if self.restart < 8:
-            restarter.write('tleap')
-
-            print(color.GREEN + 'Setting up system equilibration...\n' + color.END)
-            print('Writing input files in the equlibration folder...\n')
-            shutil.copyfile(self.inputpath+'/MCPB_setup/LIG_solv.inpcrd',self.inputpath+'/equilibration/00.rst7')
-            shutil.copyfile(self.inputpath+'/MCPB_setup/LIG_solv.prmtop',self.inputpath+'/equilibration/LIG_solv.prmtop')
-            self.amber.equil(self.inputpath)
-        
-            print('Done!\n')
-            print(color.GREEN + 'Starting equilibration...' + color.END)
-
-
-            if self.amber == None:
-                self.amber = amberInterface(self.MCPB)
-
-            self.status = self.amber.equilibrate()
-
-            if self.status == 0:
-                self.error('Equilibration')
+            if self.equilibration() == 0:
                 return
-            restarter.write('equilibration')
