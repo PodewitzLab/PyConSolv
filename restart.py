@@ -1,9 +1,10 @@
-class RestartFile():
-    def __init__(self,path):
+class RestartFile:
+    def __init__(self, path):
         self.restart = path + '/pyconsolv.restart'
         self.state = 0
+
     def getstate(self):
-        f = open(self.restart,'r')
+        f = open(self.restart, 'r')
         for line in f:
             match line.split()[0]:
                 case 'setup':
@@ -24,12 +25,11 @@ class RestartFile():
                     self.state = 8
                 case other:
                     self.state = 0
-            
+
         f.close()
         return self.state
-    
-    
+
     def write(self, state):
-        f = open(self.restart,'w')
+        f = open(self.restart, 'w')
         f.write(state)
         f.close()

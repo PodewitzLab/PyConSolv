@@ -14,14 +14,37 @@ from .ui import GUI
 from .restart import RestartFile
 
 
+def error(step):
+    """
+    Print out an error message
+
+    Parameters:
+        - step: step at which the error happened
+
+    Class variables:
+    """
+
+    print(color.RED + 'Something went wrong, please check your input/output' + color.END)
+    print(color.RED + '''
+    ############################################
+    ######             WARNING            ######
+    ######      Calculation failed at:    ######
+    ######{:^32}######
+    ############################################
+    '''.format(step) + color.END)
+
+
 class PyConSolv:
-    '''
-    Run conformer generation in explicit solvent via MD simulations. This package relies on Ambertools(MCPB.py/antechamber/tleap), ORCA 5 and Multiwfn 3.8
+    """
+    Run conformer generation in explicit solvent via MD simulations. This package relies on
+    Ambertools(MCPB.py/antechamber/tleap), ORCA 5 and Multiwfn 3.8
 
     Parameters:
         - path: location of XYZ file
 
     Class variables:
+        - self.hasMetal - True when a metal is part of the structure, False otherwise
+        - self.restarter - object for reading restart files (see restart.py)
         - self.inputpath - full path to the folder where the input.xyz file is located
         - self.path - full path to the input.xyz file is located
         - self.status - variable used for error checking. 0 means error, 1 means all is well
@@ -31,9 +54,11 @@ class PyConSolv:
         - self.amber - Object containing an amberInterface (see amber.py)
         - self.MCPB - full path to the MCPB_setup folder
         - self.xyz - Object containing an XYZ (see inputparser.py)
-    '''
+    """
 
     def __init__(self, path):
+        self.hasMetal = None
+        self.restarter = None
         self.path = path
         self.inputpath = '/'.join(path.split('/')[:-1])
         self.status = 0
@@ -44,7 +69,7 @@ class PyConSolv:
         self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
 
-        print(color.BLUE + '''
+        print(color.BLUE + r'''
 
           _____        _____             _____       _       
          |  __ \      / ____|           / ____|     | |      
@@ -64,34 +89,15 @@ Calculations will be set up in:
 
         '''.format(self.inputpath) + color.END)
 
-    def error(self, step):
-        '''
-        Print out an error message
-
-        Parameters:
-            - step: step at which the error happened
-
-        Class variables:
-        '''
-
-        print(color.RED + 'Something went wrong, please check your input/output' + color.END)
-        print(color.RED + '''
-        ############################################
-        ######             WARNING            ######
-        ######      Calculation failed at:    ######
-        ######{:^32}######
-        ############################################
-        '''.format(step) + color.END)
-
     def checkRestart(self):
-        '''
+        """
         Check for the existence of a restart file (pyconsolv.restart) and get last completed step
 
         Parameters:
 
         Class variables:
             - self.restarter - RestartFile object used for checking and writing restart file (see restart.py)
-        '''
+        """
         if os.path.exists(self.inputpath + '/pyconsolv.restart'):
             self.restarter = RestartFile(self.inputpath)
             self.restart = self.restarter.getstate()
@@ -99,19 +105,19 @@ Calculations will be set up in:
             os.remove(self.inputpath + '/pyconsolv.restart')
 
     def setup(self, charge):
-        '''
+        """
         Run setup for creating the appropriate folders
 
         Parameters:
             - charge: charge of the complete system
 
         Class variables:
-        '''
+        """
         if self.restart == 0:
             setup = Setup(self.path, charge=charge)
             self.status = setup.run()
             if self.status == 0:
-                self.error('Setup')
+                error('Setup')
                 return 0
             print(color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + color.END)
 
@@ -119,18 +125,18 @@ Calculations will be set up in:
         return 1
 
     def orca(self):
-        '''
+        """
         pRun ORCA optimization and frequency calculations
 
         Parameters:
 
         Class variables:
-        '''
+        """
         self.restarter.write('setup')
         calculation = Calculation(self.inputpath + '/orca_calculations')
         self.status = calculation.run()
         if self.status == 0:
-            self.error('ORCA Calculations')
+            error('ORCA Calculations')
             return 0
 
         print(color.GREEN + 'ORCA Calculations complete, moving on to MCPB setup...' + color.END)
@@ -138,13 +144,13 @@ Calculations will be set up in:
         return 1
 
     def antechamber(self):
-        '''
+        """
         Run antechamber for each generated fragment
 
         Parameters:
 
         Class variables:
-        '''
+        """
         self.restarter.write('orca')
         shutil.copyfile(self.inputpath + '/orca_calculations/freq/input.xyz', self.inputpath + '/MCPB_setup/input.xyz')
 
@@ -162,39 +168,49 @@ Calculations will be set up in:
 
         # create mol2 files and run antechamber
         self.xyz.writeMol2Files(self.path)
-
         antechamberFiles = self.xyz.molNotCreated
-        metals = self.xyz.metals
         ligands = np.array(self.xyz.ligands)
-        self.xyz.writeMetalConnections(self.MCPB)  # write out metal connections file
-
         self.amber = amberInterface(self.MCPB)
         for filename in antechamberFiles:
             self.status = self.amber.antechamber(*filename)
             if self.status == 0:
-                self.error('antechamber for {}'.format(filename))
+                error('antechamber for {}'.format(filename))
                 return 0
 
         print('Generating frcmod files for ligands:\n')
         for filename in ligands:
             self.status = self.amber.runParmchk2(filename)
             if self.status == 0:
-                self.error('parmchk2 for {}'.format(filename))
+                error('parmchk2 for {}'.format(filename))
                 return 0
+        self.hasMetal = self.xyz.hasMetal
 
-        self.amber.inputFileGenerator(metals[0][1], ligands[:, 1])
-        self.restarter.write('frcmod')
-        return 1
+        if self.hasMetal:  # if metal is detected, proceed with MCPB.py
+            metals = self.xyz.metals
+            self.xyz.writeMetalConnections(self.MCPB)  # write out metal connections file
+            self.amber.inputFileGenerator(metals[0][1], ligands[:, 1])
+            self.restarter.write('frcmod')
+            return 1
+
+        else:  # if no metal, proceed with tleap
+            os.chdir(self.inputpath + '/equilibration/')
+            shutil.copyfile(self.MCPB + '/' + str(antechamberFiles[0][0]) + '.mol2',
+                            self.inputpath + '/equilibration/' + antechamberFiles[0][0] + '.mol2')
+            shutil.copyfile(self.MCPB + '/' + antechamberFiles[0][0] + '.frcmod',
+                            self.inputpath + '/equilibration/' + antechamberFiles[0][0] + '.frcmod')
+            self.amber.tleapNoMetalSolv(self.inputpath + '/equilibration/', antechamberFiles[0][0])
+            self.restarter.write('frcmod')
+            return 1
 
     def multiwfn(self, cores):
-        '''
+        """
         Run Multiwfn charge calculations
 
         Parameters:
             - cores: number of cpu cores for Multiwfn
 
         Class variables:
-        '''
+        """
         self.restarter.write('frcmod')
         print(color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + color.END)
 
@@ -202,19 +218,19 @@ Calculations will be set up in:
         self.status = multiwfn.run(cores)
 
         if self.status == 0:
-            self.error('MultiWfn Calculations')
+            error('MultiWfn Calculations')
             return 0
         self.restarter.write('multiwfn')
         return 1
 
     def MCPB_script(self):
-        '''
+        """
         Run MCPB.py for the system
 
         Parameters:
 
         Class variables:
-        '''
+        """
         self.restarter.write('multiwfn')
 
         print(color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + color.END)
@@ -231,61 +247,61 @@ Calculations will be set up in:
 
         print(color.GREEN + 'Proceeding with MCPB steps...\n' + color.END)
 
-        if self.amber == None:
+        if self.amber is None:
             self.amber = amberInterface(self.MCPB)
 
         self.status = self.amber.runMCPB('1')
 
         if self.status == 0:
-            self.error('MCPB step 1')
+            error('MCPB step 1')
             return 0
 
-        if self.amber.checkMCPBBonds(self.MCPB) == False:
+        if not self.amber.checkMCPBBonds(self.MCPB):
             self.status = self.amber.runMCPB('1')
 
             if self.status == 0:
-                self.error('MCPB step 1')
+                error('MCPB step 1')
                 return 0
 
         self.status = self.amber.runMCPB('2')
 
         if self.status == 0:
-            self.error('MCPB step 2')
+            error('MCPB step 2')
             return 0
 
-        if self.xyz == None:
+        if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
         self.xyz.createFinalMol2(self.inputpath)
 
         self.status = self.amber.runMCPB('4')
 
         if self.status == 0:
-            self.error('MCPB step 4')
+            error('MCPB step 4')
             return 0
 
         self.restarter.write('mcpb')
         return 1
 
     def tleap(self, solvent):
-        '''
+        """
         Run tleap
 
         Parameters:
             - solvent: solvent for your box. Currently only water is available
 
         Class variables:
-        '''
+        """
         self.restarter.write('mcpb')
 
         print('Solvent of choice is: {}'.format(solvent))
 
-        if self.amber == None:
+        if self.amber is None:
             self.amber = amberInterface(self.MCPB)
 
         self.status = self.amber.runTleap()
 
         if self.status == 0:
-            self.error('Tleap')
+            error('Tleap')
             return 0
 
         self.restarter.write('tleap')
@@ -295,41 +311,38 @@ Calculations will be set up in:
         return 1
 
     def equilibration(self):
-        '''
+        """
         Run system equilibration
 
         Parameters:
 
         Class variables:
-        '''
+        """
         self.restarter.write('tleap')
 
         print(color.GREEN + 'Setting up system equilibration...\n' + color.END)
-        print('Writing input files in the equlibration folder...\n')
+        print('Writing input files in the equilibration folder...\n')
         shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
         shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.prmtop',
                         self.inputpath + '/equilibration/LIG_solv.prmtop')
 
-        if self.amber == None:
+        if self.amber is None:
             self.amber = amberInterface(self.MCPB)
         self.amber.equil(self.inputpath)
 
         print('Done!\n')
         print(color.GREEN + 'Starting equilibration...' + color.END)
 
-        if self.amber == None:
-            self.amber = amberInterface(self.MCPB)
-
         self.status = self.amber.equilibrate()
 
         if self.status == 0:
-            self.error('Equilibration')
+            error('Equilibration')
             return 0
         self.restarter.write('equilibration')
         return 1
 
     def run(self, cores=8, solvent='water', charge=0):
-        '''
+        """
         Run the conformer generation
 
         Parameters:
@@ -338,7 +351,7 @@ Calculations will be set up in:
             - charge: total system charge
 
         Class variables:
-        '''
+        """
         print(color.GREEN + 'Entering initial setup...\n\n' + color.END)
 
         self.checkRestart()
@@ -351,6 +364,8 @@ Calculations will be set up in:
         if self.restart < 3:
             if self.antechamber() == 0:
                 return
+            if not self.hasMetal:  # if no metal is detected, skip mcpb and multiwfn
+                self.restart = 6
 
         if self.restart < 5:
             if self.multiwfn(cores) == 0:
