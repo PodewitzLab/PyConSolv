@@ -167,7 +167,7 @@ Calculations will be set up in:
         window.mainloop()
 
         # create mol2 files and run antechamber
-        self.xyz.writeMol2Files(self.path)
+        self.xyz.writeMol2Files()
         antechamberFiles = self.xyz.molNotCreated
         ligands = np.array(self.xyz.ligands)
         self.amber = amberInterface(self.MCPB)
