@@ -300,6 +300,7 @@ Calculations will be set up in:
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
 
+        self.amber.tleapChecker(self.MCPB)
         self.status = self.amber.runTleap()
 
         if self.status == 0:
