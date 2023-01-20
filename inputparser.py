@@ -657,13 +657,3 @@ USER_CHARGES
             f.write(' '.join(str(x) for x in bond) + '\n')
         f.close()
 
-    def setPath(self, path):
-        """
-        Sets the path
-
-        Parameters:
-            - path = full path to the folder containing the MCPB files
-
-        Class variables:
-        """
-        self.path = path
