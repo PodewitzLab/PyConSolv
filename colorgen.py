@@ -1,4 +1,4 @@
-class color:
+class Color:
     PURPLE = '\033[1;35;48m'
     CYAN = '\033[1;36;48m'
     BOLD = '\033[1;37;48m'

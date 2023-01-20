@@ -1,6 +1,6 @@
 import shutil
 import os
-from .colorgen import color
+from .colorgen import Color
 
 
 class Setup:
@@ -68,7 +68,7 @@ end
         if len(os.listdir(self.path)) > 1:
             self.check = 0
             print(
-                color.RED + 'Your calculation directory includes other folders/files. Please make sure it only contains your input xyz file!\n' + color.END)
+                Color.RED + 'Your calculation directory includes other folders/files. Please make sure it only contains your input xyz file!\n' + Color.END)
         else:
             print('Creating folders...')
             os.mkdir(self.calculation_folder)

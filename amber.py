@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from .colorgen import color
+from .colorgen import Color
 
 
 class amberInterface:
@@ -31,7 +31,7 @@ class amberInterface:
         self.status = 0
         self.amberhome = os.getenv('AMBERHOME')
         if self.amberhome == '':
-            print(color.RED + 'Amber is not in your PATH!!!' + color.END)
+            print(Color.RED + 'Amber is not in your PATH!!!' + Color.END)
             self.status = 0
         else:
             self.status = 1

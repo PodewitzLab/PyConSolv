@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 
-from .colorgen import color
+from .colorgen import Color
 
 
 class Calculation:
@@ -43,7 +43,7 @@ class Calculation:
                 self.status = 1
                 break
         if self.orcapath == '':
-            print(color.RED + 'ORCA was not found on your system... is it in your PATH?' + color.END)
+            print(Color.RED + 'ORCA was not found on your system... is it in your PATH?' + Color.END)
             self.status = 0
             return
         else:
@@ -70,7 +70,7 @@ class Calculation:
             print('Running frequency calculation in ' + os.getcwd())
             shutil.copyfile(self.path + '/opt/orca_opt.xyz', self.path + '/freq/input.xyz')
         else:
-            print(color.RED + 'Unrecognized keyword for calculation!' + color.END)
+            print(Color.RED + 'Unrecognized keyword for calculation!' + Color.END)
             self.status = 0
             return
 
@@ -98,7 +98,7 @@ Moving on!
                 if calc.returncode == 0:
                     self.status = 1
                 else:
-                    print(color.RED + 'Could not create molden input file...\n' + color.END)
+                    print(Color.RED + 'Could not create molden input file...\n' + Color.END)
                     self.status = 0
                     os.chdir(self.original_wd)
                     return
@@ -107,8 +107,8 @@ Moving on!
             return
         else:
             print(
-                color.RED + 'Something went wrong with the ORCA calculation, please check output files in '
-                + os.getcwd() + color.END)
+                Color.RED + 'Something went wrong with the ORCA calculation, please check output files in '
+                + os.getcwd() + Color.END)
             os.chdir(self.original_wd)
             self.status = 0
             return
@@ -124,15 +124,15 @@ Moving on!
         """
         self.checkpath()
         if self.status == 0:
-            print(color.RED + 'Aborting calculation!' + color.END)
+            print(Color.RED + 'Aborting calculation!' + Color.END)
             return self.status
         self.calculate(calctype='opt')
         if self.status == 0:
-            print(color.RED + 'Aborting calculation!' + color.END)
+            print(Color.RED + 'Aborting calculation!' + Color.END)
             return self.status
         self.calculate(calctype='freq')
         if self.status == 0:
-            print(color.RED + 'Aborting calculation!' + color.END)
+            print(Color.RED + 'Aborting calculation!' + Color.END)
             return self.status
         print('ORCA calculations completed successfully!\n')
         os.chdir(self.original_wd)

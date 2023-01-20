@@ -3,7 +3,7 @@ import os
 from tkinter import *
 import numpy as np
 
-from .colorgen import color
+from .colorgen import Color
 from .amber import amberInterface
 from .calculate import Calculation
 from .filestructure import Setup
@@ -24,14 +24,14 @@ def error(step):
     Class variables:
     """
 
-    print(color.RED + 'Something went wrong, please check your input/output' + color.END)
-    print(color.RED + '''
+    print(Color.RED + 'Something went wrong, please check your input/output' + Color.END)
+    print(Color.RED + '''
     ############################################
     ######             WARNING            ######
     ######      Calculation failed at:    ######
     ######{:^32}######
     ############################################
-    '''.format(step) + color.END)
+    '''.format(step) + Color.END)
 
 
 class PyConSolv:
@@ -69,7 +69,7 @@ class PyConSolv:
         self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
 
-        print(color.BLUE + r'''
+        print(Color.BLUE + r'''
 
           _____        _____             _____       _       
          |  __ \      / ____|           / ____|     | |      
@@ -87,7 +87,7 @@ Calculations will be set up in:
 
 {}
 
-        '''.format(self.inputpath) + color.END)
+        '''.format(self.inputpath) + Color.END)
 
     def checkRestart(self):
         """
@@ -101,7 +101,7 @@ Calculations will be set up in:
         if os.path.exists(self.inputpath + '/pyconsolv.restart'):
             self.restarter = RestartFile(self.inputpath)
             self.restart = self.restarter.getstate()
-            print(color.PURPLE + 'Restart file found!\n' + color.END)
+            print(Color.PURPLE + 'Restart file found!\n' + Color.END)
             os.remove(self.inputpath + '/pyconsolv.restart')
 
     def setup(self, charge):
@@ -119,7 +119,7 @@ Calculations will be set up in:
             if self.status == 0:
                 error('Setup')
                 return 0
-            print(color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + color.END)
+            print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
 
         self.restarter = RestartFile(self.inputpath)
         return 1
@@ -139,7 +139,7 @@ Calculations will be set up in:
             error('ORCA Calculations')
             return 0
 
-        print(color.GREEN + 'ORCA Calculations complete, moving on to MCPB setup...' + color.END)
+        print(Color.GREEN + 'ORCA Calculations complete, moving on to MCPB setup...' + Color.END)
         self.restarter.write('orca')
         return 1
 
@@ -187,8 +187,8 @@ Calculations will be set up in:
 
         if self.hasMetal:  # if metal is detected, proceed with MCPB.py
             metals = self.xyz.metals
-            self.xyz.writeMetalConnections(self.MCPB)# write out metal connections file
-            self.xyz.writeConnections(self.MCPB)# write out connections file
+            self.xyz.writeMetalConnections(self.MCPB)  # write out metal connections file
+            self.xyz.writeConnections(self.MCPB)  # write out connections file
             self.amber.inputFileGenerator(metals[0][1], ligands[:, 1])
             self.restarter.write('frcmod')
             return 1
@@ -213,7 +213,7 @@ Calculations will be set up in:
         Class variables:
         """
         self.restarter.write('frcmod')
-        print(color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + color.END)
+        print(Color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + Color.END)
 
         multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
         self.status = multiwfn.run(cores)
@@ -234,7 +234,7 @@ Calculations will be set up in:
         """
         self.restarter.write('multiwfn')
 
-        print(color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + color.END)
+        print(Color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + Color.END)
 
         faker = Faker(self.inputpath + '/orca_calculations/freq/')
         faker.fakecrds()
@@ -246,7 +246,7 @@ Calculations will be set up in:
         shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakelog.log',
                         self.inputpath + '/MCPB_setup/LIG_small_fc.log')
 
-        print(color.GREEN + 'Proceeding with MCPB steps...\n' + color.END)
+        print(Color.GREEN + 'Proceeding with MCPB steps...\n' + Color.END)
 
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
@@ -321,7 +321,7 @@ Calculations will be set up in:
         """
         self.restarter.write('tleap')
 
-        print(color.GREEN + 'Setting up system equilibration...\n' + color.END)
+        print(Color.GREEN + 'Setting up system equilibration...\n' + Color.END)
         print('Writing input files in the equilibration folder...\n')
         shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
         shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.prmtop',
@@ -332,7 +332,7 @@ Calculations will be set up in:
         self.amber.equil(self.inputpath)
 
         print('Done!\n')
-        print(color.GREEN + 'Starting equilibration...' + color.END)
+        print(Color.GREEN + 'Starting equilibration...' + Color.END)
 
         self.status = self.amber.equilibrate()
 
@@ -353,7 +353,7 @@ Calculations will be set up in:
 
         Class variables:
         """
-        print(color.GREEN + 'Entering initial setup...\n\n' + color.END)
+        print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
         self.checkRestart()
         self.setup(charge)

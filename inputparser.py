@@ -434,11 +434,11 @@ class XYZ:
                 if self.isMetal(name):
                     print('Metal atom found: {}, assigning charge {}'.format(name, self.charges[i][1]))
                 coords = self.files[i][0].split()[6:9]
-                self.createMol2_new(name, coords=coords, charge=float(self.charges[i][1]))
+                self.createMol2_new(name, coords=coords, charge=float(self.charges[i][1]), index='') # this index should allow for the parsing multiple metals and fix a bug with the ID not being found for mcpb
             else:
                 self.molNotCreated.append(self.charges[i])
 
-    def createMol2_new(self, name, coords, charge=-1):
+    def createMol2_new(self, name, coords, charge=-1, index = ''):
         """
         Write out mol2 file for metal and single atom ligands
 
@@ -463,10 +463,10 @@ USER_CHARGES
 @<TRIPOS>SUBSTRUCTURE
   1 {:<2}    1 TEMP 0 **** **** 0 ROOT
 '''
-        print('Writing out {} ... \n'.format(self.path + name + '.mol2'))
-        f = open(self.path + name + '.mol2', 'w')
+        print('Writing out {} ... \n'.format(self.path + name + index + '.mol2'))
+        f = open(self.path + name + index + '.mol2', 'w')
         f.write(
-            layout.format(name, name, float(coords[0]), float(coords[1]), float(coords[2]), name, name, charge, name))
+            layout.format(name+index, name+index, float(coords[0]), float(coords[1]), float(coords[2]), name+index, name, charge, name+index))
         f.close()
 
     def createFinalMol2(self, path):
@@ -486,7 +486,6 @@ USER_CHARGES
         iterator = 0  # keeps track of current atom id
         for name in self.filenames:
             switch = 0
-            []
             fname = name.split('.')[0]
             fin = open(self.path + '/' + fname + '.mol2', 'r')  # read mol2 files corresponding to the pdb files
             fout = open(self.path + '/' + fname + '1.mol2', 'w')  # create new mol2 file

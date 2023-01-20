@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 
-from .colorgen import color
+from .colorgen import Color
 
 
 class MultiWfnInterface:
@@ -125,6 +125,6 @@ q
             print('RESP charge calculation completed successfully!\n')
             self.status = 1
         else:
-            print(color.RED + 'Something went wrong when running MultiWfn, please check multiwfn.out' + color.END)
+            print(Color.RED + 'Something went wrong when running MultiWfn, please check multiwfn.out' + Color.END)
             self.status = 0
         return self.status
