@@ -187,7 +187,8 @@ Calculations will be set up in:
 
         if self.hasMetal:  # if metal is detected, proceed with MCPB.py
             metals = self.xyz.metals
-            self.xyz.writeMetalConnections(self.MCPB)  # write out metal connections file
+            self.xyz.writeMetalConnections(self.MCPB)# write out metal connections file
+            self.xyz.writeConnections(self.MCPB)# write out connections file
             self.amber.inputFileGenerator(metals[0][1], ligands[:, 1])
             self.restarter.write('frcmod')
             return 1
