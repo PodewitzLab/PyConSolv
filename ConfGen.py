@@ -236,7 +236,7 @@ Calculations will be set up in:
 
         print(Color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + Color.END)
 
-        faker = Faker(self.path + '/orca_calculations/freq/')
+        faker = Faker(self.inputpath + '/orca_calculations/freq/')
         faker.fakecrds()
         # faker.fakeesp()
         faker.fakeforce()
