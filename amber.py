@@ -111,7 +111,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             # 2
             'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
             # 3
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
+            'pmemd -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
             # 4
             'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
             # 5
@@ -153,8 +153,9 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             if 'pmemd.cuda' in equilibrateCommand[i]:
                 calc = subprocess.run(equilibrateCommand[i].format(i, i, i - 1, i, i - 1), shell=True)
             else:
-                print(equilibrateCommand[i].format(cpus, i, i, i - 1, i, i - 1))
-                calc = subprocess.run(equilibrateCommand[i].format(cpus, i, i, i - 1, i, i - 1), shell=True)
+                # print(equilibrateCommand[i].format(cpus, i, i, i - 1, i, i - 1))
+                calc = subprocess.run(equilibrateCommand[i].format(i, i, i - 1, i, i - 1), shell=True) # no MPI
+                #calc = subprocess.run(equilibrateCommand[i].format(cpus, i, i, i - 1, i, i - 1), shell=True) # to be fixed for mpi
             if calc.returncode == 0:
                 print('Equlibration step {} completed successfully\n'.format(i))
                 self.status = 1
