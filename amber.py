@@ -415,7 +415,7 @@ solvatebox LIG TIP3PBOX 20 iso
 savepdb LIG LIG_solv.pdb
 saveamberparm LIG LIG_solv.prmtop LIG_solv.inpcrd
 quit
-        '''.replace('LIG', name)
+'''.replace('LIG', name)
         f = open(path + '/LIG_tleap.in', 'w')
         f.write(file)
         f.close()
