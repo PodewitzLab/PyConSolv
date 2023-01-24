@@ -203,13 +203,13 @@ Calculations will be set up in:
             self.restarter.write('frcmod')
             return 1
 
-        else:  # if no metal, proceed with tleap
+        else:  # if no metal, proceed with tleap, presumes only 1 ligand
             os.chdir(self.inputpath + '/equilibration/')
             shutil.copyfile(self.MCPB + '/' + str(antechamberFiles[0][0]) + '.mol2',
-                            self.inputpath + '/equilibration/' + antechamberFiles[0][0] + '.mol2')
+                            self.inputpath + '/equilibration/LIG.mol2')
             shutil.copyfile(self.MCPB + '/' + antechamberFiles[0][0] + '.frcmod',
-                            self.inputpath + '/equilibration/' + antechamberFiles[0][0] + '.frcmod')
-            self.amber.tleapNoMetalSolv(self.inputpath + '/equilibration/', antechamberFiles[0][0])
+                            self.inputpath + '/equilibration/LIG.frcmod')
+            self.amber.tleapNoMetalSolv(self.inputpath + '/equilibration/')
             self.restarter.write('frcmod')
             return 1
 
@@ -311,7 +311,7 @@ Calculations will be set up in:
             self.amber = amberInterface(self.MCPB)
 
         if not self.hasMetal:
-            self.amber.tleapNoMetalSolv(self.MCPB, 'A')  # change to get values from ligands
+            self.amber.tleapNoMetalSolv(self.MCPB)  # change to get values from ligands
         self.amber.tleapChecker(self.MCPB)
         self.status = self.amber.runTleap()
 
@@ -384,8 +384,9 @@ Calculations will be set up in:
         if self.restart < 3:
             if self.antechamber() == 0:
                 return
-            if not self.hasMetal:  # if no metal is detected, skip mcpb and multiwfn
-                self.restart = 6
+            if not self.hasMetal:
+                print('No metal has been found in your file, switching to simple parametrization')
+                self.restart = 6# skip mcpb and multiwfn if no metal
 
         if self.restart < 5:
             if self.multiwfn(cpu) == 0:

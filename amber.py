@@ -398,7 +398,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         f.close()
         # todo add options for changing tleap input
 
-    def tleapNoMetal(self, path: str, name: str):
+    def tleapNoMetal(self, path: str, name: str = 'LIG'):
         """
         Remove duplicate lines that can sometimes appear within tleap
 
@@ -422,7 +422,7 @@ quit
         f.write(file)
         f.close()
 
-    def tleapNoMetalSolv(self, path: str, name: str):
+    def tleapNoMetalSolv(self, path: str, name: str = 'LIG'):
         """
         Remove duplicate lines that can sometimes appear within tleap
 
