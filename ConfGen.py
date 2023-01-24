@@ -354,6 +354,8 @@ Calculations will be set up in:
             shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
             shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.prmtop',
                             self.inputpath + '/equilibration/LIG_solv.prmtop')
+        else:
+            shutil.copyfile(self.inputpath + '/equilibration/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
 
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
