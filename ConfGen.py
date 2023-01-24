@@ -343,9 +343,17 @@ Calculations will be set up in:
 
         print(Color.GREEN + 'Setting up system equilibration...\n' + Color.END)
         print('Writing input files in the equilibration folder...\n')
-        shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
-        shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.prmtop',
-                        self.inputpath + '/equilibration/LIG_solv.prmtop')
+
+        if self.xyz is None:
+            self.xyz = XYZ(self.db_file, self.db_metal_file)
+            self.xyz.readFilenames(self.MCPB)
+            if len(self.xyz.filenames) == 1:
+                self.hasMetal = False
+
+        if self.hasMetal:
+            shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
+            shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.prmtop',
+                            self.inputpath + '/equilibration/LIG_solv.prmtop')
 
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
