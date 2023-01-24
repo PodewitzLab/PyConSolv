@@ -300,6 +300,8 @@ Calculations will be set up in:
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
 
+        if not self.hasMetal:
+            self.amber.tleapNoMetalSolv(self, self.MCPB, 'A') # change to get values from ligands
         self.amber.tleapChecker(self.MCPB)
         self.status = self.amber.runTleap()
 
