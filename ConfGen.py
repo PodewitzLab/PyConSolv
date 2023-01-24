@@ -229,6 +229,7 @@ Calculations will be set up in:
             self.xyz.readFilenames(self.MCPB)
             if len(self.xyz.filenames) == 1:
                 self.hasMetal = False
+                self.restart = 6 # skip MCPB in case of no metal
                 return 1
         multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
         self.status = multiwfn.run(cores)
