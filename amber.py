@@ -405,16 +405,16 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
 
     def tleapNoMetalSolv(self, path, name):
         file = '''source oldff / leaprc.ff99SB
-        source leaprc.gaff
-        source leaprc.water.tip3p
-        LIG = loadmol2 LIG.mol2 
-        loadamberparams LIG.frcmod
-        savepdb LIG LIG_dry.pdb
-        saveamberparm LIG LIG_dry.prmtop LIG_dry.inpcrd
-        solvatebox LIG TIP3PBOX 20 iso
-        savepdb LIG LIG_solv.pdb
-        saveamberparm LIG LIG_solv.prmtop LIG_solv.inpcrd
-        quit
+source leaprc.gaff
+source leaprc.water.tip3p
+LIG = loadmol2 LIG.mol2 
+loadamberparams LIG.frcmod
+savepdb LIG LIG_dry.pdb
+saveamberparm LIG LIG_dry.prmtop LIG_dry.inpcrd
+solvatebox LIG TIP3PBOX 20 iso
+savepdb LIG LIG_solv.pdb
+saveamberparm LIG LIG_solv.prmtop LIG_solv.inpcrd
+quit
         '''.replace('LIG', name)
         f = open(path + '/LIG_tleap.in', 'w')
         f.write(file)
