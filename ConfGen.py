@@ -224,7 +224,12 @@ Calculations will be set up in:
         """
         self.restarter.write('frcmod')
         print(Color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + Color.END)
-
+        if self.xyz is None:
+            self.xyz = XYZ(self.db_file, self.db_metal_file)
+            self.xyz.readFilenames(self.MCPB)
+            if len(self.xyz.filenames) == 1:
+                self.hasMetal = False
+                return 1
         multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
         self.status = multiwfn.run(cores)
 
