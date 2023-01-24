@@ -1,9 +1,19 @@
 class RestartFile:
-    def __init__(self, path):
+    def __init__(self, path: str):
+        """
+        Class for checking restart files and returning the last known state
+
+        Parameters:
+        :param string path: path to restart file (pyconsolv.restart)
+
+        Class variables:
+            - self.restart: path to restart file
+            - self.state: calculation state, based on the restart file
+        """
         self.restart = path + '/pyconsolv.restart'
         self.state = 0
 
-    def getstate(self):
+    def getstate(self) -> int:
         f = open(self.restart, 'r')
         for line in f:
             match line.split()[0]:
@@ -29,7 +39,7 @@ class RestartFile:
         f.close()
         return self.state
 
-    def write(self, state):
+    def write(self, state: str):
         f = open(self.restart, 'w')
         f.write(state)
         f.close()

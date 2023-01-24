@@ -5,16 +5,17 @@ from .colorgen import Color
 
 
 class amberInterface:
-    def __init__(self, path):
+    def __init__(self, path: str):
         """
-        Runs main PDB generation functionality of the XYZ class.
+        Interfaces to the Ambertools/Amber program package to set up the simulation and parametrize the complex.
 
         Parameters:
-            - inputfile = full path to xyz inputfile
+            :param string path: full path to the folder where parametrization will take place
 
         Class variables:
         """
 
+        self.amberhome = None
         self.path = path
         self.status = 0
         self.original_wd = os.getcwd()
@@ -36,18 +37,18 @@ class amberInterface:
         else:
             self.status = 1
 
-    def inputFileGenerator(self, metals, ligands):
+    def inputFileGenerator(self, metals: str, ligands: str):
         """
         Creates an input file for MCPB.py.
 
         Parameters:
-            - metals = basename of the metal containing files - string
-            - ligands = basename of the ligand containing files - list of strings
+            :param string metals: basename of the metal containing files - string
+            :param string ligands: basename of the ligand containing files - list of strings
 
         Class variables:
             - self.inputfile = MCPB.py input file
         """
-        # TODO: change input file to handle multiple iod IDs
+        # TODO: change input file to handle multiple ion IDs
         self.inputfile = '''original_pdb Full_PDB.pdb
 group_name LIG
 cut_off 2.8
@@ -61,13 +62,13 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         f.write(self.inputfile)
         f.close()
 
-    def antechamber(self, name, charge):
+    def antechamber(self, name: str, charge: int) -> int:
         """
         Run Amber antechamber
 
         Parameters:
-            - name = basename of the structure
-            - charge = charge of the structure
+            :param string name: basename of the structure
+            :param int charge: charge of the structure
 
         Class variables:
         """
@@ -101,7 +102,15 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         else:
             self.status = 0
 
-    def equilibrate(self, cpus=8):
+    def equilibrate(self, cpus: int=8):
+        """
+        Run equilibration with amber
+
+        Parameters:
+            :param int cpus: number of cpus to be used with pmemd.MPI
+
+        Class variables:
+        """
 
         os.chdir(self.path + '/../equilibration')
         equilibrateCommand = [
@@ -183,12 +192,12 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             self.status = 0
         return self.status
 
-    def runParmchk2(self, name):
+    def runParmchk2(self, name: str):
         """
         Run parmchk2
 
         Parameters:
-            - name = basename of the structure
+            :param string name: basename of the structure
 
         Class variables:
         """
@@ -201,13 +210,13 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             self.status = 0
             return self.status
 
-    def equil(self, path, restrained_residue='1'):
+    def equil(self, path: str, restrained_residue: str='1'):
         """
         Create input files for a stepwise equilibration
 
         Parameters:
-            - path = full path to the location of the solvated structure
-            - restrained_residue = residue to be restrained in steps 1-19
+            :param string path: full path to the location of the solvated structure
+            :param string restrained_residue: residue to be restrained in steps 1-19
 
         Class variables:
         """
@@ -272,12 +281,12 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             f.write(data[i][1])
             f.close()
 
-    def readMetalBonds(self, path):
+    def readMetalBonds(self, path: str) -> list:
         """
         Read atom-metal bond file
 
         Parameters:
-            - path = full path to the folder containing the metalConnections file
+            :param string path: full path to the folder containing the metalConnections file
 
         Returns:
             - metalbonds = [a] list of strings formatted as 'metalID @atomElementatomID atomID'
@@ -291,12 +300,12 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         f.close()
         return metalbonds
 
-    def readConnections(self, path):
+    def readConnections(self, path: str) -> list:
         """
         Read atom-atom bond file
 
         Parameters:
-            - path = full path to the folder containing the Connections file
+            :param string path = full path to the folder containing the Connections file
 
         Returns:
             - connections = [a] list of atom ids, in the new pdb order
@@ -310,13 +319,13 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         f.close()
         return connections
 
-    def checkMCPBBonds(self, path):
+    def checkMCPBBonds(self, path: str):
         """
         Check whether all the bonds have been detected by MCPB.py. If not, the input.in file is modified to contain the additional bonds that are misssing.
         This overcomes the lack of support for metal-C bonds by default in MCPB.py
 
         Parameters:
-            - path = full path to the folder containing the Connections file
+            :param string path: full path to the folder containing the Connections file
 
         Returns:
             - Bool: False when connections are missing; True when all connections are present
@@ -364,12 +373,12 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             f.close()
             return False
 
-    def tleapChecker(self, path):
+    def tleapChecker(self, path: str):
         """
         Remove duplicate lines that can sometimes appear within tleap
 
         Parameters:
-            - path = full path to the folder containing the LIG_tleap.in file
+            :param string path: full path to the folder containing the LIG_tleap.in file
 
         Class variables:
         """
@@ -389,21 +398,41 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         f.close()
         # todo add options for changing tleap input
 
-    def tleapNoMetal(self, path, name):
-        file = '''source oldff / leaprc.ff99SB
-        source leaprc.gaff
-        LIG = loadmol2 LIG.mol2
-        loadamberparams LIG.frcmod
-        check LIG
-        saveoff LIG LIG.lib
-        saveamberparm LIG LIG.prmtop LIP.rst7
-        quit
+    def tleapNoMetal(self, path: str, name: str):
+        """
+        Remove duplicate lines that can sometimes appear within tleap
+
+        Parameters:
+            :param string path: full path to the folder containing the LIG_tleap.in file
+            :param string name: name of the ligand file
+
+        Class variables:
+        """
+
+        file = '''source oldff/leaprc.ff99SB
+source leaprc.gaff
+LIG = loadmol2 LIG.mol2
+loadamberparams LIG.frcmod
+check LIG
+saveoff LIG LIG.lib
+saveamberparm LIG LIG.prmtop LIP.rst7
+quit
         '''.replace('LIG', name)
         f = open(path + '/LIG_tleap.in', 'w')
         f.write(file)
         f.close()
 
-    def tleapNoMetalSolv(self, path, name):
+    def tleapNoMetalSolv(self, path: str, name: str):
+        """
+        Remove duplicate lines that can sometimes appear within tleap
+
+        Parameters:
+            :param string path: full path to the folder containing the LIG_tleap.in file
+            :param string name: name of the ligand file
+
+        Class variables:
+        """
+
         file = '''source oldff/leaprc.ff99SB
 source leaprc.gaff
 source leaprc.water.tip3p

@@ -9,14 +9,14 @@ from rdkit.Chem import Draw
 
 
 class GUI:
-    def __init__(self, window, path, files):
+    def __init__(self, window, path: str, files: list):
         """
         Class to present a GUI to the user where charges for each fragment can be entered
 
         Parameters:
-            - window = TKinter window
-            - path = path to pdb files of fragments
-            - files = names of files for which charges need to be assigned
+            :param window: TKinter window
+            :param string path: path to pdb files of fragments
+            :param list files: names of files for which charges need to be assigned
 
         Class variables:
             - self.path = path to pdb files of fragments
@@ -39,12 +39,12 @@ class GUI:
         self.structureid = 0
         self.charges = np.zeros(len(self.files))
 
-    def plot(self, file):
+    def plot(self, file: str):
         """
         Create and display an image in the TKinter window
 
         Parameters:
-            - file = pdb file to be displayed
+            :param string file: pdb file to be displayed
 
         Class variables:
             - self.canvas = tkinter canvas that displays the image
@@ -57,12 +57,12 @@ class GUI:
         self.canvas.get_tk_widget().pack()
         self.canvas.draw()
 
-    def redraw(self, file):
+    def redraw(self, file: str):
         """
         Redraw image on canvas
 
         Parameters:
-            - file = pdb file to be displayed
+            :param string file: pdb file to be displayed
 
         Class variables:
         """
@@ -109,12 +109,12 @@ class GUI:
         print('\n')
         print('Map written to {}'.format(self.path + '/chargeMap.dat\n'))
 
-    def getPDBasImage(self, file):
+    def getPDBasImage(self, file: str):
         """
         Creates a 2D image of a pdb file using RDkit and returns a numpy array containing an image
 
         Parameters:
-            - file = pdb file containing the fragment
+            :param string file: pdb file containing the fragment
 
         Class variables:
 

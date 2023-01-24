@@ -104,17 +104,24 @@ Calculations will be set up in:
             print(Color.PURPLE + 'Restart file found!\n' + Color.END)
             os.remove(self.inputpath + '/pyconsolv.restart')
 
-    def setup(self, charge: int) -> int:
+    def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
+              cpcm: str = 'Water', cpu: int = 12) -> int:
         """
         Run setup for creating the appropriate folders
 
         Parameters:
-            - charge: charge of the complete system
+            :param int charge: charge of the complete system
+            :param string method: ORCA 5 method line
+            :param string basis: Basis set for ORCA calculations
+            :param string dsp: Dispersion corrections
+            :param string cpcm: CPCM solvation model solvent
+            :param int cpu: number of CPU cores to be used
 
         Class variables:
         """
         if self.restart == 0:
             setup = Setup(self.path, charge=charge)
+            setup.Method(method, basis, dsp, cpcm, cpu)
             self.status = setup.run()
             if self.status == 0:
                 error('Setup')
@@ -126,7 +133,7 @@ Calculations will be set up in:
 
     def orca(self):
         """
-        pRun ORCA optimization and frequency calculations
+        Run ORCA optimization and frequency calculations
 
         Parameters:
 
@@ -211,7 +218,7 @@ Calculations will be set up in:
         Run Multiwfn charge calculations
 
         Parameters:
-            - cores: number of cpu cores for Multiwfn
+            :param int cores: number of cpu cores for Multiwfn
 
         Class variables:
         """
@@ -292,7 +299,7 @@ Calculations will be set up in:
         Run tleap
 
         Parameters:
-            - solvent: solvent for your box. Currently only water is available
+            :param string solvent: solvent for your box. Currently only water is available
 
         Class variables:
         """
@@ -349,21 +356,26 @@ Calculations will be set up in:
         self.restarter.write('equilibration')
         return 1
 
-    def run(self, cores: int = 8, solvent: str = 'water', charge: int = 0):
+    def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
+            cpcm: str = 'Water', cpu: int = 12, solvent: str = 'Water'):
         """
         Run the conformer generation
 
         Parameters:
-            - :type cores: int, number of cpu cores to use for calculations, default is 8
-            - :type solvent: string, solvent to be used for ORCA/Tleap, default is water
-            - :type charge: int, total system charge
+            :param str solvent: solvent to be used for MD simulation, check solvent list for available options
+            :param int charge: charge of the complete system
+            :param string method: ORCA 5 method line
+            :param string basis: Basis set for ORCA calculations
+            :param string dsp: Dispersion corrections
+            :param string cpcm: CPCM solvation model solvent
+            :param int cpu: number of CPU cores to be used
 
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
         self.checkRestart()
-        self.setup(charge)
+        self.setup(charge, method, basis, dsp, cpcm, cpu)
 
         if self.restart < 2:
             if self.orca() == 0:
@@ -376,7 +388,7 @@ Calculations will be set up in:
                 self.restart = 6
 
         if self.restart < 5:
-            if self.multiwfn(cores) == 0:
+            if self.multiwfn(cpu) == 0:
                 return
 
         if self.restart < 6:

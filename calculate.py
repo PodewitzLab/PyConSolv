@@ -49,7 +49,7 @@ class Calculation:
         else:
             return
 
-    def calculate(self, calctype):
+    def calculate(self, calctype:str):
         """
         Run orca calculations
 

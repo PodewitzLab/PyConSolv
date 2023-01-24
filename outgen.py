@@ -2,13 +2,13 @@ import numpy as np
 
 
 class Faker:
-    def __init__(self, path, calc_label='orca_freq'):
+    def __init__(self, path: str, calc_label: str = 'orca_freq'):
         """
         Class containing methods for creating a dummy fchk and log file
 
         Parameters:
-            - path - path of folder containing orca calculations
-            - calc_label - label for orca calculations, default is orca_calc
+            :param string path: path of folder containing orca calculations
+            :param string calc_label: label for orca calculations, default is orca_calc
 
         Class variables:
 
@@ -20,14 +20,14 @@ class Faker:
         f = open(self.path + '/' + 'fakelog.log', 'w')
         f.close()
 
-    def writeout(self, list_f, title, factor=1):
+    def writeout(self, list_f: list, title: str, factor: float = 1.):
         """
         Write list in gaussian fchk format (5 columns, 80 characters)
 
         Parameters:
-            - list_f - 1D list of values to write out
-            - title - header for information to be written out
-            - factor - lfactor to multiply values by eg.:1.89 for Angstrom/Bohr
+            :param list list_f: 1D list of values to write out
+            :param string title: header for information to be written out
+            :param float factor: lfactor to multiply values by eg.:1.89 for Angstrom/Bohr
 
         Class variables:
 
@@ -44,11 +44,12 @@ class Faker:
         f.write('\n')
         f.close()
 
-    def fakecrds(self, xyzfile='input.xyz'):
+    def fakecrds(self, xyzfile: str = 'input.xyz'):
         """
         Write out optimized coordinates into fchk file
 
         Parameters:
+            :param string xyzfile: name of the input xyz file, default is input.xyz
 
         Class variables:
 

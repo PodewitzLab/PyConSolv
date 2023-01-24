@@ -6,12 +6,12 @@ from .colorgen import Color
 
 
 class MultiWfnInterface:
-    def __init__(self, path):
+    def __init__(self, path: str):
         """
-        Interface to MulfiWfn
+        Interface to MultiWfn
 
         Parameters:
-            - path = path to orca calculation
+            :param string path: path to orca calculation
 
         Class variables:
             - self.path = path to orca calculation
@@ -108,12 +108,12 @@ q
         f.write(template.format(self.path + '/orca_freq.molden.input'))
         f.close()
 
-    def run(self, threads=8):
+    def run(self, threads: int = 12) -> int:
         """
         Runs the MultiWfn RESP charge calculation
 
         Parameters:
-            - threads = number of threads to use for calculation
+            :param int threads = number of threads to use for calculation
 
         Class variables:
         """

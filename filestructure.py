@@ -4,7 +4,7 @@ from .colorgen import Color
 
 
 class Setup:
-    def __init__(self, path, charge=0, multi=1):
+    def __init__(self, path: str, charge: int = 0, multi: object = 1) -> NotImplemented:
         """
         Class for setting up all the necessary input files and folders for the generation of the parameters
 
@@ -100,15 +100,17 @@ end
         shutil.copy(self.path + '/' + self.inputFile,
                     self.frequency_folder + '/' + self.inputFile)  # this should be changed to wait until optimization is run
 
-    def Method(self, method='PBE0', basis='def2-SVP', DSP='D4', CPCM='Water', CPU=8):
+    def Method(self, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPCM: str = 'Water', CPU: int = 12):
         """
         Create folder structure for calculations
 
         Parameters:
-            - method = chosen QM method in ORCA input file format e.g. BP86 or MP2, default is PBE0
-            - basis = ORCA basis set, default is def2-SVP
-            - DSP = dispersion corrections, default is D4
-            - CPU = number of CPU cores, default is 8
+            :param int CPU: number of CPU cores, default is 12
+            :param string CPCM: implicit solvent for orca calculations, default is Water
+            :param string DSP: dispersion corrections, default is D4
+            :param string basis:  ORCA basis set, default is def2-SVP
+            :param string method: chosen QM method in ORCA input file format e.g. BP86 or MP2, default is PBE0
+
         Class variables:
             - self.method = ORCA method
             - self.solvent = solvent to be used for calculations, default is water
@@ -127,7 +129,6 @@ end
         Class variables:
         """
         status = 0
-        self.Method()
         self.createFolders()
         if self.check == 1:
             self.createFiles()
