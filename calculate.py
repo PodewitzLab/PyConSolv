@@ -113,11 +113,12 @@ Moving on!
             self.status = 0
             return
 
-    def run(self):
+    def run(self,freq: bool = True) -> int:
         """
         Run all ORCA calculations
 
         Parameters:
+            - freq: bool, when True, frequency calculations are also run
 
         Class variables:
 
@@ -130,10 +131,11 @@ Moving on!
         if self.status == 0:
             print(Color.RED + 'Aborting calculation!' + Color.END)
             return self.status
-        self.calculate(calctype='freq')
-        if self.status == 0:
-            print(Color.RED + 'Aborting calculation!' + Color.END)
-            return self.status
+        if freq:
+            self.calculate(calctype='freq')
+            if self.status == 0:
+                print(Color.RED + 'Aborting calculation!' + Color.END)
+                return self.status
         print('ORCA calculations completed successfully!\n')
         os.chdir(self.original_wd)
         return self.status

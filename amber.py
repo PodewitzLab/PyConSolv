@@ -404,7 +404,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         f.close()
 
     def tleapNoMetalSolv(self, path, name):
-        file = '''source oldff / leaprc.ff99SB
+        file = '''source oldff/leaprc.ff99SB
 source leaprc.gaff
 source leaprc.water.tip3p
 LIG = loadmol2 LIG.mol2 

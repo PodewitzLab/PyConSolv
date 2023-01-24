@@ -104,7 +104,7 @@ Calculations will be set up in:
             print(Color.PURPLE + 'Restart file found!\n' + Color.END)
             os.remove(self.inputpath + '/pyconsolv.restart')
 
-    def setup(self, charge):
+    def setup(self, charge: int) -> int:
         """
         Run setup for creating the appropriate folders
 
@@ -134,7 +134,10 @@ Calculations will be set up in:
         """
         self.restarter.write('setup')
         calculation = Calculation(self.inputpath + '/orca_calculations')
-        self.status = calculation.run()
+        if self.hasMetal:
+            self.status = calculation.run()
+        else:
+            self.status = calculation.run(freq=False)
         if self.status == 0:
             error('ORCA Calculations')
             return 0
@@ -203,7 +206,7 @@ Calculations will be set up in:
             self.restarter.write('frcmod')
             return 1
 
-    def multiwfn(self, cores):
+    def multiwfn(self, cores: int) -> int:
         """
         Run Multiwfn charge calculations
 
@@ -284,7 +287,7 @@ Calculations will be set up in:
         self.restarter.write('mcpb')
         return 1
 
-    def tleap(self, solvent):
+    def tleap(self, solvent: str) -> int:
         """
         Run tleap
 
@@ -301,7 +304,7 @@ Calculations will be set up in:
             self.amber = amberInterface(self.MCPB)
 
         if not self.hasMetal:
-            self.amber.tleapNoMetalSolv(self.MCPB, 'A') # change to get values from ligands
+            self.amber.tleapNoMetalSolv(self.MCPB, 'A')  # change to get values from ligands
         self.amber.tleapChecker(self.MCPB)
         self.status = self.amber.runTleap()
 
@@ -346,14 +349,14 @@ Calculations will be set up in:
         self.restarter.write('equilibration')
         return 1
 
-    def run(self, cores=8, solvent='water', charge=0):
+    def run(self, cores: int = 8, solvent: str = 'water', charge: int = 0):
         """
         Run the conformer generation
 
         Parameters:
-            - cores: number of cpu cores to use for calculations, default is 8
-            - solvent: solvent to be used for ORCA/Tleap, default is water
-            - charge: total system charge
+            - :type cores: int, number of cpu cores to use for calculations, default is 8
+            - :type solvent: string, solvent to be used for ORCA/Tleap, default is water
+            - :type charge: int, total system charge
 
         Class variables:
         """
