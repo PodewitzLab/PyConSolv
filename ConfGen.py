@@ -57,6 +57,16 @@ class PyConSolv:
     """
 
     def __init__(self, path):
+        self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
+                      'CO', 'NI', 'CU', 'ZN',
+                      'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
+                      'CD', 'IN', 'SN', 'SB',
+                      'TE', 'CS', 'BA', 'LA', 'CE', 'PR', 'ND', 'PM', 'SM', 'EU', 'GD', 'TB', 'DY', 'HO', 'ER',
+                      'TM', 'YB', 'YB', 'LU', 'HF',
+                      'TA', 'W', 'RE', 'OS', 'IR', 'PT', 'AU', 'HG', 'TL', 'PB', 'BI', 'PO', 'AT', 'FR', 'RA', 'AC',
+                      'TH', 'PA', 'U', 'NP',
+                      'PU', 'AM', 'CM', 'BK', 'CF', 'ES', 'FM', 'MD', 'NO',
+                      'LR']
         self.hasMetal = None
         self.restarter = None
         self.path = path
@@ -68,6 +78,8 @@ class PyConSolv:
         self.amber = None
         self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
+
+        self.metalCheck()
 
         print(Color.BLUE + r'''
 
@@ -226,9 +238,8 @@ Calculations will be set up in:
         print(Color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + Color.END)
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
-            self.xyz.readFilenames(self.MCPB)
-            if len(self.xyz.filenames) == 1:
-                self.hasMetal = False
+            self.xyz.readFilenames(self.MCPB)  # todo this might not be needed
+            if not self.hasMetal:
                 self.restart = 6 # skip MCPB in case of no metal
                 return 1
         multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
@@ -371,6 +382,18 @@ Calculations will be set up in:
             return 0
         self.restarter.write('equilibration')
         return 1
+
+    def metalCheck(self):
+        """
+        Function to check whether a metal is present in the input structure
+
+        """
+        f = open(self.path,'r')
+        for line in f:
+            if line.split()[0] .upper() in self.metals:
+                self.hasMetal = True
+                break
+        f.close()
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
             cpcm: str = 'Water', cpu: int = 12, solvent: str = 'Water'):
