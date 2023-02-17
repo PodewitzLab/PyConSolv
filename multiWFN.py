@@ -48,6 +48,8 @@ class MultiWfnInterface:
             if 'core charge reduced due to ECP' in line:
                 break
             if not skip:
+                if not line.strip():
+                    break # break loop if line is empty
                 electrons.append(line.split()[2])
                 if '*  ' in line:
                     ecp.append(line.split()[0:3])
