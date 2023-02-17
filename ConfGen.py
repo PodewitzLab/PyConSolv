@@ -2,7 +2,7 @@ import shutil
 import os
 from tkinter import *
 import numpy as np
-
+from .solvent import Solvent
 from .colorgen import Color
 from .amber import amberInterface
 from .calculate import Calculation
@@ -43,6 +43,7 @@ class PyConSolv:
         - path: location of XYZ file
 
     Class variables:
+        - self.version - program version
         - self.hasMetal - True when a metal is part of the structure, False otherwise
         - self.restarter - object for reading restart files (see restart.py)
         - self.inputpath - full path to the folder where the input.xyz file is located
@@ -54,9 +55,11 @@ class PyConSolv:
         - self.amber - Object containing an amberInterface (see amber.py)
         - self.MCPB - full path to the MCPB_setup folder
         - self.xyz - Object containing an XYZ (see inputparser.py)
+        - self.solventsImplemented - list of supported solvents
     """
 
     def __init__(self, path):
+        self.version = '0.1.3'
         self.hasMetal = None
         self.restarter = None
         self.path = path
@@ -68,6 +71,9 @@ class PyConSolv:
         self.amber = None
         self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
+        self.solventsImplemented = ['Water', 'Acetonitrile', 'Acetone', 'Benzene', 'Cyclohexane', 'Chloroform', 'CCl4',
+                                    'CH2Cl2', 'DMF', 'DMSO', 'Ethanol', 'Hexane', 'Methanol', 'Ammonia', 'Octanol',
+                                    'THF', 'Toluene']
 
         print(Color.BLUE + r'''
 
@@ -79,7 +85,7 @@ class PyConSolv:
          |_|    \__, |\_____\___/|_| |_|_____/ \___/|_| \_/  
                  __/ |                                       
                 |___/                                        
-                                Ver 0.1.1
+                                Ver {}
                     
 Welcome to PyConSolv, your friendly neighbourhood conformer generator
 
@@ -87,7 +93,7 @@ Calculations will be set up in:
 
 {}
 
-        '''.format(self.inputpath) + Color.END)
+        '''.format(self.version, self.inputpath) + Color.END)
 
     def checkRestart(self):
         """
@@ -119,6 +125,9 @@ Calculations will be set up in:
 
         Class variables:
         """
+        if cpcm not in self.solventsImplemented:
+            print(Color.RED + 'Selected solvent is not yet implemented\n' + Color.END)
+            return 0
         if self.restart == 0:
             setup = Setup(self.path, charge=charge)
             setup.Method(method, basis, dsp, cpcm, cpu)
@@ -312,6 +321,12 @@ Calculations will be set up in:
         self.restarter.write('mcpb')
 
         print('Solvent of choice is: {}'.format(solvent))
+        if solvent not in self.solventsImplemented:
+            print(Color.RED + 'Selected solvent is not yet implemented\n' + Color.END)
+            return 0
+
+        solv = Solvent()
+        solv.applySolvent(solvent, self.MCPB+'/LIG_tleap.in', self.MCPB+'/LIG_tleap.in', self.MCPB)
 
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
@@ -372,8 +387,8 @@ Calculations will be set up in:
         self.restarter.write('equilibration')
         return 1
 
-    def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
-            cpcm: str = 'Water', cpu: int = 12, solvent: str = 'Water'):
+    def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
+            solvent: str = 'Water'):
         """
         Run the conformer generation
 
@@ -383,7 +398,6 @@ Calculations will be set up in:
             :param string method: ORCA 5 method line
             :param string basis: Basis set for ORCA calculations
             :param string dsp: Dispersion corrections
-            :param string cpcm: CPCM solvation model solvent
             :param int cpu: number of CPU cores to be used
 
         Class variables:
@@ -391,7 +405,7 @@ Calculations will be set up in:
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
         self.checkRestart()
-        self.setup(charge, method, basis, dsp, cpcm, cpu)
+        self.setup(charge, method, basis, dsp, solvent, cpu)
 
         if self.restart < 2:
             if self.orca() == 0:
