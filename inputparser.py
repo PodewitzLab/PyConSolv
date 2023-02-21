@@ -655,7 +655,13 @@ USER_CHARGES
 
         Class variables:
         """
-        f = open(path + '/Connections', 'w')
+        bondlen = 0
+        f = open(path + '/Connections_old', 'w')
+        f2 = open(path + '/Connections', 'w')
         for bond in self.connected:
             f.write(' '.join(str(x) for x in bond) + '\n')
+            f2.write(' '.join(str(x) for x in range(0+bondlen,len(bond)+bondlen)) + '\n')
         f.close()
+        f2.close()
+
+
