@@ -1,3 +1,5 @@
+import shutil
+
 import numpy as np
 import pandas as pd
 
@@ -239,10 +241,13 @@ class XYZ:
         for e in range(len(self.connected)):
             file = []
             atoms = len(self.connected[e])
+            metal = False
 
             for i in range(atoms):
 
                 atom_pos = self.connected[e][i]
+                if self.isMetal(self.atoms[atom_pos]):
+                    metal = True
 
                 line = ''
                 atom = 'HETATM'
@@ -340,7 +345,10 @@ class XYZ:
 
                 file.append(line)
             file.append('TER\n')
-            self.files.append(file)
+            if metal:
+                self.files.prepend(file)
+            else:
+                self.files.append(file)
 
     def writePDBFiles(self, path: str):
         """
@@ -604,6 +612,50 @@ USER_CHARGES
         self.createPDB()
         self.writePDBFiles(path)
 
+    def remakeXYZ(self, path: str):
+        if not self.connected:
+            print('Could not create file, no connectivity available\n')
+            return
+        tmp = [atomid for chain in self.connected for atomid in chain]  # flatten connection list
+        try:
+            f = open(path + '/input.xyz', 'w')
+            f.write(len(tmp) + '\n')
+            f.write('Modified XYZ file for MCPB.py - PyConSolv\n')
+            for atomid in tmp:
+                f.write('{} {} {} {}\n'.format(self.atoms[atomid], *self.coords[atomid]))
+            f.close()
+        except:
+            print('Could not create new XYZ file\n')
+            return
+    def reorderPDBs(self):
+        if not self.metals:
+            return
+
+    def prepareInput(self, inputfile: str, pdbpath: str):
+        """
+        Analyze connectivity and create a structure properly organized for MCPB.py
+        The atom names will be re-ordered and a map file will be created
+
+        Parameters:
+            :param string inputfile: full path to xyz inputfile
+
+        Class variables:
+        """
+        path = '/'.join(inputfile.split('/')[:-1])
+        try:
+            shutil.copyfile(inputfile, path + '/input.xyz.original')
+        except:
+            print('could not back up original file')
+        self.readXYZ(inputfile)
+        self.calculateDistanceMatrix()
+        self.generateAdjacencyMatrix()
+        self.generateLinkList()
+        self.connectedCompponents()
+        self.assignChain()
+        self.createPDB()
+        self.writePDBFiles(pdbpath)
+        self.remakeXYZ(path)
+
     def readFilenames(self, path: str):
         """
         Reads filenames from file. This is useful for restarting calculations
@@ -660,9 +712,7 @@ USER_CHARGES
         f2 = open(path + '/Connections', 'w')
         for bond in self.connected:
             f.write(' '.join(str(x) for x in bond) + '\n')
-            f2.write(' '.join(str(x) for x in range(0+bondlen,len(bond)+bondlen)) + '\n')
+            f2.write(' '.join(str(x) for x in range(0 + bondlen, len(bond) + bondlen)) + '\n')
             bondlen = bondlen + len(bond)
         f.close()
         f2.close()
-
-

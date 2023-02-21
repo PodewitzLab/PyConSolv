@@ -125,7 +125,7 @@ Calculations will be set up in:
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
               cpcm: str = 'Water', cpu: int = 12) -> int:
         """
-        Run setup for creating the appropriate folders
+        Run setup for creating the appropriate folders and parse XYZ file
 
         Parameters:
             :param int charge: charge of the complete system
@@ -149,7 +149,10 @@ Calculations will be set up in:
                 return 0
             print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
 
+        self.xyz = XYZ(self.db_file, self.db_metal_file)
+        self.xyz.prepareInput(self.inputpath + '\input.xyz', self.inputpath + '/MCPB_setup/')
         self.restarter = RestartFile(self.inputpath)
+
         return 1
 
     def orca(self):
