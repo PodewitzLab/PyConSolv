@@ -617,7 +617,6 @@ USER_CHARGES
             print('Could not create file, no connectivity available\n')
             return
         tmp = [atomid for chain in self.connected for atomid in chain]
-        print(tmp)# flatten connection list
         try:
             f = open(path + '/input.xyz', 'w')
             f.write(str(len(tmp)) + '\n')
