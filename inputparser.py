@@ -616,11 +616,14 @@ USER_CHARGES
         if not self.files:
             print('Could not create file, no connectivity available\n')
             return
-        tmp = [atomid for chain in self.connected for atomid in chain]  # flatten connection list
+        tmp = [atomid for chain in self.connected for atomid in chain]
+        print(tmp)# flatten connection list
         try:
             f = open(path + '/input.xyz', 'w')
+            print('yoy')
             f.write(len(tmp) + '\n')
             f.write('Modified XYZ file for MCPB.py - PyConSolv\n')
+            print('k')
             for chain in self.files:
                 for el in chain:
                     if 'TER' in el:
