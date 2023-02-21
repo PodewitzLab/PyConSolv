@@ -346,7 +346,7 @@ class XYZ:
                 file.append(line)
             file.append('TER\n')
             if metal:
-                self.files.prepend(file)
+                self.files = [file] + self.files
             else:
                 self.files.append(file)
 
