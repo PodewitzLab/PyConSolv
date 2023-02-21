@@ -636,7 +636,8 @@ USER_CHARGES
                     elif 'END' in el:
                         continue
                     else:
-                        f.write('{:<2} {:>.8f} {:>.8f} {:>.8f}\n'.format(el.split()[2],el.split()[6],el.split()[7],el.split()[8]))
+                        f.write('{:<2} {:>.8f} {:>.8f} {:>.8f}\n'.format(el.split()[2], float(el.split()[6]),
+                                                                         float(el.split()[7]), float(el.split()[8])))
             f.close()
             print('Created new optimized input.xyz file')
         except:
