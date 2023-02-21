@@ -661,6 +661,7 @@ USER_CHARGES
         for bond in self.connected:
             f.write(' '.join(str(x) for x in bond) + '\n')
             f2.write(' '.join(str(x) for x in range(0+bondlen,len(bond)+bondlen)) + '\n')
+            bondlen = bondlen + len(bond)
         f.close()
         f2.close()
 
