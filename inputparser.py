@@ -237,6 +237,8 @@ class XYZ:
         # todo clean up this function and use string.format() method
 
         self.files = []
+        self.switched = []
+        chainlen = 0
 
         for e in range(len(self.connected)):
             file = []
@@ -248,6 +250,7 @@ class XYZ:
                 atom_pos = self.connected[e][i]
                 if self.isMetal(self.atoms[atom_pos]):
                     metal = True
+                    self.switched.append(atom_pos + chainlen)
 
                 line = ''
                 atom = 'HETATM'
@@ -349,6 +352,7 @@ class XYZ:
                 self.files = [file] + self.files
             else:
                 self.files.append(file)
+            chainlen = atoms + chainlen
 
     def writePDBFiles(self, path: str):
         """
