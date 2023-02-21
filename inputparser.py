@@ -619,10 +619,9 @@ USER_CHARGES
         tmp = [atomid for chain in self.connected for atomid in chain]
         print(tmp)# flatten connection list
         try:
-            f = open(path + '/input_yolo.xyz', 'w')
+            f = open(path + '/input.xyz', 'w')
             f.write(str(len(tmp)) + '\n')
             f.write('Modified XYZ file for MCPB.py - PyConSolv\n')
-            print('k')
             for chain in self.files:
                 for el in chain:
                     if 'TER' in el:
@@ -632,14 +631,12 @@ USER_CHARGES
                     else:
                         f.write('{} {} {} {}\n'.format(el.split()[2],el.split()[6],el.split()[7],el.split()[8]))
             f.close()
+            print('Created new optimized input.xyz file')
         except:
             print('Could not create new XYZ file\n')
             return
-    def reorderPDBs(self):
-        if not self.metals:
-            return
 
-    def prepareInput(self, inputfile: str, pdbpath: str):
+    def prepareInput(self, inputfile: str):
         """
         Analyze connectivity and create a structure properly organized for MCPB.py
         The atom names will be re-ordered and a map file will be created
@@ -659,9 +656,7 @@ USER_CHARGES
         self.generateAdjacencyMatrix()
         self.generateLinkList()
         self.connectedCompponents()
-        self.assignChain()
         self.createPDB()
-        # self.writePDBFiles(pdbpath)
         self.remakeXYZ(path)
 
     def readFilenames(self, path: str):

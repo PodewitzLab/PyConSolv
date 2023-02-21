@@ -150,7 +150,8 @@ Calculations will be set up in:
             print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
 
         self.xyz = XYZ(self.db_file, self.db_metal_file)
-        self.xyz.prepareInput(self.inputpath + '/input.xyz', self.inputpath + '/MCPB_setup/')
+        self.xyz.prepareInput(self.inputpath + '/input.xyz')
+        self.xyz = None
         self.restarter = RestartFile(self.inputpath)
 
         return 1
