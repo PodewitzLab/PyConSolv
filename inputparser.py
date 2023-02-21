@@ -237,8 +237,6 @@ class XYZ:
         # todo clean up this function and use string.format() method
 
         self.files = []
-        self.switched = []
-        chainlen = 0
 
         for e in range(len(self.connected)):
             file = []
@@ -250,7 +248,6 @@ class XYZ:
                 atom_pos = self.connected[e][i]
                 if self.isMetal(self.atoms[atom_pos]):
                     metal = True
-                    self.switched.append(atom_pos + chainlen)
 
                 line = ''
                 atom = 'HETATM'
@@ -352,7 +349,6 @@ class XYZ:
                 self.files = [file] + self.files
             else:
                 self.files.append(file)
-            chainlen = atoms + chainlen
 
     def writePDBFiles(self, path: str):
         """
@@ -617,7 +613,7 @@ USER_CHARGES
         self.writePDBFiles(path)
 
     def remakeXYZ(self, path: str):
-        if not self.connected:
+        if not self.files:
             print('Could not create file, no connectivity available\n')
             return
         tmp = [atomid for chain in self.connected for atomid in chain]  # flatten connection list
@@ -625,8 +621,14 @@ USER_CHARGES
             f = open(path + '/input.xyz', 'w')
             f.write(len(tmp) + '\n')
             f.write('Modified XYZ file for MCPB.py - PyConSolv\n')
-            for atomid in tmp:
-                f.write('{} {} {} {}\n'.format(self.atoms[atomid], *self.coords[atomid]))
+            for chain in self.files:
+                for el in chain:
+                    if 'TER' in el:
+                        continue
+                    elif 'END' in el:
+                        continue
+                    else:
+                        f.write('{} {} {} {}\n'.format(el.split()[2],el.split()[6],el.split()[7],el.split()[8]))
             f.close()
         except:
             print('Could not create new XYZ file\n')
@@ -657,7 +659,7 @@ USER_CHARGES
         self.connectedCompponents()
         self.assignChain()
         self.createPDB()
-        self.writePDBFiles(pdbpath)
+        # self.writePDBFiles(pdbpath)
         self.remakeXYZ(path)
 
     def readFilenames(self, path: str):
