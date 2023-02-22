@@ -1,3 +1,5 @@
+import shutil
+
 import numpy as np
 import pandas as pd
 
@@ -239,10 +241,13 @@ class XYZ:
         for e in range(len(self.connected)):
             file = []
             atoms = len(self.connected[e])
+            metal = False
 
             for i in range(atoms):
 
                 atom_pos = self.connected[e][i]
+                if self.isMetal(self.atoms[atom_pos]):
+                    metal = True
 
                 line = ''
                 atom = 'HETATM'
@@ -340,7 +345,10 @@ class XYZ:
 
                 file.append(line)
             file.append('TER\n')
-            self.files.append(file)
+            if metal:
+                self.files = [file] + self.files
+            else:
+                self.files.append(file)
 
     def writePDBFiles(self, path: str):
         """
@@ -604,6 +612,61 @@ USER_CHARGES
         self.createPDB()
         self.writePDBFiles(path)
 
+    def remakeXYZ(self, path: str):
+        """
+        Creates new input.xyz file, with atom ordering suitable for further use with MCPB.py
+
+        Parameters:
+            :param string inputfile: full path to xyz inputfile
+
+        Class variables:
+        """
+        if not self.files:
+            print('Could not create file, no connectivity available\n')
+            return
+        tmp = [atomid for chain in self.connected for atomid in chain]
+        try:
+            f = open(path + '/input.xyz', 'w')
+            f.write(str(len(tmp)) + '\n')
+            f.write('Modified XYZ file for MCPB.py - PyConSolv\n')
+            for chain in self.files:
+                for el in chain:
+                    if 'TER' in el:
+                        continue
+                    elif 'END' in el:
+                        continue
+                    else:
+                        f.write('{:<2} {:>.8f} {:>.8f} {:>.8f}\n'.format(el.split()[2], float(el.split()[6]),
+                                                                         float(el.split()[7]), float(el.split()[8])))
+            f.close()
+            print('Created new optimized input.xyz file')
+        except:
+            print('Could not create new XYZ file\n')
+            return
+
+    def prepareInput(self, inputfile: str):
+        """
+        Analyze connectivity and create a structure properly organized for MCPB.py
+        The atom names will be re-ordered and a map file will be created
+
+        Parameters:
+            :param string inputfile: full path to xyz inputfile
+
+        Class variables:
+        """
+        path = '/'.join(inputfile.split('/')[:-1])
+        try:
+            shutil.copyfile(inputfile, path + '/input.xyz.original')
+        except:
+            print('could not back up original file')
+        self.readXYZ(inputfile)
+        self.calculateDistanceMatrix()
+        self.generateAdjacencyMatrix()
+        self.generateLinkList()
+        self.connectedCompponents()
+        self.createPDB()
+        self.remakeXYZ(path)
+
     def readFilenames(self, path: str):
         """
         Reads filenames from file. This is useful for restarting calculations
@@ -655,7 +718,12 @@ USER_CHARGES
 
         Class variables:
         """
-        f = open(path + '/Connections', 'w')
+        bondlen = 0
+        f = open(path + '/Connections_old', 'w')
+        f2 = open(path + '/Connections', 'w')
         for bond in self.connected:
             f.write(' '.join(str(x) for x in bond) + '\n')
+            f2.write(' '.join(str(x) for x in range(0 + bondlen, len(bond) + bondlen)) + '\n')
+            bondlen = bondlen + len(bond)
         f.close()
+        f2.close()

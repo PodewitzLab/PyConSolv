@@ -65,10 +65,10 @@ end
         self.optimization_folder = self.calculation_folder + '/' + 'opt'
         self.MCPB_folder = self.path + '/' + 'MCPB_setup'
 
-        if len(os.listdir(self.path)) > 1:
+        if len(os.listdir(self.path)) > 2:
             self.check = 0
             print(
-                Color.RED + 'Your calculation directory includes other folders/files. Please make sure it only contains your input xyz file!\n' + Color.END)
+                Color.RED + 'Your calculation directory includes unexpected folders/files. Please make sure it only contains your input xyz file!\n' + Color.END)
         else:
             print('Creating folders...')
             os.mkdir(self.calculation_folder)
