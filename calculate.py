@@ -49,7 +49,7 @@ class Calculation:
         else:
             return
 
-    def calculate(self, calctype:str):
+    def calculate(self, calctype: str, calcpath: str = ''):
         """
         Run orca calculations
 
@@ -58,15 +58,19 @@ class Calculation:
 
         Class variables:
         """
+        if calcpath != '':
+            loc = calcpath
+        else:
+            loc = '/'+calctype
         if calctype == 'opt':
             output = 'orca_opt.out'
             inputfile = 'orca_opt.inp'
-            os.chdir(self.path + '/opt')
+            os.chdir(self.path + loc)
             print('Running geometry optimization in ' + os.getcwd())
         elif calctype == 'freq':
             output = 'orca_freq.out'
             inputfile = 'orca_freq.inp'
-            os.chdir(self.path + '/freq')
+            os.chdir(self.path + loc)
             print('Running frequency calculation in ' + os.getcwd())
             shutil.copyfile(self.path + '/opt/orca_opt.xyz', self.path + '/freq/input.xyz')
         else:

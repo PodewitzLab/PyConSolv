@@ -137,6 +137,9 @@ Calculations will be set up in:
 
         Class variables:
         """
+        if cpcm == 'custom':
+            pass
+            # solventParam =
         if cpcm not in self.solventsImplemented:
             print(Color.RED + 'Selected solvent is not yet implemented\n' + Color.END)
             return 0
