@@ -316,7 +316,10 @@ Calculations will be set up in:
 
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
-            self.xyz.path = (self.inputpath + '/MCPB_setup/')
+            self.xyz.path = self.inputpath + '/MCPB_setup/'
+
+        if self.xyz.path is None:
+            self.xyz.path = self.inputpath + '/MCPB_setup/'
         self.xyz.createFinalMol2(self.inputpath)
 
         self.status = self.amber.runMCPB('4')

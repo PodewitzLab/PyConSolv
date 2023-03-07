@@ -82,6 +82,8 @@ class Solvent:
 
         Class variables:
         """
+        if self.solvent == self.solventDict['Water']:
+            return 1
         flag = 0
         try:
             f = open(path,'w')
