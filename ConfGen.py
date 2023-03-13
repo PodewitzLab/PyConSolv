@@ -2,6 +2,9 @@ import shutil
 import os
 from tkinter import *
 import numpy as np
+
+from .utils.charge import ChargeChanger
+from .solvenGen import solventParametrizer
 from .solvent import Solvent
 from .colorgen import Color
 from .amber import amberInterface
@@ -56,20 +59,26 @@ class PyConSolv:
         - self.MCPB - full path to the MCPB_setup folder
         - self.xyz - Object containing an XYZ (see inputparser.py)
         - self.solventsImplemented - list of supported solvents
+        - self.refrac - refractive index of custom solvent
+        - self.epsilon - permittivity of custom solvent
+        - self.solventParamPath - path to location of solvent XYZ file
     """
 
     def __init__(self, path):
-        self.version = '0.1.3'
+        self.refrac = None
+        self.epsilon = None
+        self.solventParamPath = None
+        self.version = '0.1.4'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
-                      'CO', 'NI', 'CU', 'ZN',
-                      'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
-                      'CD', 'IN', 'SN', 'SB',
-                      'TE', 'CS', 'BA', 'LA', 'CE', 'PR', 'ND', 'PM', 'SM', 'EU', 'GD', 'TB', 'DY', 'HO', 'ER',
-                      'TM', 'YB', 'YB', 'LU', 'HF',
-                      'TA', 'W', 'RE', 'OS', 'IR', 'PT', 'AU', 'HG', 'TL', 'PB', 'BI', 'PO', 'AT', 'FR', 'RA', 'AC',
-                      'TH', 'PA', 'U', 'NP',
-                      'PU', 'AM', 'CM', 'BK', 'CF', 'ES', 'FM', 'MD', 'NO',
-                      'LR']
+                       'CO', 'NI', 'CU', 'ZN',
+                       'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
+                       'CD', 'IN', 'SN', 'SB',
+                       'TE', 'CS', 'BA', 'LA', 'CE', 'PR', 'ND', 'PM', 'SM', 'EU', 'GD', 'TB', 'DY', 'HO', 'ER',
+                       'TM', 'YB', 'YB', 'LU', 'HF',
+                       'TA', 'W', 'RE', 'OS', 'IR', 'PT', 'AU', 'HG', 'TL', 'PB', 'BI', 'PO', 'AT', 'FR', 'RA', 'AC',
+                       'TH', 'PA', 'U', 'NP',
+                       'PU', 'AM', 'CM', 'BK', 'CF', 'ES', 'FM', 'MD', 'NO',
+                       'LR']
         self.hasMetal = None
         self.restarter = None
         self.path = path
@@ -83,7 +92,7 @@ class PyConSolv:
         self.xyz = None
         self.solventsImplemented = ['Water', 'Acetonitrile', 'Acetone', 'Benzene', 'Cyclohexane', 'Chloroform', 'CCl4',
                                     'CH2Cl2', 'DMF', 'DMSO', 'Ethanol', 'Hexane', 'Methanol', 'Ammonia', 'Octanol',
-                                    'THF', 'Toluene']
+                                    'THF', 'Toluene', 'custom']
 
         self.metalCheck()
 
@@ -137,6 +146,28 @@ Calculations will be set up in:
 
         Class variables:
         """
+        if cpcm == 'custom':
+            pass
+            print('You have selected a custom solvent, please input the absolute path to the solvent xyz file:\n')
+            self.solventParamPath = input()
+
+            print('Please enter the epsilon value for your custom solvent:\n')
+            self.epsilon = input()
+
+            print('Please enter the refractive index value for your custom solvent:\n')
+            self.refrac = input()
+
+            print(Color.GREEN+'''
+            
+###################
+Starting solvent parametrization in:
+{}
+####################
+
+'''.format('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param')+Color.END)
+            self.solventParam = solventParametrizer(self.solventParamPath)
+            self.solventParam.run(self.epsilon, self.refrac, method, basis, dsp, cpu)
+
         if cpcm not in self.solventsImplemented:
             print(Color.RED + 'Selected solvent is not yet implemented\n' + Color.END)
             return 0
@@ -145,13 +176,17 @@ Calculations will be set up in:
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
             setup = Setup(self.path, charge=charge)
-            setup.Method(method, basis, dsp, cpcm, cpu)
+            setup.Method(method, basis, dsp, cpcm, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
                 error('Setup')
                 return 0
+            if cpcm == 'custom':
+                shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.frcmod',
+                                self.MCPB + '/SLV.frcmod')
+                shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.mol2',
+                                self.MCPB + '/SLV.mol2')
             print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
-
 
         self.restarter = RestartFile(self.inputpath)
 
@@ -171,6 +206,7 @@ Calculations will be set up in:
             self.status = calculation.run()
         else:
             self.status = calculation.run(freq=False)
+            shutil.copyfile(self.inputpath + '/orca_calculations/opt/orca_opt.xyz', self.inputpath + '/MCPB_setup/input.xyz')
         if self.status == 0:
             error('ORCA Calculations')
             return 0
@@ -188,8 +224,7 @@ Calculations will be set up in:
         Class variables:
         """
         self.restarter.write('orca')
-        shutil.copyfile(self.inputpath + '/orca_calculations/freq/input.xyz', self.inputpath + '/MCPB_setup/input.xyz')
-
+        shutil.copyfile(self.inputpath + '/orca_calculations/opt/orca_opt.xyz', self.inputpath + '/MCPB_setup/input.xyz')
         self.xyz = XYZ(self.db_file, self.db_metal_file)
         self.xyz.prepareMCPB(self.inputpath + '/MCPB_setup/input.xyz')
         pdbs = self.xyz.filenames
@@ -230,12 +265,12 @@ Calculations will be set up in:
             return 1
 
         else:  # if no metal, proceed with tleap, presumes only 1 ligand
-            os.chdir(self.inputpath + '/equilibration/')
+            # os.chdir(self.inputpath + '/equilibration/')
             shutil.copyfile(self.MCPB + '/' + str(antechamberFiles[0][0]) + '.mol2',
-                            self.inputpath + '/equilibration/LIG.mol2')
+                            self.MCPB + '/LIG.mol2')
             shutil.copyfile(self.MCPB + '/' + antechamberFiles[0][0] + '.frcmod',
-                            self.inputpath + '/equilibration/LIG.frcmod')
-            self.amber.tleapNoMetalSolv(self.inputpath + '/equilibration/')
+                            self.MCPB + '/LIG.frcmod')
+            self.amber.tleapNoMetalSolv(self.MCPB)
             self.restarter.write('frcmod')
             return 1
 
@@ -253,11 +288,16 @@ Calculations will be set up in:
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.readFilenames(self.MCPB)  # todo this might not be needed
-            if not self.hasMetal:
-                self.restart = 6 # skip MCPB in case of no metal
-                return 1
-        multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
-        self.status = multiwfn.run(cores)
+        if not self.hasMetal:
+            multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/opt/', orcaname='orca_opt')
+            self.status = multiwfn.run(cores)
+            self.xyz.hasMetal = False
+            self.xyz.readRESP(self.inputpath + '/orca_calculations/')
+            chargeChanger = ChargeChanger()
+            chargeChanger.change(self.MCPB + '/A.mol2', self.MCPB + '/LIG.mol2', 'A', self.xyz.charges)
+        else:
+            multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
+            self.status = multiwfn.run(cores)
 
         if self.status == 0:
             error('MultiWfn Calculations')
@@ -313,7 +353,10 @@ Calculations will be set up in:
 
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
-            self.xyz.path = (self.inputpath + '/MCPB_setup/')
+            self.xyz.path = self.inputpath + '/MCPB_setup/'
+
+        if self.xyz.path is None:
+            self.xyz.path = self.inputpath + '/MCPB_setup/'
         self.xyz.createFinalMol2(self.inputpath)
 
         self.status = self.amber.runMCPB('4')
@@ -336,20 +379,27 @@ Calculations will be set up in:
         """
         self.restarter.write('mcpb')
 
+        os.chdir(self.MCPB)
         print('Solvent of choice is: {}'.format(solvent))
         if solvent not in self.solventsImplemented:
             print(Color.RED + 'Selected solvent is not yet implemented\n' + Color.END)
             return 0
 
-        solv = Solvent()
-        solv.applySolvent(solvent, self.MCPB+'/LIG_tleap.in', self.MCPB+'/LIG_tleap.in', self.MCPB)
-
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
 
-        if not self.hasMetal:
-            self.amber.tleapNoMetalSolv(self.MCPB)  # change to get values from ligands
+        # if not self.hasMetal:
+        #     self.amber.tleapNoMetalSolv(self.MCPB)  # change to get values from ligands
+        # self.amber.tleapChecker(self.MCPB)
+
+        solv = Solvent()
+        solv.applySolvent(solvent, self.MCPB + '/LIG_tleap.in',
+                          self.MCPB + '/LIG_tleap.in', self.MCPB)
+
+        # if not self.hasMetal:
         self.amber.tleapChecker(self.MCPB)
+        # shutil.copyfile(self.MCPB + '/LIG_tleap.in', self.MCPB + '/../equilibration/LIG_tleap.in')
+
         self.status = self.amber.runTleap()
 
         if self.status == 0:
@@ -359,7 +409,7 @@ Calculations will be set up in:
         self.restarter.write('tleap')
 
         print('Parametrization complete!\n')
-        print('Solvent of choice is: {}'.format(solvent))
+        print('Solvent of choice is: {}\n'.format(solvent))
         return 1
 
     def equilibration(self):
@@ -381,12 +431,8 @@ Calculations will be set up in:
             if len(self.xyz.filenames) == 1:
                 self.hasMetal = False
 
-        if self.hasMetal:
-            shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
-            shutil.copyfile(self.inputpath + '/MCPB_setup/LIG_solv.prmtop',
-                            self.inputpath + '/equilibration/LIG_solv.prmtop')
-        else:
-            shutil.copyfile(self.inputpath + '/equilibration/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
+        shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
+        shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')
 
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
@@ -410,7 +456,7 @@ Calculations will be set up in:
         """
         f = open(self.path, 'r')
         for line in f:
-            if line.split()[0] .upper() in self.metals:
+            if line.split()[0].upper() in self.metals:
                 self.hasMetal = True
                 break
         f.close()
@@ -444,7 +490,8 @@ Calculations will be set up in:
                 return
             if not self.hasMetal:
                 print('No metal has been found in your file, switching to simple parametrization')
-                self.restart = 6# skip mcpb and multiwfn if no metal
+                self.multiwfn(cpu)
+                self.restart = 6  # skip mcpb and multiwfn if no metal
 
         if self.restart < 5:
             if self.multiwfn(cpu) == 0:

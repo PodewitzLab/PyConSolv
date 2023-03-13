@@ -23,7 +23,6 @@ class Setup:
             - self.check = if there are other files in the folder, warning will be displayed and operations stopped
         """
         self.db_file = os.path.split(__file__)[0] + '/db/atom-radius.txt'
-        # self.db_file =  r'/home/rat/PyPer/atom-radius.txt'#change to actual file
         self.path = '/'.join(path.split('/')[:-1])
         self.inputFile = path.split('/')[-1]
         self.charge = charge
@@ -97,14 +96,15 @@ end
         f.close()
 
         shutil.copy(self.path + '/' + self.inputFile, self.optimization_folder + '/' + self.inputFile)
-        shutil.copy(self.path + '/' + self.inputFile,
-                    self.frequency_folder + '/' + self.inputFile)  # this should be changed to wait until optimization is run
 
-    def Method(self, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPCM: str = 'Water', CPU: int = 12):
+    def Method(self, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPCM: str = 'Water',
+               CPU: int = 12, epsilon: str = None, refrac: str = None):
         """
         Create folder structure for calculations
 
         Parameters:
+            :param epsilon: permittivity for custom solvent
+            :param refrac: refraction index for custom solvent
             :param int CPU: number of CPU cores, default is 12
             :param string CPCM: implicit solvent for orca calculations, default is Water
             :param string DSP: dispersion corrections, default is D4
@@ -117,7 +117,13 @@ end
             - self.cores = number of CPU cores
         """
         self.method = '! {} {} {} '.format(method, basis, DSP)
-        self.solvent = '! CPCM({})'.format(CPCM)
+        if CPCM == 'custom':
+            self.solvent = '''
+%CPCM       EPSILON      {}
+            REFRAC       {}
+END\n'''.format(epsilon, refrac)
+        else:
+            self.solvent = '! CPCM({})'.format(CPCM)
         self.cores = str(CPU)
 
     def run(self):
@@ -144,7 +150,7 @@ Basis :     {}
 Dispersion: {}
 Solvent:    {}
 CPU Cores:  {}
-            '''.format(self.path, *self.method.replace('!', '').split(), self.solvent.replace('! CPCM', ''),
+            '''.format(self.path, *self.method.replace('!', '').split(), self.solvent.replace('END\n', ''),
                        self.cores))
             status = 1
         return status

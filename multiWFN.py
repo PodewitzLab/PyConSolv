@@ -6,7 +6,7 @@ from .colorgen import Color
 
 
 class MultiWfnInterface:
-    def __init__(self, path: str):
+    def __init__(self, path: str, orcaname: str = 'orca_freq'):
         """
         Interface to MultiWfn
 
@@ -22,6 +22,7 @@ class MultiWfnInterface:
         self.original_wd = os.getcwd()
         os.chdir(self.path)
         self.status = 0
+        self.orcaname = orcaname
 
     def ECPcheck(self):
         """
@@ -35,7 +36,8 @@ class MultiWfnInterface:
         ecp = []
         electrons = []
         skip = True
-        f = open(self.path + '/orca_freq.out', 'r')
+
+        f = open(self.path + '/' + self.orcaname + '.out', 'r')
 
         for line in f:
             if 'CARTESIAN COORDINATES (A.U.)' in line:
@@ -63,9 +65,10 @@ class MultiWfnInterface:
             print('Atoms with ECP:')
             for at in ecp:
                 print('{} with {} electrons\n'.format(at[1], int(float(at[2].replace('*', '')))))
-            shutil.copyfile(self.path + '/orca_freq.molden.input', self.path + '/orca_freq.molden.input_no_ECP')
-            fin = open(self.path + '/orca_freq.molden.input_no_ECP', 'r')
-            fout = open(self.path + '/orca_freq.molden.input', 'w')
+            shutil.copyfile(self.path + '/' + self.orcaname + '.molden.input',
+                            self.path + '/' + self.orcaname + '.molden.input_no_ECP')
+            fin = open(self.path + '/' + self.orcaname + '.molden.input_no_ECP', 'r')
+            fout = open(self.path + '/' + self.orcaname + '.molden.input', 'w')
             iterator = 0
             for line in fin:
                 if '[Atoms] AU' in line:
@@ -106,8 +109,8 @@ y
 0
 q
 '''
-        f = open(self.path + '/multiwfn.input', 'w')
-        f.write(template.format(self.path + '/orca_freq.molden.input'))
+        f = open(self.path + './multiwfn.input', 'w')
+        f.write(template.format('./' + self.orcaname + '.molden.input'))
         f.close()
 
     def run(self, threads: int = 12) -> int:

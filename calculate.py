@@ -49,7 +49,7 @@ class Calculation:
         else:
             return
 
-    def calculate(self, calctype:str):
+    def calculate(self, calctype: str, calcpath: str = ''):
         """
         Run orca calculations
 
@@ -58,15 +58,19 @@ class Calculation:
 
         Class variables:
         """
+        if calcpath != '':
+            loc = calcpath
+        else:
+            loc = '/'+calctype
         if calctype == 'opt':
             output = 'orca_opt.out'
             inputfile = 'orca_opt.inp'
-            os.chdir(self.path + '/opt')
+            os.chdir(self.path + loc)
             print('Running geometry optimization in ' + os.getcwd())
         elif calctype == 'freq':
             output = 'orca_freq.out'
             inputfile = 'orca_freq.inp'
-            os.chdir(self.path + '/freq')
+            os.chdir(self.path + loc)
             print('Running frequency calculation in ' + os.getcwd())
             shutil.copyfile(self.path + '/opt/orca_opt.xyz', self.path + '/freq/input.xyz')
         else:
@@ -91,20 +95,20 @@ Calculation completed successfully!
 Moving on!
 
             ''')
+            print('Generating molden input file from calculation..\n')
             if calctype == 'freq':
-                print('Generating molden input file from calculation..\n')
                 command = 'orca_2mkl orca_freq -molden'
-                calc = subprocess.run([command], shell=True)
-                if calc.returncode == 0:
-                    self.status = 1
-                else:
-                    print(Color.RED + 'Could not create molden input file...\n' + Color.END)
-                    self.status = 0
-                    os.chdir(self.original_wd)
-                    return
-            self.status = 1
+            else:
+                command = 'orca_2mkl orca_opt -molden'
+            calc = subprocess.run([command], shell=True)
+            if calc.returncode == 0:
+                self.status = 1
+            else:
+                print(Color.RED + 'Could not create molden input file...\n' + Color.END)
+                self.status = 0
             os.chdir(self.original_wd)
             return
+
         else:
             print(
                 Color.RED + 'Something went wrong with the ORCA calculation, please check output files in '
