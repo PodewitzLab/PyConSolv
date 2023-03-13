@@ -1,13 +1,15 @@
 import os
 import shutil
-
-import numpy as np
 import subprocess
 
-from .calculate import Calculation
-from .multiWFN import MultiWfnInterface
-from .inputparser import XYZ
+import numpy as np
+
+from .utils.charge import ChargeChanger
+from .colorgen import Color
 from .amber import amberInterface
+from .calculate import Calculation
+from .inputparser import XYZ
+from .multiWFN import MultiWfnInterface
 
 
 class solventParametrizer:
@@ -18,23 +20,29 @@ class solventParametrizer:
         self.inputpath = '/'.join(structurePath.split('/')[:-1]) + '/solv_param/'
         self.input = self.inputpath + structurePath.split('/')[-1]
 
-        os.mkdir(self.inputpath)
+        try:
+            os.mkdir(self.inputpath)
+        except:
+            print('The folder contains a previously performed solvent parametrization...\n')
         shutil.copyfile(structurePath, self.input)
         self.outpath = self.inputpath
         self.solventPDB = None
         self.solventmol2 = None
         self.orca_inp = '''{}
-        {}
-        {}
+{}
 
-        %PAL NPROCS {} END
+%PAL NPROCS {} END
 
-        %scf
-        maxiter 350
-        end
+%CPCM       EPSILON      {}
+            REFRAC       {}
+END
 
-        * xyzfile 0 1 input.xyz
-        '''
+%scf
+maxiter 350
+end
+
+* xyzfile 0 1 input.xyz
+'''
 
     def parseXYZ(self):
 
@@ -72,10 +80,16 @@ class solventParametrizer:
         iterator = 0
         for line in f:
             iterator += 1
-            self.charges.append(line.split()[-1])
+            self.charges.append([line.split()[-1]]) # this maintains compatibility with the multiple fragment approach
         f.close()
 
+
     def changeCharges(self):
+        fin = self.inputpath + '/A.mol2'  # read mol2 files corresponding to the solvent pdb
+        fout = self.outpath + '/SLV.mol2'
+        self.chargeChanger = ChargeChanger()
+        self.chargeChanger.change(fin, fout, 'SLV', self.charges)
+    def changeCharges_old(self):
         """
                 Create final mol2 files for tleap, using the charges from the RESP calculation
 
@@ -128,8 +142,11 @@ class solventParametrizer:
         fout.close()
         fin.close()
 
-    def runORCA(self, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPCM: str = 'Water', CPU: int = 12):
-        os.mkdir(self.outpath + '/solvopt/')
+    def runORCA(self, epsilon:str, refrac:str, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPU: int = 12):
+        try:
+            os.mkdir(self.outpath + '/solvopt/')
+        except:
+            print('Previous calculations found, overwriting...\n')
         os.chdir(self.outpath + '/solvopt/')
         shutil.copyfile(self.input, self.outpath + '/solvopt/input.xyz')
         self.calc = Calculation(self.outpath)
@@ -137,7 +154,7 @@ class solventParametrizer:
 
         self.method = '! {} {} {}'.format(method,basis,DSP)
         f = open(self.outpath + '/solvopt/orca_opt.inp', 'w')
-        f.write(self.orca_inp.format(self.method, '! OPT', '! CPCM({})'.format(CPCM), CPU))
+        f.write(self.orca_inp.format(self.method, '! OPT', CPU, epsilon, refrac))
         f.close()
 
         self.calc.calculate(calctype='opt', calcpath = '/solvopt')
@@ -152,12 +169,12 @@ class solventParametrizer:
         self.multiwfn.run()
 
         os.chdir(self.outpath)
-    def run(self, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPCM: str = 'Water', CPU: int = 12):
+    def run(self, epsilon:str, refrac:str, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPU: int = 12):
         self.parseXYZ()
-        self.runORCA(method, basis, DSP, CPCM, CPU)
+        self.runORCA(epsilon, refrac, method, basis, DSP, CPU)
         self.runMultiwfn()
         self.runAntechamber()
         self.getMultiwfnCharges()
         self.changeCharges()
         dest = shutil.copyfile(self.inputpath + '/A.frcmod', self.inputpath + '/SLV.frcmod')
-        print('Solvent parametrization complete!\n')
+        print(Color.GREEN + 'Solvent parametrization complete!\n' + Color.END)

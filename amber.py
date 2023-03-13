@@ -373,7 +373,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             f.close()
             return False
 
-    def tleapChecker(self, path: str, solvent = 'Water'):
+    def tleapChecker(self, path: str):
         """
         Remove duplicate lines that can sometimes appear within tleap
 

@@ -95,20 +95,20 @@ Calculation completed successfully!
 Moving on!
 
             ''')
+            print('Generating molden input file from calculation..\n')
             if calctype == 'freq':
-                print('Generating molden input file from calculation..\n')
                 command = 'orca_2mkl orca_freq -molden'
-                calc = subprocess.run([command], shell=True)
-                if calc.returncode == 0:
-                    self.status = 1
-                else:
-                    print(Color.RED + 'Could not create molden input file...\n' + Color.END)
-                    self.status = 0
-                    os.chdir(self.original_wd)
-                    return
-            self.status = 1
+            else:
+                command = 'orca_2mkl orca_opt -molden'
+            calc = subprocess.run([command], shell=True)
+            if calc.returncode == 0:
+                self.status = 1
+            else:
+                print(Color.RED + 'Could not create molden input file...\n' + Color.END)
+                self.status = 0
             os.chdir(self.original_wd)
             return
+
         else:
             print(
                 Color.RED + 'Something went wrong with the ORCA calculation, please check output files in '

@@ -109,8 +109,8 @@ y
 0
 q
 '''
-        f = open(self.path + '/multiwfn.input', 'w')
-        f.write(template.format(self.path + '/' + self.orcaname + '.molden.input'))
+        f = open(self.path + './multiwfn.input', 'w')
+        f.write(template.format('./' + self.orcaname + '.molden.input'))
         f.close()
 
     def run(self, threads: int = 12) -> int:

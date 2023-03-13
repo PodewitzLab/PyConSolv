@@ -34,7 +34,8 @@ class Solvent:
            'Ammonia' : 'NH3',
            'Octanol' : 'OCT',
            'THF' : 'THF',
-           'Toluene' : 'TOL'}
+           'Toluene' : 'TOL',
+           'custom' : 'SLV'}
         self.tleap = []
         self.status = 1
 
@@ -86,16 +87,18 @@ class Solvent:
             return 1
         flag = 0
         try:
+            print('writing into ' + path)
             f = open(path,'w')
             for line in self.tleap:
                 if 'loadmol2' in line and flag == 0:
-                    f.write('{} = loadmol2 {}.mol2'.format(self.solvent,self.solvent))
+                    print('{} = loadmol2 {}.mol2\n'.format(self.solvent,self.solvent))
+                    f.write('{} = loadmol2 {}.mol2\n'.format(self.solvent,self.solvent))
                     flag = 1
                 if 'loadmol2' in line and flag == 1:
-                    f.write('loadamberparams {}.frcmod'.format(self.solvent))
+                    f.write('loadamberparams {}.frcmod\n'.format(self.solvent))
                     flag = 2
                 if 'solvatebox' in line and flag == 2:
-                    f.write('solvatebox mol {} 20.0 iso'.format(self.solvent))
+                    f.write('solvatebox LIG {} 20.0 iso\n'.format(self.solvent))
                     flag = 3
                     continue
                 f.write(line)
@@ -115,8 +118,10 @@ class Solvent:
         Class variables:
         """
         try:
-            dest = shutil.copyfile(self.solventFilesPath + r'/{}.mol2.'.format(self.solvent), path)
-            dest = shutil.copyfile(self.solventFilesPath + r'/{}.frcmod'.format(self.solvent), path)
+            dest = shutil.copyfile(self.solventFilesPath + r'/{}.mol2'.format(self.solvent),
+                                   path + r'/{}.mol2'.format(self.solvent))
+            dest = shutil.copyfile(self.solventFilesPath + r'/{}.frcmod'.format(self.solvent),
+                                   path + r'/{}.frcmod'.format(self.solvent))
             self.status = 1
         except:
             print('File copy error')
@@ -136,17 +141,18 @@ class Solvent:
         """
         self.status = self.checkSolvent(solvent)
         if self.status == 0:
-            return
+            return 0
         self.status = self.readLeapFile(leapin)
         if self.status == 0:
-            return
+            return 0
         self.status = self.writeLeapFile(leapout)
         if self.status == 0:
-            return
-        self.status = self.copyfiles(path)
+            return 0
+        if solvent != 'custom':
+            self.status = self.copyfiles(path)
         if self.status == 0:
-            print('Tleap file modified!\n')
+            print('Error: Tleap file not modified!\n')
             return 0
         else:
-            print('Error: Tleap file not modified!\n')
+            print('Tleap file modified!\n')
             return 1
