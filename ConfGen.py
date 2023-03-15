@@ -62,6 +62,7 @@ class PyConSolv:
         - self.refrac - refractive index of custom solvent
         - self.epsilon - permittivity of custom solvent
         - self.solventParamPath - path to location of solvent XYZ file
+        - self.solventPath - path to pre-parametrized solvents
     """
 
     def __init__(self, path):
@@ -87,6 +88,7 @@ class PyConSolv:
         self.restart = 0
         self.db_file = os.path.split(__file__)[0] + '/db/atom-radius.txt'
         self.db_metal_file = os.path.split(__file__)[0] + '/db/metal-radius.txt'
+        self.solventPath = os.path.split(__file__)[0] + '/solvents/'
         self.amber = None
         self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
@@ -95,6 +97,7 @@ class PyConSolv:
                                     'THF', 'Toluene', 'custom']
 
         self.metalCheck()
+
 
         print(Color.BLUE + r'''
 
@@ -181,12 +184,21 @@ Starting solvent parametrization in:
             if self.status == 0:
                 error('Setup')
                 return 0
-            if cpcm == 'custom':
-                shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.frcmod',
-                                self.MCPB + '/SLV.frcmod')
-                shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.mol2',
-                                self.MCPB + '/SLV.mol2')
-            print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
+
+        if cpcm == 'custom':
+            shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.frcmod',
+                            self.MCPB + '/SLV.frcmod')
+            shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.mol2',
+                            self.MCPB + '/SLV.mol2')
+        else:
+            solvent = Solvent()
+            solvname = solvent.solventDict[cpcm]
+            shutil.copyfile(self.solventPath + '/{}.frcmod'.format(solvname),
+                            self.MCPB + '/{}.frcmod'.format(solvname))
+            shutil.copyfile(self.solventPath + '{}.mol2'.format(solvname),
+                            self.MCPB + '/{}.mol2'.format(solvname))
+
+        print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
 
         self.restarter = RestartFile(self.inputpath)
 
@@ -287,6 +299,7 @@ Starting solvent parametrization in:
         print(Color.GREEN + 'Fragments have been prepared, running MultiWfn task...\n\n' + Color.END)
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
+            self.xyz.hasMetal = self.hasMetal
             self.xyz.readFilenames(self.MCPB)  # todo this might not be needed
         if not self.hasMetal:
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/opt/', orcaname='orca_opt')
