@@ -74,7 +74,7 @@ class Solvent:
             print('File read error')
             return 0
 
-    def writeLeapFile(self, path: str) -> int:
+    def writeLeapFile(self, path: str, solutename = 'LIG') -> int:
         """
         read tleap file
 
@@ -98,7 +98,7 @@ class Solvent:
                     f.write('loadamberparams {}.frcmod\n'.format(self.solvent))
                     flag = 2
                 if 'solvatebox' in line and flag == 2:
-                    f.write('solvatebox LIG {} 20.0 iso\n'.format(self.solvent))
+                    f.write('solvatebox {} {} 20.0 iso\n'.format(solutename, self.solvent))
                     flag = 3
                     continue
                 f.write(line)
@@ -127,7 +127,7 @@ class Solvent:
             print('File copy error')
             self.status = 0
 
-    def applySolvent(self, solvent: str, leapin: str, leapout: str, path: str) -> int:
+    def applySolvent(self, solvent: str, leapin: str, leapout: str, path: str, solutename = 'LIG') -> int:
         """
         apply changes to solvent in tleapfile
 
@@ -145,7 +145,7 @@ class Solvent:
         self.status = self.readLeapFile(leapin)
         if self.status == 0:
             return 0
-        self.status = self.writeLeapFile(leapout)
+        self.status = self.writeLeapFile(leapout, solutename)
         if self.status == 0:
             return 0
         if solvent != 'custom':

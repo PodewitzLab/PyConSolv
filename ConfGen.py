@@ -4,17 +4,17 @@ from tkinter import *
 import numpy as np
 
 from .utils.charge import ChargeChanger
-from .solvenGen import solventParametrizer
-from .solvent import Solvent
-from .colorgen import Color
-from .amber import amberInterface
-from .calculate import Calculation
-from .filestructure import Setup
-from .inputparser import XYZ
-from .multiWFN import MultiWfnInterface
-from .outgen import Faker
-from .ui import GUI
-from .restart import RestartFile
+from .misc.solvenGen import solventParametrizer
+from .misc.solvent import Solvent
+from .utils.colorgen import Color
+from .interfaces.amber import amberInterface
+from .interfaces.calculate import Calculation
+from .misc.filestructure import Setup
+from .misc.inputparser import XYZ
+from .interfaces.multiWFN import MultiWfnInterface
+from .misc.outgen import Faker
+from .misc.ui import GUI
+from .misc.restart import RestartFile
 
 
 def error(step):
@@ -354,6 +354,7 @@ Starting solvent parametrization in:
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.path = self.inputpath + '/MCPB_setup/'
+            self.xyz.hasMetal = self.hasMetal
 
         if self.xyz.path is None:
             self.xyz.path = self.inputpath + '/MCPB_setup/'
@@ -391,10 +392,13 @@ Starting solvent parametrization in:
         # if not self.hasMetal:
         #     self.amber.tleapNoMetalSolv(self.MCPB)  # change to get values from ligands
         # self.amber.tleapChecker(self.MCPB)
-
+        if self.hasMetal:
+            solutename = 'mol'
+        else:
+            solutename = 'LIG'
         solv = Solvent()
         solv.applySolvent(solvent, self.MCPB + '/LIG_tleap.in',
-                          self.MCPB + '/LIG_tleap.in', self.MCPB)
+                          self.MCPB + '/LIG_tleap.in', self.MCPB, solutename)
 
         # if not self.hasMetal:
         self.amber.tleapChecker(self.MCPB)

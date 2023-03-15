@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-from .colorgen import Color
+from PyConSolv.utils.colorgen import Color
 
 
 class amberInterface:

@@ -3,7 +3,7 @@ import shutil
 import numpy as np
 import pandas as pd
 
-from .utils.charge import ChargeChanger
+from PyConSolv.utils.charge import ChargeChanger
 
 
 class XYZ:

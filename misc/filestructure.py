@@ -1,10 +1,10 @@
 import shutil
 import os
-from .colorgen import Color
+from PyConSolv.utils.colorgen import Color
 
 
 class Setup:
-    def __init__(self, path: str, charge: int = 0, multi: object = 1) -> NotImplemented:
+    def __init__(self, path: str, charge: int = 0, multi: int = 1) -> NotImplemented:
         """
         Class for setting up all the necessary input files and folders for the generation of the parameters
 
