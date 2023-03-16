@@ -173,7 +173,7 @@ end
         try:
             os.mkdir(self.outpath + '/solvopt/')
         except:
-            print('Previous calculations found, overwriting...\n')
+            print('Previous calculations found, checking...\n')
         os.chdir(self.outpath + '/solvopt/')
         shutil.copyfile(self.input, self.outpath + '/solvopt/input.xyz')
         self.calc = Calculation(self.outpath)
@@ -197,6 +197,9 @@ end
 
         os.chdir(self.outpath)
     def run(self, epsilon:str, refrac:str, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPU: int = 12):
+        if os.path.exists(self.inputpath + '../done'):
+            print('Previously performed parametrization is complete, using solvent\n')
+            return
         self.parseXYZ()
         self.runORCA(epsilon, refrac, method, basis, DSP, CPU)
         self.runMultiwfn()
@@ -205,3 +208,5 @@ end
         self.changeCharges()
         dest = shutil.copyfile(self.inputpath + '/A.frcmod', self.inputpath + '/SLV.frcmod')
         print(Color.GREEN + 'Solvent parametrization complete!\n' + Color.END)
+        f = open(self.inputpath + '../done', 'w')
+        f.close()
