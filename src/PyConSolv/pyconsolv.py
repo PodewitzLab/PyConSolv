@@ -3,7 +3,7 @@ import sys
 import os
 import argparse
 
-# from PyConSolv.ConfGen import PyConSolv
+from PyConSolv.ConfGen import PyConSolv
 
 
 def main():
@@ -21,9 +21,13 @@ def main():
     args = parser.parse_args()
 
     inputfilepath = os.path.abspath(args.input)
-    # conf = PyConSolv(inputfilepath)
-    # conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-    #         solvent = args.solvent )
+
+    if '.xyz' not in inputfilepath:
+        print('Path does not contain a valid XYZ file\n')
+        sys.exit()
+    conf = PyConSolv(inputfilepath)
+    conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
+            solvent = args.solvent )
     sys.exit()
 
 if __name__ == '__main__':
