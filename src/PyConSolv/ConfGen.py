@@ -69,7 +69,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '0.1.5'
+        self.version = '0.1.6'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -251,8 +251,10 @@ Starting solvent parametrization in:
 
         # get charges from user
         window = Tk()
+        window.title('Fragment charge assignment')
         start = GUI(window, self.MCPB, pdbs)
         window.mainloop()
+        window.destroy()
 
         # create mol2 files and run antechamber
         self.xyz.writeMol2Files()
@@ -376,6 +378,7 @@ Starting solvent parametrization in:
 
         if self.xyz.path is None:
             self.xyz.path = self.inputpath + '/MCPB_setup/'
+            self.xyz.hasMetal = self.hasMetal
         self.xyz.createFinalMol2(self.inputpath)
 
         self.status = self.amber.runMCPB('4')

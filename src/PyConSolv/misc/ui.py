@@ -33,7 +33,7 @@ class GUI:
         self.box = Entry(window)
         self.box.insert(0, "-1")
         self.box.pack()
-        self.button = Button(window, text="OK", command=self.getValue)
+        self.button = Button(window, text="Assign Charge", command=self.getValue)
         self.button.pack()
         self.plot(self.path + '/' + self.files[0])
         self.structureid = 0
@@ -138,4 +138,4 @@ class GUI:
 
         Class variables:
         """
-        self.window.destroy()
+        self.window.quit()

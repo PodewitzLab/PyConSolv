@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "PyConSolv"
-version = "0.1.5"
+version = "0.1.6"
 authors = [
   { name="R. A. Talmazan", email="radu.talmazan@tuwien.ac.at" },
 ]
@@ -13,10 +13,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "License :: OSI Approved :: GNU General Public License v3.0",
+    "Operating System :: Linux",
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/pypa/sampleproject"
-"Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
+"Homepage" = "https://github.com/PodewitzLab/PyConSolv"
+"Bug Tracker" = "https://github.com/PodewitzLab/PyConSolv/issues"

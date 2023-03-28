@@ -79,7 +79,6 @@ class Calculation:
             return
 
         command = self.orcapath + inputfile + ' > ' + output
-        # command = [self.orcapath,inputfile]
         print(command)
         f = open('run_calc.sh', 'w')
         f.write('#!/bin/bash\n')

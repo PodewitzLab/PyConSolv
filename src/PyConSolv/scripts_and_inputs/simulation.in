@@ -1,0 +1,16 @@
+100ns cmd simulation input 300K
+&cntrl
+   ntb=2
+   ntp=1, pres0=1.0, taup=2.0
+   iwrap=1
+   ioutfm=1
+   ntxo=2
+   ntx=5, irest=1
+   cut=10.0
+   ntc=2, ntf=2
+   ntt=3, gamma_ln=2.0
+   tempi=300.0, temp0=300.0
+   nstlim=100000000, dt=0.001
+   ntpr=1000, ntwx=10000,
+   ntwr=20000
+   /

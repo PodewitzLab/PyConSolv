@@ -369,23 +369,28 @@ class XYZ:
         for i in range(len(self.files)):
             if len(self.files[i]) == 2:  # single atom ligands need to be treated differently to work with MCPB.py
                 name = self.files[i][0].split()[-1].upper()
-                self.filenames.append(name + '.pdb')
-                f = open(self.path + '/' + name + '.pdb', 'w')
+
                 if self.isMetal(name):
-                    self.hasMetal = True
                     s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name) + '{:>3}'.format(name) + \
                         self.files[i][0][20:]
-                    f.write(s.upper())
-                    f.write('TER')
-                    f.close()
+                    if [name + '.pdb', name] in self.metals:
+                        self.filenames.append(name + str(len(self.metals)) +'.pdb')
+                    else:
+                        self.filenames.append(name + '.pdb')
+                    self.hasMetal = True
+                    s = s.upper()
                     self.metals.append([name + '.pdb', name])
                 else:
-                    f.write(
-                        self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name) + '{:>3}'.format(name) +
-                        self.files[i][0][20:])
-                    f.write('TER')
-                    f.close()
-                    self.ligands.append([name + '.pdb', name])
+                    s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name + str(atomid)) + '{:>3}'.format(chr(65 + i)) + \
+                        self.files[i][0][20:]
+                    atomid += 1
+                    self.filenames.append(chr(65 + i) + '.pdb')
+                    name = chr(65 + i)
+                    self.ligands.append([chr(65 + i) + '.pdb', chr(65 + i)])
+                f = open(self.path + '/' + name + '.pdb', 'w')
+                f.write(s)
+                f.write('TER')
+                f.close()
 
             else:
                 self.filenames.append(chr(65 + i) + '.pdb')
@@ -432,6 +437,7 @@ class XYZ:
 
         self.charges = []
         self.molNotCreated = []
+        atomindex = 0
         f = open(self.path + '/chargeMap.dat', 'r')
         for line in f:
             self.charges.append(line.split())
@@ -440,16 +446,26 @@ class XYZ:
 
             print(self.charges[i])
             if len(self.files[i]) == 2:  # single atom ligands need to be treated differently to work with MCPB.py
-                name = self.files[i][0].split()[-1].upper()
-                if self.isMetal(name):
+                name = self.files[i][0].split()[-1]
+                atomlabel = self.files[i][0].split()[2].upper()
+                if not self.isMetal(name):
+                    atomtype = name
+                    name = self.charges[i][0]
+                    atomlabel = atomlabel + str(atomindex-1)
+                    metal = False
+                else:
+                    metal = True
+                    name = name.upper()
+                    atomtype = name.upper()
                     print('Metal atom found: {}, assigning charge {}'.format(name, self.charges[i][1]))
                 coords = self.files[i][0].split()[6:9]
                 self.createMol2_new(name, coords=coords, charge=float(self.charges[i][1]),
-                                    index='')  # this index should allow for the parsing multiple metals and fix a bug with the ID not being found for mcpb
+                                    index='', atomtype = atomtype, atomlabel = atomlabel)  # this index should allow for the parsing multiple metals and fix a bug with the ID not being found for mcpb
             else:
                 self.molNotCreated.append(self.charges[i])
+            atomindex = atomindex + len(self.files[i]) - 1
 
-    def createMol2_new(self, name: str, coords: list, charge: float = -1, index: str = ''):
+    def createMol2_new(self, name: str, coords: list, charge: float = -1, index: str = '', atomtype: str = '', atomlabel: str = ''):
         """
         Write out mol2 file for metal and single atom ligands
 
@@ -458,6 +474,7 @@ class XYZ:
             :param list coords: coordinates of atoms
             :param float charge: charge of atom
             :param string index: ID of residue
+            :param string atomtype: Alternate label for atom type
 
         Class variables:
         """
@@ -478,8 +495,8 @@ USER_CHARGES
         print('Writing out {} ... \n'.format(self.path + name + index + '.mol2'))
         f = open(self.path + name + index + '.mol2', 'w')
         f.write(
-            layout.format(name + index, name + index, float(coords[0]), float(coords[1]), float(coords[2]),
-                          name + index, name, charge, name + index))
+            layout.format(name, atomlabel, float(coords[0]), float(coords[1]), float(coords[2]),
+                          atomtype + index, name, charge, name + index))
         f.close()
 
     def createFinalMol2(self, path: str):
@@ -498,7 +515,6 @@ USER_CHARGES
         self.readMAP(path + '/MCPB_setup')
         self.chargeChanger = ChargeChanger()
         for name in self.filenames:
-            switch = 0
             fname = name.split('.')[0]
             fin = self.path + '/' + fname + '.mol2'
             fout = self.path + '/' + fname + '1.mol2'
