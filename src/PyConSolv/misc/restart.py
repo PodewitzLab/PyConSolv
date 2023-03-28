@@ -33,6 +33,8 @@ class RestartFile:
                     self.state = 7
                 case 'equilibration':
                     self.state = 8
+                case 'DONE':
+                    self.state = 9
                 case other:
                     self.state = 0
 

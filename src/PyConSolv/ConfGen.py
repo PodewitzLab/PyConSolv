@@ -437,11 +437,12 @@ Starting solvent parametrization in:
         print('Solvent of choice is: {}\n'.format(solvent))
         return 1
 
-    def equilibration(self):
+    def equilibration(self, cpu: int = 12):
         """
         Run system equilibration
 
         Parameters:
+            :param int cpu = number of cpus to be used for the equilibration
 
         Class variables:
         """
@@ -466,13 +467,65 @@ Starting solvent parametrization in:
         print('Done!\n')
         print(Color.GREEN + 'Starting equilibration...' + Color.END)
 
-        self.status = self.amber.equilibrate()
+        self.status = self.amber.equilibrate(cpus = cpu)
 
         if self.status == 0:
             error('Equilibration')
+            print('If error stems from grid changes, you can modify the input file for the offending step and restart '
+                  'the equilibration with the provided restart script in\n {}\n'.format(self.inputpath + '/equilibration'))
             return 0
         self.restarter.write('equilibration')
         return 1
+
+    def prepareSimulation(self, solvent):
+        """
+        Function to copy scripts and inputs needed for running and analysing the simulation
+
+        """
+        self.restarter.write('equilibration')
+        print('Preparing simulation...\n')
+        sourceloc = os.path.split(__file__)[0]
+        try:
+            # PyConSolv / scripts_and_inputs
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/run_simulation.sh', self.inputpath + '/simulation/run-simulation.sh')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/dry_sim.in', self.inputpath + '/simulation/dry_sim.in')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/align.in', self.inputpath + '/simulation/align.in')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/cluster_kmeans.in', self.inputpath + '/simulation/cluster_kmeans.in')
+        except:
+            print('Failed to copy files into simulation folder')
+            return 1
+        solv = Solvent()
+        solvID = solv.solventDict[solvent]
+        self.modifyDryScript(self.inputpath + '/simulation/dry_sim.in', solvID)
+        self.restarter.write('DONE')
+        print('Simulation setup complete, please execute the run_simulation.sh script in:\n {}\n to '
+              'begin a 100ns cmd production run.\n'.format(self.inputpath + '/simulation'))
+        print(Color.GREEN + 'My job here is done!' + Color.END)
+        return 0
+
+
+
+    def modifyDryScript(self, path, solvent):
+        """
+                Modify the dry script to account for the correct solvent.
+
+                Parameters:
+                    :param str path: location of dry_sim.in cpptraj script
+                    :param str solvent: new solvent label
+        """
+        f = open(path, 'r')
+        tmp = []
+        for line in f:
+            if 'SLV' in line:
+                line = line.replace('SLV', solvent)
+            tmp.append(line)
+        f.close()
+
+        f = open(path, 'w')
+        for line in tmp:
+            f.write(line)
+        f.close()
 
     def metalCheck(self):
         """
@@ -531,5 +584,11 @@ Starting solvent parametrization in:
                 return
 
         if self.restart < 8:
-            if self.equilibration() == 0:
+            if self.equilibration(cpu) == 0:
                 return
+
+        if self.restart < 9:
+            if self.prepareSimulation(solvent) == 0:
+                return
+        if self.restart == 9:
+            print('This structure has already completed parametrization, please make sure you are using the correct input\n')

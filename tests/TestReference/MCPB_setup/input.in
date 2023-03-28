@@ -1,0 +1,10 @@
+original_pdb Full_PDB.pdb
+group_name LIG
+cut_off 2.8
+ion_ids 1
+software_version g16
+ion_mol2files PT.mol2
+naa_mol2files B.mol2 C.mol2 D.mol2 E.mol2
+frcmod_files B.frcmod C.frcmod D.frcmod E.frcmod
+add_bonded_pairs 1-10
+add_bonded_pairs 1-11

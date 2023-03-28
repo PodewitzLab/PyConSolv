@@ -1,0 +1,17 @@
+Remark line goes here
+MASS
+Cl 35.450        1.910               same as cl 
+
+BOND
+
+ANGLE
+
+DIHE
+
+IMPROPER
+
+NONBON
+  Cl          1.9480  0.2650             same as cl 
+
+
+

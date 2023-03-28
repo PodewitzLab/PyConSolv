@@ -115,64 +115,31 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         os.chdir(self.path + '/../equilibration')
         equilibrateCommand = [
             'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 1
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 2
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 3
-            'mpirun -np 8 pmemd -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
+            'mpirun -np {} pmemd -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
             # 4
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 5
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 6
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 7
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 8
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 9
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 10
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 11
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 12
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 13
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 14
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 15
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 16
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 17
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 18
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 19
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
-            # 20
-            'pmemd.cuda -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7'
-            # 21
             ]
 
-        for i in range(1, 21):
-            if 'pmemd.cuda' in equilibrateCommand[i]:
-                calc = subprocess.run(equilibrateCommand[i].format(i, i, i - 1, i, i - 1), shell=True)
-                print(equilibrateCommand[i].format(i, i, i - 1, i, i - 1))
+        for i in range(1, 22):
+            if i != 3:
+                calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1), shell=True)
             else:
-                # print(equilibrateCommand[i].format(cpus, i, i, i - 1, i, i - 1))
-                calc = subprocess.run(equilibrateCommand[i].format(i, i, i - 1, i, i - 1), shell=True) # no MPI
-                print(equilibrateCommand[i].format(i, i, i - 1, i, i - 1))
-                #calc = subprocess.run(equilibrateCommand[i].format(cpus, i, i, i - 1, i, i - 1), shell=True) # to be fixed for mpi
+                if cpus == 1:
+                    calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1).replace('.cuda',''), shell=True)
+                else:
+                    calc = subprocess.run(equilibrateCommand[1].format(cpus, i, i, i - 1, i, i - 1), shell=True)
             if calc.returncode == 0:
                 print('Equlibration step {} completed successfully\n'.format(i))
                 self.status = 1
             else:
                 self.status = 0
                 print('Equlibration step {} failed!\n'.format(i))
+                f = open(self.path + '/../equilibration/restart_equil.sh','w')
+                for j in range(i, 22):
+                    if j != 3:
+                        f.write(equilibrateCommand[0].format(j, j, j - 1, j, j - 1) + '\n')
+                    else:
+                        f.write(equilibrateCommand[1].format(cpus, j, j, j - 1, j, j - 1) + '\n')
+                f.close()
                 return self.status
 
     def runTleap(self):

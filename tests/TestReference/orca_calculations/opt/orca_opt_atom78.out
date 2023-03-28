@@ -446,7 +446,7 @@ Calculating 4-index integrals               ...
     -> L=2 0 2 0:     0.000 sec done=        78 (=100.0%) skipped=         0 
     -> L=2 1 0 0:     0.000 sec done=       126 (=100.0%) skipped=         0 
     -> L=2 1 1 0:     0.000 sec done=       108 (=100.0%) skipped=         0 
-    -> L=2 1 2 0:     0.000 sec done=        72 (=100.0%) skipped=         0 
+    -> L=2 1 2 0:     0.001 sec done=        72 (=100.0%) skipped=         0 
     -> L=2 2 0 0:     0.000 sec done=        63 (=100.0%) skipped=         0 
     -> L=3 0 0 0:     0.000 sec done=       126 (=100.0%) skipped=         0 
     -> L=3 2 0 0:     0.000 sec done=        42 (=100.0%) skipped=         0 
@@ -456,19 +456,19 @@ Calculating 4-index integrals               ...
     -> L=3 2 2 1:     0.001 sec done=        12 (=100.0%) skipped=         0 
     -> L=3 2 2 2:     0.001 sec done=         6 (=100.0%) skipped=         0 
     -> L=3 2 3 0:     0.000 sec done=        12 (=100.0%) skipped=         0 
-    -> L=3 2 3 1:     0.000 sec done=         6 (=100.0%) skipped=         0 
+    -> L=3 2 3 1:     0.001 sec done=         6 (=100.0%) skipped=         0 
     -> L=3 2 3 2:     0.001 sec done=         3 (=100.0%) skipped=         0 
     -> L=3 3 0 0:     0.000 sec done=        21 (=100.0%) skipped=         0 
     -> L=3 3 1 1:     0.000 sec done=         6 (=100.0%) skipped=         0 
     -> L=3 3 2 0:     0.000 sec done=        12 (=100.0%) skipped=         0 
     -> L=3 3 2 1:     0.000 sec done=         6 (=100.0%) skipped=         0 
-    -> L=3 3 2 2:     0.000 sec done=         3 (=100.0%) skipped=         0 
+    -> L=3 3 2 2:     0.001 sec done=         3 (=100.0%) skipped=         0 
     -> L=3 3 3 0:     0.000 sec done=         6 (=100.0%) skipped=         0 
     -> L=3 3 3 1:     0.000 sec done=         3 (=100.0%) skipped=         0 
-    -> L=3 3 3 2:     0.000 sec done=         2 (=100.0%) skipped=         0 
+    -> L=3 3 3 2:     0.001 sec done=         2 (=100.0%) skipped=         0 
     -> L=3 3 3 3:     0.001 sec done=         1 (=100.0%) skipped=         0 
-    ->Total SHARK integral loop time =    0.009 sec
-    -> Total Integral generation matrix time =    0.023 sec
+    ->Total SHARK integral loop time =    0.011 sec
+    -> Total Integral generation matrix time =    0.024 sec
     -> Number of small integrals   =         0
     -> Number of medium integrals  =         4
     -> Number of large integrals   =     14810
@@ -939,11 +939,11 @@ TIMINGS
 Total SCF time: 0 days 0 hours 0 min 0 sec 
 
 Total time                  ....       0.384 sec
-Sum of individual times     ....       0.020 sec  (  5.1%)
+Sum of individual times     ....       0.020 sec  (  5.2%)
 
-Fock matrix formation       ....       0.010 sec  (  2.7%)
-Diagonalization             ....       0.008 sec  (  2.1%)
-Density matrix formation    ....       0.000 sec  (  0.0%)
+Fock matrix formation       ....       0.011 sec  (  2.7%)
+Diagonalization             ....       0.008 sec  (  2.0%)
+Density matrix formation    ....       0.000 sec  (  0.1%)
 Population analysis         ....       0.000 sec  (  0.0%)
 Initial guess               ....       0.000 sec  (  0.1%)
 Orbital Transformation      ....       0.000 sec  (  0.0%)
@@ -1008,7 +1008,7 @@ x,y,z [Debye]:    -0.000000    -0.000000    -0.000000
 Timings for individual modules:
 
 Sum of individual times         ...        0.508 sec (=   0.008 min)
-GTO integral calculation        ...        0.113 sec (=   0.002 min)  22.2 %
-SCF iterations                  ...        0.395 sec (=   0.007 min)  77.8 %
+GTO integral calculation        ...        0.112 sec (=   0.002 min)  22.1 %
+SCF iterations                  ...        0.396 sec (=   0.007 min)  77.9 %
                              ****ORCA TERMINATED NORMALLY****
-TOTAL RUN TIME: 0 days 0 hours 0 minutes 0 seconds 617 msec
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 0 seconds 615 msec

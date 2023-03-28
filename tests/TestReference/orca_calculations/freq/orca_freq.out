@@ -492,10 +492,10 @@ Smallest eigenvalue                        ... 7.502e-03
 Time for diagonalization                   ...    0.002 sec
 Threshold for overlap eigenvalues          ... 1.000e-08
 Number of eigenvalues below threshold      ... 0
-Time for construction of square roots      ...    0.003 sec
-Total time needed                          ...    0.005 sec
+Time for construction of square roots      ...    0.002 sec
+Total time needed                          ...    0.004 sec
 
-Time for model grid setup =    0.045 sec
+Time for model grid setup =    0.042 sec
 
 ------------------------------
 INITIAL GUESS: MODEL POTENTIAL
@@ -541,7 +541,7 @@ Total number of grid points                  ...    57604
 Total number of batches                      ...      905
 Average number of points per batch           ...       63
 Average number of grid points per atom       ...     5237
-Time for grid setup =    0.284 sec
+Time for grid setup =    0.244 sec
 
 
 --------------------
@@ -1007,24 +1007,24 @@ TIMINGS
 
 Total SCF time: 0 days 0 hours 0 min 2 sec 
 
-Total time                  ....       2.787 sec
-Sum of individual times     ....       2.680 sec  ( 96.2%)
+Total time                  ....       2.612 sec
+Sum of individual times     ....       2.512 sec  ( 96.2%)
 
-Fock matrix formation       ....       1.871 sec  ( 67.1%)
-  Split-RI-J                ....       0.286 sec  ( 15.3% of F)
-  XC integration            ....       0.591 sec  ( 31.6% of F)
-    Basis function eval.    ....       0.156 sec  ( 26.3% of XC)
-    Density eval.           ....       0.118 sec  ( 19.9% of XC)
-    XC-Functional eval.     ....       0.037 sec  (  6.2% of XC)
-    XC-Potential eval.      ....       0.094 sec  ( 15.8% of XC)
-Diagonalization             ....       0.037 sec  (  1.3%)
+Fock matrix formation       ....       1.829 sec  ( 70.0%)
+  Split-RI-J                ....       0.251 sec  ( 13.7% of F)
+  XC integration            ....       0.588 sec  ( 32.1% of F)
+    Basis function eval.    ....       0.138 sec  ( 23.4% of XC)
+    Density eval.           ....       0.099 sec  ( 16.8% of XC)
+    XC-Functional eval.     ....       0.038 sec  (  6.4% of XC)
+    XC-Potential eval.      ....       0.083 sec  ( 14.1% of XC)
+Diagonalization             ....       0.033 sec  (  1.3%)
 Density matrix formation    ....       0.001 sec  (  0.1%)
-Population analysis         ....       0.004 sec  (  0.1%)
-Initial guess               ....       0.402 sec  ( 14.4%)
+Population analysis         ....       0.003 sec  (  0.1%)
+Initial guess               ....       0.329 sec  ( 12.6%)
 Orbital Transformation      ....       0.000 sec  (  0.0%)
 Orbital Orthonormalization  ....       0.000 sec  (  0.0%)
-DIIS solution               ....       0.035 sec  (  1.3%)
-Grid generation             ....       0.329 sec  ( 11.8%)
+DIIS solution               ....       0.031 sec  (  1.2%)
+Grid generation             ....       0.285 sec  ( 10.9%)
 
 Maximum memory used throughout the entire SCF-calculation: 18.8 MB
 
@@ -1165,44 +1165,44 @@ Nuclear repulsion Hessian  (SHARK)               ... done   (      0.0 sec)
 Forming right-hand sides of CP-SCF equations     ...
 ----------------------------------------------
 One electron integral derivatives  (SHARK)       ... done   (      0.0 sec)
-C-PCM contribution to the Fock matrix derivative ... done   (      1.2 sec)
+C-PCM contribution to the Fock matrix derivative ... done   (      1.0 sec)
 Transforming the overlap derivative matrices     ... done   (      0.5 sec)
 Adding tr(S(x)F(y) C-PCM term to the hessian     ... done   (      0.0 sec)
 Making the Q(x) pseudodensities                  ... done   (      0.0 sec)
 Adding the E*S(x)*S(y) terms to the Hessian      ... done   (      0.0 sec)
 Calculating energy weighted overlap derivatives  ... done   (      0.0 sec)
-F(y): ECP integral derivatives                   ... done   (      0.8 sec)
-Two electron integral derivatives (SHARK-RI)     ... done   (      0.4 sec)
-Exchange-correlation integral derivatives        ... done   (      3.3 sec)
+F(y): ECP integral derivatives                   ... done   (      0.6 sec)
+Two electron integral derivatives (SHARK-RI)     ... done   (      0.5 sec)
+Exchange-correlation integral derivatives        ... done   (      3.2 sec)
 tr(F(y)Q(x)) contribution to the Hessian         ... done   (      0.0 sec)
 Response fock operator R(S(x)) (SHARK-RI)        ... done   (      0.3 sec)
-XC Response fock operator R(S(x))                ... done   (      1.2 sec)
+XC Response fock operator R(S(x))                ... done   (      1.0 sec)
 tr(F(y)S(x)) contribution to the Hessian         ... done   (      0.0 sec)
 Transforming and finalizing RHSs                 ... done   (      0.0 sec)
 
 ----------------------------------------------
 Solving the CP-SCF equations (RI)                ...
 ----------------------------------------------
-     CP-SCF ITERATION   0:   1.6828e-01 (   0.8 sec   0/ 33 done)
+     CP-SCF ITERATION   0:   1.6828e-01 (   0.7 sec   0/ 33 done)
      CP-SCF ITERATION   1:   2.8882e-02 (   0.8 sec   0/ 33 done)
      CP-SCF ITERATION   2:   9.5168e-03 (   0.8 sec   1/ 33 done)
-     CP-SCF ITERATION   3:   2.7888e-03 (   0.8 sec  11/ 33 done)
-     CP-SCF ITERATION   4:   6.7244e-04 (   0.6 sec  33/ 33 done)
+     CP-SCF ITERATION   3:   2.7888e-03 (   0.9 sec  11/ 33 done)
+     CP-SCF ITERATION   4:   6.7244e-04 (   0.7 sec  33/ 33 done)
                     *** THE CP-SCF HAS CONVERGED ***
 
-                                                 ... done   (      3.9 sec)
+                                                 ... done   (      4.0 sec)
 Forming perturbed density Hessian contributions  ... done   (      0.0 sec)
 Calculating [Q*(d^2 A/dXdY)*Q  ] C-PCM term      ... done   (      0.0 sec)
 Calculating [d^2(V_N)/(dXdY)*Q ] C-PCM term      ... done   (      0.0 sec)
-Calculating [d^2(V_el)/(dXdY)*Q] C-PCM term      ... done   (      0.1 sec)
-Calculating C-PCM term that depends on dQ/dX     ... done   (      0.0 sec)
+Calculating [d^2(V_el)/(dXdY)*Q] C-PCM term      ... done   (      0.2 sec)
+Calculating C-PCM term that depends on dQ/dX     ... done   (      0.1 sec)
 2nd integral derivative contribs (SHARK-RI)      ... done   (      0.8 sec)
 Exchange-correlation Hessian                     ... done   (      2.8 sec)
-ECP integral 2nd derivatives                     ... done   (      2.6 sec)
-Dispersion correction in the Hessian             ... done   (      0.2 sec)
+ECP integral 2nd derivatives                     ... done   (      2.5 sec)
+Dispersion correction in the Hessian             ... done   (      0.3 sec)
 Dipole derivatives                               ... (center of mass: -5.657616, -0.019248  0.447556)done   (      0.2 sec)
 
-Total SCF Hessian time: 0 days 0 hours 0 min 20 sec 
+Total SCF Hessian time: 0 days 0 hours 0 min 19 sec 
 
 Writing the Hessian file to the disk             ... done
 
@@ -1664,9 +1664,9 @@ G-E(el)                           ...      0.04415787 Eh     27.71 kcal/mol
 
 Timings for individual modules:
 
-Sum of individual times         ...       23.928 sec (=   0.399 min)
-GTO integral calculation        ...        0.366 sec (=   0.006 min)   1.5 %
-SCF iterations                  ...        2.941 sec (=   0.049 min)  12.3 %
-Analytical frequency calculation...       20.621 sec (=   0.344 min)  86.2 %
+Sum of individual times         ...       22.952 sec (=   0.383 min)
+GTO integral calculation        ...        0.289 sec (=   0.005 min)   1.3 %
+SCF iterations                  ...        2.730 sec (=   0.046 min)  11.9 %
+Analytical frequency calculation...       19.932 sec (=   0.332 min)  86.8 %
                              ****ORCA TERMINATED NORMALLY****
-TOTAL RUN TIME: 0 days 0 hours 0 minutes 24 seconds 136 msec
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 23 seconds 166 msec
