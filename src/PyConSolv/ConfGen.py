@@ -410,9 +410,6 @@ Starting solvent parametrization in:
         if self.amber is None:
             self.amber = amberInterface(self.MCPB)
 
-        # if not self.hasMetal:
-        #     self.amber.tleapNoMetalSolv(self.MCPB)  # change to get values from ligands
-        # self.amber.tleapChecker(self.MCPB)
         if self.hasMetal:
             solutename = 'mol'
         else:
@@ -420,11 +417,7 @@ Starting solvent parametrization in:
         solv = Solvent()
         solv.applySolvent(solvent, self.MCPB + '/LIG_tleap.in',
                           self.MCPB + '/LIG_tleap.in', self.MCPB, solutename)
-
-        # if not self.hasMetal:
         self.amber.tleapChecker(self.MCPB)
-        # shutil.copyfile(self.MCPB + '/LIG_tleap.in', self.MCPB + '/../equilibration/LIG_tleap.in')
-
         self.status = self.amber.runTleap()
 
         if self.status == 0:

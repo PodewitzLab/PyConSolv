@@ -37,13 +37,13 @@ class amberInterface:
         else:
             self.status = 1
 
-    def inputFileGenerator(self, metals: str, ligands: str):
+    def inputFileGenerator(self, metals: str, ligands: list):
         """
         Creates an input file for MCPB.py.
 
         Parameters:
             :param string metals: basename of the metal containing files - string
-            :param string ligands: basename of the ligand containing files - list of strings
+            :param list[string] ligands: basename of the ligand containing files - list of strings
 
         Class variables:
             - self.inputfile = MCPB.py input file
@@ -365,7 +365,6 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         for line in tmp:
             f.write(line)
         f.close()
-        # todo add options for changing tleap input
 
     def tleapNoMetal(self, path: str, name: str = 'LIG'):
         """
