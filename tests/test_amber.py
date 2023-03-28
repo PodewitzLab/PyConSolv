@@ -32,6 +32,7 @@ class TestSetup(unittest.TestCase):
     def test_readConnections(self):
         connections = self.amber.readConnections(self.testRefPath + '/MCPB_setup/')
         self.assertListEqual(self.connections_ref, connections, 'Connections should be the same')
+
     def test_checkMCPBBonds(self):
         shutil.copytree(self.testRefPath + '/MCPB_setup/', self.testFilePath + '/MCPB_setup/')
         shutil.copyfile(self.testRefPath + '/MCPB_setup/input_reduced.in', self.testFilePath + '/MCPB_setup/input.in')
@@ -39,7 +40,6 @@ class TestSetup(unittest.TestCase):
         result =  filecmp.cmp(self.testFilePath + '/MCPB_setup/input.in',self.testRefPath + '/MCPB_setup/input.in')
         shutil.rmtree(self.testFilePath + '/MCPB_setup/')
         self.assertTrue(result)
-
 
 if __name__ == '__main__':
     unittest.main()
