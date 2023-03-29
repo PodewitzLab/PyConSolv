@@ -480,20 +480,30 @@ Starting solvent parametrization in:
         sourceloc = os.path.split(__file__)[0]
         try:
             # PyConSolv / scripts_and_inputs
+            shutil.copyfile(self.MCPB + '/LIG_dry.prmtop', self.inputpath + '/simulation/LIG_dry.prmtop')
+            shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/simulation/LIG_solv.prmtop')
+            shutil.copyfile(self.inputpath + '/equilibration/21.rst7', self.inputpath + '/simulation/eq.rst7')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/align_dry.in', self.inputpath + '/simulation/align_dry.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/run_simulation.sh', self.inputpath + '/simulation/run-simulation.sh')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/dry_sim.in', self.inputpath + '/simulation/dry_sim.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/align.in', self.inputpath + '/simulation/align.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/cluster_kmeans.in', self.inputpath + '/simulation/cluster_kmeans.in')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/dry.vmd', self.inputpath + '/simulation/dry.vmd')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/solv.vmd', self.inputpath + '/simulation/solv.vmd')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/dry_aligned.vmd', self.inputpath + '/simulation/dry_aligned.vmd')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/strip.sh', self.inputpath + '/simulation/strip.sh')
         except:
             print('Failed to copy files into simulation folder')
             return 1
         solv = Solvent()
         solvID = solv.solventDict[solvent]
         self.modifyDryScript(self.inputpath + '/simulation/dry_sim.in', solvID)
+        self.modifyDryScript(self.inputpath + '/simulation/solv.vmd', solvID)
         self.restarter.write('DONE')
         print('Simulation setup complete, please execute the run_simulation.sh script in:\n {}\n to '
               'begin a 100ns cmd production run.\n'.format(self.inputpath + '/simulation'))
+        print('A quick analysis of the simulation run can be performed using the strip.sh script in your simulation folder\n\n')
         print(Color.GREEN + 'My job here is done!' + Color.END)
         return 0
 
