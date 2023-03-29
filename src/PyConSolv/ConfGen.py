@@ -66,6 +66,7 @@ class PyConSolv:
     """
 
     def __init__(self, path):
+        path = os.path.abspath(path)
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
@@ -156,8 +157,8 @@ Calculations will be set up in:
         """
         if cpcm == 'custom':
             pass
-            print('You have selected a custom solvent, please input the absolute path to the solvent xyz file:\n')
-            self.solventParamPath = input()
+            print('You have selected a custom solvent, please input the path to the solvent xyz file:\n')
+            self.solventParamPath = os.path.abspath(input())
 
             print('Please enter the epsilon value for your custom solvent:\n')
             self.epsilon = input()
