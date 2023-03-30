@@ -1,0 +1,26 @@
+package:
+  name: pyconsolv
+  version: 0.2.1.1
+
+build:
+  number: 1
+  entry_points:
+    - pyconsolv = PyConSolv.pyconsolv:main
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python
+  run:
+    - python >=3.10
+    - numpy >=1.23.1
+    - pandas >=1.4.3
+    - matplotlib >=3.5.3
+#    - rdkit >=2022.09.1
+
+about:
+  summary: "A package for conformer generation of transition-metal-containing complexes"
+
+source:
+#  url: https://test-files.pythonhosted.org/packages/b5/76/3993421c6940cc91863c166805d277df954bb84223dce9bdff0031a1f5bf/pyconsolv-0.2.1.6.tar.gz
+  path: ..

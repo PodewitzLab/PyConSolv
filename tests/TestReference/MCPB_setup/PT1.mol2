@@ -1,0 +1,12 @@
+@<TRIPOS>MOLECULE
+PT1
+1 0 1 0 0
+SMALL
+RESP Charge
+
+
+@<TRIPOS>ATOM
+      1 PT         -2.8720     0.1470     0.1750   M1    1  PT1 -0.051624
+@<TRIPOS>BOND
+@<TRIPOS>SUBSTRUCTURE
+     1 PT1         1 TEMP              0 ****  ****    0 ROOT

@@ -1,0 +1,12 @@
+@<TRIPOS>MOLECULE
+E1
+1 0 1 0 0
+SMALL
+RESP Charge
+
+
+@<TRIPOS>ATOM
+      1 CL9        -5.1160    -0.3820    -0.2530   Y6    1  E1 -0.413461
+@<TRIPOS>BOND
+@<TRIPOS>SUBSTRUCTURE
+     1 E1         1 TEMP              0 ****  ****    0 ROOT

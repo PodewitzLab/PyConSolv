@@ -1,0 +1,14 @@
+parm LIG_dry.prmtop
+trajin dry_aligned.nc
+cluster c1 \
+ kmeans clusters 10 randompoint maxit 500 \
+ rms !@H= \
+ sieve 10 random \
+ out cnumvtime.dat \
+ summary summary.dat \
+ info info.dat \
+ cpopvtime cpopvtime.agr normframe \
+ repout rep repfmt pdb \
+ singlerepout singlerep.nc singlerepfmt netcdf \
+ avgout avg avgfmt pdb
+run

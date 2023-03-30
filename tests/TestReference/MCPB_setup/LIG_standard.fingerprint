@@ -1,0 +1,19 @@
+1-PT-PT 1 PT -> M1
+2-B-N1 2 n3 -> Y1
+2-B-H2 3 hn -> hn
+2-B-H3 4 hn -> hn
+2-B-H4 5 hn -> hn
+3-C-N5 6 n3 -> Y2
+3-C-H6 7 hn -> hn
+3-C-H7 8 hn -> hn
+3-C-H8 9 hn -> hn
+4-D-CL8 10 Cl -> Y5
+5-E-CL9 11 Cl -> Y6
+LINK 1-PT 2-N1
+LINK 1-PT 6-N5
+LINK 1-PT 10-CL8
+LINK 1-PT 11-CL9
+LINK 1-PT 10-CL8
+LINK 1-PT 11-CL9
+LINK 1-PT 10-CL8
+LINK 1-PT 11-CL9

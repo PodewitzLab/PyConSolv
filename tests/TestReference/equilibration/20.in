@@ -1,0 +1,7 @@
+equilibration
+&cntrl
+	ntb=1,ntc=2,ntf=2,ntt=3,gamma_ln=2.0,cut=8.0,
+	nstlim=200000,dt=0.001,nmropt=1,
+/
+&wt TYPE='TEMP0', istep1=0, istep2=200000, value1=100.0,value2=300.0 /
+&wt TYPE='END' /

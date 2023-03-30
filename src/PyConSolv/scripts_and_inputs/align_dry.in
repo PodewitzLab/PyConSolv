@@ -1,0 +1,7 @@
+parm LIG_dry.prmtop
+trajin dry.nc
+autoimage
+align @replaceme first
+trajout dry_aligned.nc
+run
+quit
