@@ -66,7 +66,7 @@ class XYZ:
         self.metalRadius = df.to_dict().get('Ionic Radius')
 
         self.metalList = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
-                          'CO', 'NI', 'CU', 'ZN',
+                          'CO', 'NI', 'CU', 'ZN', 'B',
                           'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
                           'CD', 'IN', 'SN', 'SB',
                           'TE', 'CS', 'BA', 'LA', 'CE', 'PR', 'ND', 'PM', 'SM', 'EU', 'GD', 'TB', 'DY', 'HO', 'ER',
