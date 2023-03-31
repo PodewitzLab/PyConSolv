@@ -364,13 +364,15 @@ class XYZ:
 
         self.path = path + '/'
         self.hasMetal = False
-
+        chrstart = 65
         atomid = 0
         for i in range(len(self.files)):
             if len(self.files[i]) == 2:  # single atom ligands need to be treated differently to work with MCPB.py
                 name = self.files[i][0].split()[-1].upper()
 
                 if self.isMetal(name):
+                    if name == 'B':
+                        chrstart = 67
                     s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name) + '{:>3}'.format(name) + \
                         self.files[i][0][20:]
                     if [name + '.pdb', name] in self.metals:
@@ -381,20 +383,20 @@ class XYZ:
                     s = s.upper()
                     self.metals.append([name + '.pdb', name])
                 else:
-                    s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name + str(atomid)) + '{:>3}'.format(chr(65 + i)) + \
+                    s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name + str(atomid)) + '{:>3}'.format(chr(chrstart + i)) + \
                         self.files[i][0][20:]
                     atomid += 1
-                    self.filenames.append(chr(65 + i) + '.pdb')
-                    name = chr(65 + i)
-                    self.ligands.append([chr(65 + i) + '.pdb', chr(65 + i)])
+                    self.filenames.append(chr(chrstart + i) + '.pdb')
+                    name = chr(chrstart + i)
+                    self.ligands.append([chr(chrstart + i) + '.pdb', chr(chrstart + i)])
                 f = open(self.path + '/' + name + '.pdb', 'w')
                 f.write(s)
                 f.write('TER')
                 f.close()
 
             else:
-                self.filenames.append(chr(65 + i) + '.pdb')
-                f = open(path + '/' + chr(65 + i) + '.pdb', 'w')
+                self.filenames.append(chr(chrstart + i) + '.pdb')
+                f = open(path + '/' + chr(chrstart + i) + '.pdb', 'w')
                 for line in self.files[i]:
                     if 'TER' in line:
                         f.write('END')
@@ -403,7 +405,7 @@ class XYZ:
                         f.write(line[:7] + '{:>4}'.format(atomid) + ' ' + '{:<5}'.format(
                             line[11:16].strip() + str(atomid)) + line[17:])
                 f.close()
-                self.ligands.append([chr(65 + i) + '.pdb', chr(65 + i)])
+                self.ligands.append([chr(chrstart + i) + '.pdb', chr(chrstart + i)])
         tmp = []
         atomid = 0
         for i in range(len(self.filenames)):
