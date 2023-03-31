@@ -27,7 +27,7 @@ class Faker:
         Parameters:
             :param list list_f: 1D list of values to write out
             :param string title: header for information to be written out
-            :param float factor: lfactor to multiply values by eg.:1.89 for Angstrom/Bohr
+            :param float factor: factor to multiply values by eg.:1.89 for Angstrom/Bohr
 
         Class variables:
 

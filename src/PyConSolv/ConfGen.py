@@ -3,6 +3,8 @@ import os
 from tkinter import *
 import numpy as np
 
+from .misc.counterion import Counterion
+from .misc.counterionGen import counterionParametrizer
 from .utils.charge import ChargeChanger
 from .misc.solvenGen import solventParametrizer
 from .misc.solvent import Solvent
@@ -63,16 +65,19 @@ class PyConSolv:
         - self.epsilon - permittivity of custom solvent
         - self.solventParamPath - path to location of solvent XYZ file
         - self.solventPath - path to pre-parametrized solvents
+        - self.counterIon - counterion to be used
+        - self.counterIonsImplemented - list of supported counterions
     """
 
     def __init__(self, path):
         path = os.path.abspath(path)
+        self.counterIon = ''
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '0.1.6'
+        self.version = '0.2.1.7'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
-                       'CO', 'NI', 'CU', 'ZN',
+                       'CO', 'NI', 'CU', 'ZN', 'B'
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
                        'CD', 'IN', 'SN', 'SB',
                        'TE', 'CS', 'BA', 'LA', 'CE', 'PR', 'ND', 'PM', 'SM', 'EU', 'GD', 'TB', 'DY', 'HO', 'ER',
@@ -95,9 +100,11 @@ class PyConSolv:
         self.db_file = os.path.split(__file__)[0] + '/db/atom-radius.txt'
         self.db_metal_file = os.path.split(__file__)[0] + '/db/metal-radius.txt'
         self.solventPath = os.path.split(__file__)[0] + '/solvents/'
+        self.ionPath = os.path.split(__file__)[0] + '/counterions/'
         self.amber = None
         self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
+        self.counterIonsImplemented = ['OTf-','BF4-', 'BARF-', 'PFC-', 'ScF6-', 'ClO4-', 'BPh4-', 'custom']
         self.solventsImplemented = ['Water', 'Acetonitrile', 'Acetone', 'Benzene', 'Cyclohexane', 'Chloroform', 'CCl4',
                                     'CH2Cl2', 'DMF', 'DMSO', 'Ethanol', 'Hexane', 'Methanol', 'Ammonia', 'Octanol',
                                     'THF', 'Toluene', 'custom']
@@ -140,6 +147,66 @@ Calculations will be set up in:
             print(Color.PURPLE + 'Restart file found!\n' + Color.END)
             os.remove(self.inputpath + '/pyconsolv.restart')
 
+    def prepareSolvent(self, method, basis, dsp, cpu):
+        print('You have selected a custom solvent, please input the path to the solvent xyz file:\n')
+        self.solventParamPath = os.path.abspath(input())
+
+        print('Please enter the epsilon value for your custom solvent:\n')
+        self.epsilon = input()
+
+        print('Please enter the refractive index value for your custom solvent:\n')
+        self.refrac = input()
+
+        print(Color.GREEN + '''
+
+        ###################
+        Starting solvent parametrization in:
+        {}
+        ####################
+
+        '''.format('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param') + Color.END)
+        self.solventParam = solventParametrizer(self.solventParamPath)
+        self.solventCPCM = '''
+
+        %CPCM       EPSILON      {}
+                    REFRAC       {}
+        END
+        '''.format(self.epsilon, self.refrac)
+        self.solventParam.run(method, basis, dsp, cpu, self.solventCPCM, 0)
+
+    def prepareCounterion(self, method, basis, dsp, cpu, charge, cpcm):
+
+        answered = False
+        while not answered:
+            answer = input('You system is charged, would you like to select an appropriate counterion? \n y/n: ')
+            if answer == 'y':
+                print('Please choose one of the following counterions:\n')
+                print(', '.join(self.counterIonsImplemented) + '\n')
+                while not answered:
+                    ion = input()
+                    if ion not in self.counterIonsImplemented:
+                        print('Selected ion not supported, try again...\n')
+                    else:
+                        answered = True
+            elif answer == 'n':
+                ion = ''
+                answered = True
+            else:
+                print('Wrong input, try again\n')
+        if ion == 'custom':
+            print('You have chosen a custom counterion for your system, which needs to be parametrized\n' +
+                  'Please provide a path to the location of an XYZ file containing your ion\n')
+            self.ionParamPath = input()
+            chargeIon = input('Please enter the charge for your ion: \n')
+            cIon = counterionParametrizer(self.ionParamPath)
+            if cpcm == 'custom':
+                cIon.run(method, basis, dsp, cpu, self.solventCPCM, int(chargeIon))
+            else:
+                cIon.run(method, basis, dsp, cpu, cpcm, int(chargeIon))
+        self.counterIon = ion
+
+
+
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
               cpcm: str = 'Water', cpu: int = 12) -> int:
         """
@@ -156,30 +223,14 @@ Calculations will be set up in:
         Class variables:
         """
         if cpcm == 'custom':
-            pass
-            print('You have selected a custom solvent, please input the path to the solvent xyz file:\n')
-            self.solventParamPath = os.path.abspath(input())
-
-            print('Please enter the epsilon value for your custom solvent:\n')
-            self.epsilon = input()
-
-            print('Please enter the refractive index value for your custom solvent:\n')
-            self.refrac = input()
-
-            print(Color.GREEN+'''
-            
-###################
-Starting solvent parametrization in:
-{}
-####################
-
-'''.format('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param')+Color.END)
-            self.solventParam = solventParametrizer(self.solventParamPath)
-            self.solventParam.run(self.epsilon, self.refrac, method, basis, dsp, cpu)
-
+            self.prepareSolvent(method, basis, dsp, cpu)
         if cpcm not in self.solventsImplemented:
             print(Color.RED + 'Selected solvent is not yet implemented\n' + Color.END)
             return 0
+
+        if charge != 0:
+            self.prepareCounterion(method, basis, dsp, cpu, charge, cpcm)
+
         if self.restart == 0:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
@@ -203,6 +254,22 @@ Starting solvent parametrization in:
                             self.MCPB + '/{}.frcmod'.format(solvname))
             shutil.copyfile(self.solventPath + '{}.mol2'.format(solvname),
                             self.MCPB + '/{}.mol2'.format(solvname))
+
+        if self.counterIon == 'custom':
+            shutil.copyfile('/'.join(self.ionParamPath.split('/')[:-1]) + '/CTI_param/CTI.frcmod',
+                            self.MCPB + '/CTI.frcmod')
+            shutil.copyfile('/'.join(self.ionParamPath.split('/')[:-1]) + '/CTI_param/CTI.mol2',
+                            self.MCPB + '/CTI.mol2')
+        elif self.counterIon == '':
+            pass
+
+        else:
+            cIon = Counterion()
+            ionname = cIon.counterionDict[self.counterIon]
+            shutil.copyfile(self.ionPath + '/{}.frcmod'.format(ionname),
+                            self.MCPB + '/{}.frcmod'.format(ionname))
+            shutil.copyfile(self.ionPath + '{}.mol2'.format(ionname),
+                            self.MCPB + '/{}.mol2'.format(ionname))
 
         print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
 
@@ -396,7 +463,7 @@ Starting solvent parametrization in:
         Run tleap
 
         Parameters:
-            :param string solvent: solvent for your box. Currently only water is available
+            :param string solvent: solvent for your box.
 
         Class variables:
         """
@@ -416,8 +483,12 @@ Starting solvent parametrization in:
         else:
             solutename = 'LIG'
         solv = Solvent()
-        solv.applySolvent(solvent, self.MCPB + '/LIG_tleap.in',
+        solv.applyItem(solvent, self.MCPB + '/LIG_tleap.in',
                           self.MCPB + '/LIG_tleap.in', self.MCPB, solutename)
+        if self.counterIon != '':
+            ion = Counterion()
+            ion.applyItem(self.counterIon, self.MCPB + '/LIG_tleap.in',
+                              self.MCPB + '/LIG_tleap.in', self.MCPB, solutename)
         self.amber.tleapChecker(self.MCPB)
         self.status = self.amber.runTleap()
 
@@ -474,6 +545,10 @@ Starting solvent parametrization in:
     def prepareSimulation(self, solvent):
         """
         Function to copy scripts and inputs needed for running and analysing the simulation
+
+        Parameters:
+            :param string solvent = 3 letter keyword for the solvent used for the simulation
+
 
         """
         self.restarter.write('equilibration')
