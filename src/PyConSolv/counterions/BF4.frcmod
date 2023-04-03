@@ -1,0 +1,19 @@
+Remark line goes here
+MASS
+B  10.810        0.360               same as c2 
+
+BOND
+B -f   370.60   1.339       same as c2- f, penalty score=  0.0
+
+ANGLE
+f -B -f    145.200     109.48   
+
+DIHE
+
+IMPROPER
+
+NONBON
+  B           1.9080  0.0860             same as c2 
+
+
+

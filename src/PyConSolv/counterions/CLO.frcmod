@@ -1,0 +1,16 @@
+Remark line goes here
+MASS
+
+BOND
+
+ANGLE
+o -cl-o   162.6     109.44   from DFT scan
+
+DIHE
+
+IMPROPER
+
+NONBON
+
+
+
