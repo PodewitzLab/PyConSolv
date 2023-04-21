@@ -17,6 +17,7 @@ from .interfaces.multiWFN import MultiWfnInterface
 from .misc.outgen import Faker
 from .misc.ui import GUI
 from .misc.restart import RestartFile
+from .utils.copier import Copier
 
 
 def error(step):
@@ -63,6 +64,8 @@ class PyConSolv:
         - self.solventsImplemented - list of supported solvents
         - self.refrac - refractive index of custom solvent
         - self.epsilon - permittivity of custom solvent
+        - self.addSolvent - if true, the optimized and parametrized custom solvent will be stored
+        - self.solventAbb - abbreviation for new solvent
         - self.solventParamPath - path to location of solvent XYZ file
         - self.solventPath - path to pre-parametrized solvents
         - self.counterIon - counterion to be used
@@ -75,7 +78,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '0.2.1.7'
+        self.version = '1.0.0.1'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -89,11 +92,12 @@ class PyConSolv:
         self.hasMetal = None
         self.restarter = None
         self.path = path
+        self.inputFile = path.split('/')[-1]
         self.inputpath = '/'.join(path.split('/')[:-1])
-        if path.split('/')[-1] != 'input.xyz':
-            print('Copying {} to input.xyz\n'.format(path.split('/')[-1]))
-            shutil.copyfile(self.path,self.inputpath + '/input.xyz')
-        if '.xyz' not in path.split('/')[-1]:
+        if self.inputFile != 'input.xyz':
+            print('Copying {} to input.xyz\n'.format(self.inputFile))
+            shutil.copyfile(self.path,self.inputpath + self.inputFile)
+        if '.xyz' not in self.inputFile:
             error('Initialization... make sure the input is an xyz file')
         self.status = 0
         self.restart = 0
@@ -110,6 +114,8 @@ class PyConSolv:
                                     'THF', 'Toluene', 'custom']
 
         self.metalCheck()
+        self.addSolvent = False
+        self.solventAbb = ''
 
 
         print(Color.BLUE + r'''
@@ -156,6 +162,25 @@ Calculations will be set up in:
 
         print('Please enter the refractive index value for your custom solvent:\n')
         self.refrac = input()
+
+        print('Do you want to add this custom solvent to the list of available solvents?[y/n]\n')
+        add = str(input())
+        while add.lower() not in ['y','n']:
+            print('Type "y" if you want to add this custom solvent to the list of available solvents or "n" if not:')
+            add = str(input())
+        if add.lower() == 'y':
+            self.addSolvent = True
+            print('Give this solvent a unique abbreviations consisting of exactly 3 characters:\n')
+            abb = str(input())
+            while len(abb) != 3:
+                print('It is mandatory to give exactly 3 characters! If you changed your mind please enter "quit"')
+                abb=str(input())
+                if abb.lower() == "quit":
+                    self.addSolvent = False
+                    print('Solvent files will not be added to pyConSolv!')
+                    break
+            self.solventAbb = abb
+            print('You chose {} as abbreviation!'.format(self.solventAbb))
 
         print(Color.GREEN + '''
 
@@ -285,7 +310,11 @@ Calculations will be set up in:
 
         Class variables:
         """
-        self.restarter.write('setup')
+        try:
+            self.restarter.write('setup')
+        except AttributeError:
+            return 0
+
         calculation = Calculation(self.inputpath + '/orca_calculations')
         if self.hasMetal:
             self.status = calculation.run()
@@ -580,7 +609,15 @@ Calculations will be set up in:
         print('Simulation setup complete, please execute the run_simulation.sh script in:\n {}\n to '
               'begin a 100ns cmd production run.\n'.format(self.inputpath + '/simulation'))
         print('A quick analysis of the simulation run can be performed using the strip.sh script in your simulation folder\n\n')
+
+        if self.addSolvent == True:
+            Copier(self.inputpath+'/Solvent/solv_param/SLV.frcmod',
+                   self.solventPath+'/{}.frcmod'.format(self.solventAbb)).copy()
+            Copier(self.inputpath + '/Solvent/solv_param/SLV.mol2',
+                   self.solventPath + '/{}.mol2'.format(self.solventAbb)).copy()
+
         print(Color.GREEN + 'My job here is done!' + Color.END)
+
         return 0
 
 

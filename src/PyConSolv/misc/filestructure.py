@@ -1,5 +1,6 @@
 import shutil
 import os
+
 from ..utils.colorgen import Color
 
 
@@ -65,18 +66,22 @@ end
 
         """
 
-        if len(os.listdir(self.path)) > 2:
-            self.check = 0
-            print(
-                Color.RED + 'Your calculation directory includes unexpected folders/files. Please make sure it only contains your input xyz file!\n' + Color.END)
-        else:
-            print('Creating folders...')
-            os.mkdir(self.calculation_folder)
-            os.mkdir(self.equilibration_folder)
-            os.mkdir(self.simulation_folder)
-            os.mkdir(self.frequency_folder)
-            os.mkdir(self.optimization_folder)
-            os.mkdir(self.MCPB_folder)
+        print('Creating folders...')
+        os.mkdir(self.calculation_folder)
+        os.mkdir(self.equilibration_folder)
+        os.mkdir(self.simulation_folder)
+        os.mkdir(self.frequency_folder)
+        os.mkdir(self.optimization_folder)
+        os.mkdir(self.MCPB_folder)
+
+    def removeFolderContents(self): #https://stackoverflow.com/a/1073382
+        for root, dirs, files in os.walk(self.path):
+            for f in files:
+                if f != self.inputFile:
+                    os.unlink(os.path.join(root, f))
+            for d in dirs:
+                    shutil.rmtree(os.path.join(root, d))
+        print("Removed folder contents!")
 
     def createFiles(self):
         """
@@ -136,7 +141,27 @@ END\n'''.format(epsilon, refrac)
         Class variables:
         """
         status = 0
-        self.createFolders()
+        if len(os.listdir(self.path)) > 2:
+            self.check = 0
+            print(
+                Color.RED + 'Your calculation directory includes unexpected folders/files. Please make sure it only contains your input xyz file!\n' + Color.END)
+            print('Do you want to get rid of every other file/folder in the calculation directory except your xyz file and then restart?\n'
+                  '[y/n]\n'
+                  'ATTENTION: "n" will close the program!')
+            inp = str(input())
+            while inp.lower() not in ['y', 'n']:
+                print('Type "y" if you want to purge your local directory except for the given xyz file and then restart or "n" if not.\n'
+                      'ATTENTION: "n" will close the program!:')
+                inp = str(input())
+            if inp.lower() == 'y':
+                self.removeFolderContents()
+                self.createFolders()
+                self.check = 1
+            #elif inp.lower() == 'n':
+            #    quit()
+        else:
+            self.createFolders()
+
         if self.check == 1:
             self.createFiles()
 
