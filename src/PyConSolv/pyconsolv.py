@@ -7,7 +7,7 @@ from PyConSolv.ConfGen import PyConSolv
 
 
 def main():
-    ver = '0.2.0'
+    ver = '1.0.0.1'
     parser = argparse.ArgumentParser(prog = 'PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help = 'input file in XYZ format')
     parser.add_argument('-c', '--charge',  nargs='?', default=0, type=int, help = 'charge of the system, default 0')
