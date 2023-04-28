@@ -118,15 +118,19 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             'mpirun -np {} pmemd -O -i {:02d}.in -o {:02d}.out -p LIG_solv.prmtop -c {:02d}.rst7 -r {:02d}.rst7 -ref {:02d}.rst7',
             # 4
             ]
+        gpucodeerror = ' Periodic box dimensions have changed too much from their initial values'
 
         for i in range(1, 22):
-            if i != 3:
-                calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1), shell=True)
-            else:
+            # if i != 3:
+            calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1), shell=True, stdout=subprocess.PIPE)
+
+            if gpucodeerror in calc.stdout.decode():
+                print('{}. Switching to CPU code for this step\n.'.format(gpucodeerror))
                 if cpus == 1:
                     calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1).replace('.cuda',''), shell=True)
                 else:
                     calc = subprocess.run(equilibrateCommand[1].format(cpus, i, i, i - 1, i, i - 1), shell=True)
+
             if calc.returncode == 0:
                 print('Equlibration step {} completed successfully\n'.format(i))
                 self.status = 1
