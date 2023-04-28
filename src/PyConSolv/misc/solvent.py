@@ -27,4 +27,4 @@ class Solvent(TleapAdder):
                             'THF': 'THF',
                             'Toluene': 'TOL',
                             'custom': 'SLV'}
-        TleapAdder.__init__(self, 'solvents', self.solventDict, 'solvent')
+        TleapAdder.__init__(self, '../solvents', self.solventDict, 'solvent')

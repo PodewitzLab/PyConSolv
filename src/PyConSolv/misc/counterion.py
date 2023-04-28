@@ -17,4 +17,4 @@ class Counterion(TleapAdder):
                                'ClO4-': 'CLO',
                                'BPh4-': 'BPH',
                                'custom': 'CTI'}
-        TleapAdder.__init__(self, 'counterions', self.counterionDict, 'counterion')
+        TleapAdder.__init__(self, '../counterions', self.counterionDict, 'counterion')
