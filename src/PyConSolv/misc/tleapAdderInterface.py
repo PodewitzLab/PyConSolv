@@ -113,7 +113,6 @@ class TleapAdder:
                                    path + r'/{}.frcmod'.format(self.item))
             self.status = 1
         except:
-            print('yolo\n\n\n\n')
             print('File copy error')
             self.status = 0
 
