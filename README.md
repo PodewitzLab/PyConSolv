@@ -36,13 +36,13 @@ MultiWfn 3.8+
 
 ## Usage
 
-###Console:
+### Console:
 pyconsolv [options]
 
 see user manual for console options
 
 
-###Jupyter Notebook
+### Jupyter Notebook
 
 python
 
