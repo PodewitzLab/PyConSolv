@@ -11,6 +11,8 @@ with minimal user intervention.
 ## Features
 Utilizes freely available software, with high performance
 
+18 predefined solvents and 6 counterions, with the ability to use any solvent or counterion
+
 Automated molecule splitting for transition metal parametrization
 
 Utilizes ORCA 5.0 for quantum mechanical optimizations/frequency calculations
@@ -19,15 +21,7 @@ Utilizes MultiWfn for the generation of the RESP charges
 
 Automated equilibration of simulation box
 
-TO DO:
-
-Automated simulation
-
 Automated clustering
-
-Automated conversion to GROMACS
-
-Automated Analysis
 
 
 ## Requirements
@@ -42,6 +36,14 @@ MultiWfn 3.8+
 
 ## Usage
 
+###Console:
+pyconsolv [options]
+
+see user manual for console options
+
+
+###Jupyter Notebook
+
 python
 
 from PyConSolv import ConfGen
@@ -50,4 +52,5 @@ conf = ConfGen(path/to/input.xyz)
 
 conf.run()
 
-Panic because of all the error messages!
+
+
