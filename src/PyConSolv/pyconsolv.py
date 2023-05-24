@@ -16,6 +16,7 @@ def main():
     parser.add_argument('-d', '--dispersion', nargs='?', default='D4', type=str, help='dispersion corrections, default = D4')
     parser.add_argument('-s', '--solvent', nargs='?', default='Water', type=str, help='solvent to be used for MD simulations/ OM Calculations, default Water')
     parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int, help='number of cpu cores to be used for calculations, default 12')
+    parser.add_argument('-mult', '--multiplicity',  nargs='?', default=1, type=int, help = 'multiplicity of the system, default 1')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
 
     args = parser.parse_args()
@@ -27,7 +28,7 @@ def main():
         sys.exit()
     conf = PyConSolv(inputfilepath)
     conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-            solvent = args.solvent )
+            solvent = args.solvent, multiplicity = args.multiplicity )
     sys.exit()
 
 if __name__ == '__main__':
