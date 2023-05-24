@@ -1,6 +1,7 @@
 from ..utils.colorgen import Color
 import os
 
+
 class PATH:
     def __init__(self, program: str):
         self.status = 1

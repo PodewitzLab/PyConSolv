@@ -66,10 +66,10 @@ run
     def createInput(self):
         inputstr = None
         match self.clustering:
-            case 'kmeans' :
+            case 'kmeans':
                 clusters = input('Please enter the number of desired clusters: (default 10)\n')
-                inputstr =  self.kmeans.format(clusters,'{}')
-            case 'dbscan' :
+                inputstr = self.kmeans.format(clusters, '{}')
+            case 'dbscan':
                 minpoints = input('Please enter the minimum number of points for a cluster: ()\n')
                 epsilon = input('Please enter the epsilon value: ()\n')
                 kdist = input('Please enter the kdist: ()\n')

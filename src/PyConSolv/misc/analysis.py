@@ -1,8 +1,6 @@
-import glob
 import os
 import shutil
 import subprocess
-import re
 
 from .clustering import Cluster
 from ..interfaces.calculate import Calculation
@@ -10,7 +8,7 @@ from ..interfaces.cpptraj import CPPtraj
 
 
 class Analysis:
-    def __init__(self, path:str ,alignMask: str = ''):
+    def __init__(self, path: str, alignMask: str = ''):
         """
         Analyse trajectory created from the PyConSolv simulation
 
@@ -72,7 +70,8 @@ class Analysis:
         Class variables:
         """
         self.cpptraj.run('dry_sim')
-    def singlePoint(self, name:str):
+
+    def singlePoint(self, name: str):
         """
         Create folder and run single point calculation using orca. Folders are automatically created using the pdb file
         basename
@@ -81,14 +80,14 @@ class Analysis:
             :param string name: name of the pdb file for which a calculation shall be performed
         Class variables:
         """
-        command = '{} {} > {}'.format(self.orcapath, self.orcafile , 'orca_sp.out')
-        dirname =name.replace('.pdb','')
+        command = '{} {} > {}'.format(self.orcapath, self.orcafile, 'orca_sp.out')
+        dirname = name.replace('.pdb', '')
         os.mkdir(dirname)
-        shutil.copyfile(self.orcafile,dirname+'/'+self.orcafile)
+        shutil.copyfile(self.orcafile, dirname + '/' + self.orcafile)
         self.convertToXYZ(dirname)
         shutil.copyfile(dirname + '.xyz', dirname + '/input.xyz')
         os.chdir(dirname)
-        calc = subprocess.run(command, shell = True)
+        calc = subprocess.run(command, shell=True)
         self.rank.append([dirname, float(self.getEnergy())])
         os.chdir(self.homefolder)
 
@@ -114,23 +113,24 @@ class Analysis:
         Class variables:
         """
         data = []
-        f = open(basename + '.pdb','r')
+        f = open(basename + '.pdb', 'r')
         for line in f:
             if 'ATOM' in line or 'ATM' in line:
                 l = line.split()
                 atomname = l[2]
-                if len(atomname) > 1 and atomname[1].isdigit()==False:
-                    ln = atomname[0]+atomname[1].lower()
+                if len(atomname) > 1 and atomname[1].isdigit() == False:
+                    ln = atomname[0] + atomname[1].lower()
                 else:
                     ln = atomname[0]
-                data.append(' '.join([ln,l[5],l[6],l[7]]))
+                data.append(' '.join([ln, l[5], l[6], l[7]]))
         f.close()
-        w = open(basename + '.xyz','w')
+        w = open(basename + '.xyz', 'w')
         w.write('{}\n'.format(str(len(data))))
         w.write('{} converted from pdb\n'.format(basename))
         for line in data:
-            w.write(line+'\n')
+            w.write(line + '\n')
         w.close()
+
     def getEnergy(self):
         """
         Get energy from orca single point calculation output
@@ -139,7 +139,7 @@ class Analysis:
 
         Class variables:
         """
-        f = open('orca_sp.out','r')
+        f = open('orca_sp.out', 'r')
         pattern = 'FINAL SINGLE POINT ENERGY'
         for line in f:
             if pattern in line:
@@ -188,7 +188,6 @@ class Analysis:
         command = 'sed -i "s/atommask/{}/g" prepare.sh'
         cmd = subprocess.run(command, shell=True)
 
-
     def rankClusters(self):
         """
         Rank clusters according to energy
@@ -197,8 +196,9 @@ class Analysis:
 
         Class variables:
         """
-        self.rank = sorted(self.rank,key=lambda x: x[1])
-    def run(self,clustering = 'kmeans'):
+        self.rank = sorted(self.rank, key=lambda x: x[1])
+
+    def run(self, clustering='kmeans'):
         """
         Run clustering and ranking
 
