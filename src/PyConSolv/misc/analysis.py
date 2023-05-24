@@ -23,7 +23,7 @@ class Analysis:
             - self.align = atom mask to align the simulation to
             - self.orcafile = name of the orca input file for the single point calculations
             - self.reps = list of the cluster representatives
-            - self.status = status of the calculation. 0 means an error occured and everything should be stopped
+            - self.status = status of the calculation. 0 means an error occurred and everything should be stopped
         """
         self.cpptraj = CPPtraj()
         self.rank = []
