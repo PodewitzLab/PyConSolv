@@ -276,10 +276,11 @@ Calculations will be set up in:
         else:
             solvent = Solvent()
             solvname = solvent.solventDict[cpcm]
-            shutil.copyfile(self.solventPath + '/{}.frcmod'.format(solvname),
-                            self.MCPB + '/{}.frcmod'.format(solvname))
-            shutil.copyfile(self.solventPath + '{}.mol2'.format(solvname),
-                            self.MCPB + '/{}.mol2'.format(solvname))
+            if cpcm != 'Water':
+                shutil.copyfile(self.solventPath + '/{}.frcmod'.format(solvname),
+                                self.MCPB + '/{}.frcmod'.format(solvname))
+                shutil.copyfile(self.solventPath + '{}.mol2'.format(solvname),
+                                self.MCPB + '/{}.mol2'.format(solvname))
 
         if self.counterIon == 'custom':
             shutil.copyfile('/'.join(self.ionParamPath.split('/')[:-1]) + '/CTI_param/CTI.frcmod',

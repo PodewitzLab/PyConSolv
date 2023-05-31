@@ -8,7 +8,7 @@ from PyConSolv.misc.analysis import Analysis
 
 
 def main():
-    ver = '1.0.0'
+    ver = '0.9.1'
     parser = argparse.ArgumentParser(prog = 'PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help = 'input file in XYZ format')
     parser.add_argument('-c', '--charge',  nargs='?', default=0, type=int, help = 'charge of the system, default 0')
@@ -27,12 +27,17 @@ def main():
 
     inputfilepath = os.path.abspath(args.input)
 
-    if '.xyz' not in inputfilepath:
-        print('Path does not contain a valid XYZ file\n')
-        sys.exit()
     if args.analyze:
+        if not args.mask:
+            print('Warning, you have not provided an input mask for alignment, please provide a list of atom ids in the format: 1,2,3-10\n')
+            sys.exit()
         analysis = Analysis(path = args.analyze, alignMask= args.mask)
         analysis.run(clustering=args.cluster)
+
+    elif '.xyz' not in inputfilepath:
+        print('Path does not contain a valid XYZ file\n')
+        sys.exit()
+
     else:
         conf = PyConSolv(inputfilepath)
         conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
