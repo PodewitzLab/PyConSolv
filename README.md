@@ -71,7 +71,7 @@ options:
   -s [SOLVENT], --solvent [SOLVENT] solvent to be used for MD simulations/ OM Calculations, default Water  
   -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
   -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1  
-  -a [ANALYZE], --analyze [ANALYZE] analyze a simulation  
+  -a , --analyze analyze a simulation  
   -mask [MASK], --mask [MASK] atomid mask for clustering  
   -cluster [CLUSTER], --cluster [CLUSTER] clustering method  
   -v, --version         show program's version number and exit  

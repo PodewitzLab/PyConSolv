@@ -101,6 +101,10 @@ end
         f.write(self.orca_inp.format(self.method, '! FREQ', self.solvent, self.cores, self.charge, self.multi))
         f.close()
 
+        f = open(self.simulation_folder + '/orca_sp.inp', 'w')
+        f.write(self.orca_inp.format(self.method, '! SP', self.solvent, self.cores, self.charge, self.multi))
+        f.close()
+
         shutil.copy(self.path + '/' + self.inputFile, self.optimization_folder + '/' + self.inputFile)
 
     def Method(self, method: str = 'PBE0', basis: str = 'def2-SVP', DSP: str = 'D4', CPCM: str = 'Water',

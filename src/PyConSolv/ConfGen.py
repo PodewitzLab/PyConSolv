@@ -610,7 +610,7 @@ Calculations will be set up in:
         self.restarter.write('DONE')
         print('Simulation setup complete, please execute the run_simulation.sh script in:\n {}\n to '
               'begin a 100ns cmd production run.\n'.format(self.inputpath + '/simulation'))
-        print('A quick analysis of the simulation run can be performed using the strip.sh script in your simulation folder\n\n')
+        print('A quick analysis of the simulation run can be performed using the \"pyconsolv sim-01 -a\" command, in your simulation folder\n\n')
 
         if self.addSolvent == True:
             Copier(self.inputpath+'/Solvent/solv_param/SLV.frcmod',

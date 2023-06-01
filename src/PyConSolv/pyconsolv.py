@@ -18,7 +18,7 @@ def main():
     parser.add_argument('-s', '--solvent', nargs='?', default='Water', type=str, help='solvent to be used for MD simulations/ OM Calculations, default Water')
     parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int, help='number of cpu cores to be used for calculations, default 12')
     parser.add_argument('-mult', '--multiplicity',  nargs='?', default=1, type=int, help = 'multiplicity of the system, default 1')
-    parser.add_argument('-a', '--analyze', nargs='?', default=0, type=str, help='analyze a simulation')
+    parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
     parser.add_argument('-cluster', '--cluster', nargs='?', default=0, type=str, help='clustering method')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
@@ -30,9 +30,16 @@ def main():
     if args.analyze:
         if not args.mask:
             print('Warning, you have not provided an input mask for alignment, please provide a list of atom ids in the format: 1,2,3-10\n')
-            sys.exit()
-        analysis = Analysis(path = args.analyze, alignMask= args.mask)
-        analysis.run(clustering=args.cluster)
+            mask = input()
+        else:
+            mask = args.mask
+        if not args.cluster:
+            print('Please provide a clustering method:\n')
+            cluster = input()
+        else:
+            cluster = args.cluster
+        analysis = Analysis(path = inputfilepath, alignMask= mask)
+        analysis.run(clustering=cluster)
 
     elif '.xyz' not in inputfilepath:
         print('Path does not contain a valid XYZ file\n')

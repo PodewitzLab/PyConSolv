@@ -198,6 +198,32 @@ class Analysis:
         """
         self.rank = sorted(self.rank, key=lambda x: x[1])
 
+    def checkORCAFile(self) -> bool:
+        found = False
+        files = os.listdir(self.homefolder)
+        for file in files:
+            if file == 'orca_sp.inp':
+                found = True
+
+        if not found:
+            try:
+                tmp = []
+                f = open(self.homefolder + '/../orca_calculations/opt/orca_opt.inp','r')
+                for line in f:
+                    if 'OPT' in line:
+                        tmp.append(line.replace('OPT','SP'))
+                        continue
+                    tmp.append(line)
+                f.close()
+                f = open(self.homefolder + '/orca_sp.inp','w')
+                for line in tmp:
+                    f.write(line)
+                f.close()
+                found = True
+            except:
+                found = False
+        return found
+
     def run(self, clustering='kmeans'):
         """
         Run clustering and ranking
@@ -211,8 +237,12 @@ class Analysis:
         self.dry()
         self.align()
         self.cluster(clustering)
+        if not self.checkORCAFile():
+            print('No calculation template file found, please make sure orca_sp.inp exists in this folder\n')
+            return
         self.getReps()
         for rep in self.reps:
+            print('Running single point for {}'.format(rep))
             self.singlePoint(rep)
         self.rankClusters()
         print(self.rank)
