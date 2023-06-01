@@ -66,10 +66,10 @@ run
     def createInput(self):
         inputstr = None
         match self.clustering:
-            case 'kmeans' :
-                clusters = input('Please enter the number of desired clusters: (default 10)\n')
-                inputstr =  self.kmeans.format(clusters,'{}')
-            case 'dbscan' :
+            case 'kmeans':
+                clusters = input('Please enter the number of desired clusters: (default 10)\n') or '10'
+                inputstr = self.kmeans.format(clusters, '{}')
+            case 'dbscan':
                 minpoints = input('Please enter the minimum number of points for a cluster: ()\n')
                 epsilon = input('Please enter the epsilon value: ()\n')
                 kdist = input('Please enter the kdist: ()\n')
@@ -79,8 +79,8 @@ run
                 inputstr = self.dbscan.format(epsilon, '{}')
 
             case 'hierarchical':
-                clusters = input('Please enter the number of desired clusters: (default 10)\n')
-                linkage = input('Please enter the linkage type: (Default average)\n')
+                clusters = input('Please enter the number of desired clusters: (default 10)\n') or '10'
+                linkage = input('Please enter the linkage type: (Default average)\n') or 'average'
                 match linkage:
                     case 'linkage':
                         inputstr = self.hierarchical.format(clusters, linkage)
@@ -89,5 +89,5 @@ run
                     case 'complete':
                         inputstr = self.hierarchical.format(clusters, linkage)
 
-        sieve = input('Please enter the value for the frame number sieve: (default 10)\n')
+        sieve = input('Please enter the value for the frame number sieve: (default 10)\n') or '10'
         return inputstr.format(sieve)

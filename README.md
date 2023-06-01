@@ -34,23 +34,60 @@ ORCA 5.0+
 
 MultiWfn 3.8+
 
+## Installation
+
+The creation of a new virtual environment is highly recommended:
+
+using conda:
+```
+conda create -c conda-forge --name PyConSolvXTR python=3.10 rdkit numpy pandas
+conda activate PyConSolv
+pip install PyConSolv
+```
+
+using pip:
+```
+python3 -m venv env
+source env/bin/activate
+pip install numpy pandas rdkit PyConSolv
+```
+
 ## Usage
 
 ### Console:
-pyconsolv [options]
+```
+pyconsolv [-h] [-c [CHARGE]] [-m [METHOD]] [-b [BASIS]] [-d [DISPERSION]] [-s [SOLVENT]] [-p [CPU]] [-mult [MULTIPLICITY]] [-a [ANALYZE]] [-mask [MASK]] [-cluster [CLUSTER]] [-v] input
+```
 
-see user manual for console options
+positional arguments:  
+input input file in XYZ format
+
+options:  
+  -h, --help            show this help message and exit  
+  -c [CHARGE], --charge [CHARGE] charge of the system, default 0  
+  -m [METHOD], --method [METHOD] ORCA optimization/frequency calculations method of choice, default PBE0  
+  -b [BASIS], --basis [BASIS] basis set to be used for calculations, default def2-SVP  
+  -d [DISPERSION], --dispersion [DISPERSION] dispersion corrections, default = D4  
+  -s [SOLVENT], --solvent [SOLVENT] solvent to be used for MD simulations/ OM Calculations, default Water  
+  -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
+  -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1  
+  -a , --analyze analyze a simulation  
+  -mask [MASK], --mask [MASK] atomid mask for clustering  
+  -cluster [CLUSTER], --cluster [CLUSTER] clustering method  
+  -v, --version         show program's version number and exit  
+
+see user manual for more details
 
 
 ### Jupyter Notebook
 
-python
-
+```
 from PyConSolv import ConfGen
 
 conf = ConfGen(path/to/input.xyz)
 
-conf.run()
+conf.run([options])
+```
 
 
 

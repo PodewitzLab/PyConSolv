@@ -163,24 +163,24 @@ Calculations will be set up in:
         print('Please enter the refractive index value for your custom solvent:\n')
         self.refrac = input()
 
-        print('Do you want to add this custom solvent to the list of available solvents?[y/n]\n')
-        add = str(input())
-        while add.lower() not in ['y','n']:
-            print('Type "y" if you want to add this custom solvent to the list of available solvents or "n" if not:')
-            add = str(input())
-        if add.lower() == 'y':
-            self.addSolvent = True
-            print('Give this solvent a unique abbreviations consisting of exactly 3 characters:\n')
-            abb = str(input())
-            while len(abb) != 3:
-                print('It is mandatory to give exactly 3 characters! If you changed your mind please enter "quit"')
-                abb=str(input())
-                if abb.lower() == "quit":
-                    self.addSolvent = False
-                    print('Solvent files will not be added to pyConSolv!')
-                    break
-            self.solventAbb = abb
-            print('You chose {} as abbreviation!'.format(self.solventAbb))
+        # print('Do you want to add this custom solvent to the list of available solvents?[y/n]\n')
+        # add = str(input())
+        # while add.lower() not in ['y','n']:
+        #     print('Type "y" if you want to add this custom solvent to the list of available solvents or "n" if not:')
+        #     add = str(input())
+        # if add.lower() == 'y':
+        #     self.addSolvent = True
+        #     print('Give this solvent a unique abbreviations consisting of exactly 3 characters:\n')
+        #     abb = str(input())
+        #     while len(abb) != 3:
+        #         print('It is mandatory to give exactly 3 characters! If you changed your mind please enter "quit"')
+        #         abb=str(input())
+        #         if abb.lower() == "quit":
+        #             self.addSolvent = False
+        #             print('Solvent files will not be added to pyConSolv!')
+        #             break
+        #     self.solventAbb = abb
+        #     print('You chose {} as abbreviation!'.format(self.solventAbb))
 
         print(Color.GREEN + '''
 
@@ -233,7 +233,7 @@ Calculations will be set up in:
 
 
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
-              cpcm: str = 'Water', cpu: int = 12) -> int:
+              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1) -> int:
         """
         Run setup for creating the appropriate folders and parse XYZ file
 
@@ -244,6 +244,7 @@ Calculations will be set up in:
             :param string dsp: Dispersion corrections
             :param string cpcm: CPCM solvation model solvent
             :param int cpu: number of CPU cores to be used
+            :param int multiplicity: multiplicity for the system
 
         Class variables:
         """
@@ -260,7 +261,7 @@ Calculations will be set up in:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
-            setup = Setup(self.path, charge=charge)
+            setup = Setup(self.path, charge=charge, multi = multiplicity)
             setup.Method(method, basis, dsp, cpcm, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
@@ -275,10 +276,11 @@ Calculations will be set up in:
         else:
             solvent = Solvent()
             solvname = solvent.solventDict[cpcm]
-            shutil.copyfile(self.solventPath + '/{}.frcmod'.format(solvname),
-                            self.MCPB + '/{}.frcmod'.format(solvname))
-            shutil.copyfile(self.solventPath + '{}.mol2'.format(solvname),
-                            self.MCPB + '/{}.mol2'.format(solvname))
+            if cpcm != 'Water':
+                shutil.copyfile(self.solventPath + '/{}.frcmod'.format(solvname),
+                                self.MCPB + '/{}.frcmod'.format(solvname))
+                shutil.copyfile(self.solventPath + '{}.mol2'.format(solvname),
+                                self.MCPB + '/{}.mol2'.format(solvname))
 
         if self.counterIon == 'custom':
             shutil.copyfile('/'.join(self.ionParamPath.split('/')[:-1]) + '/CTI_param/CTI.frcmod',
@@ -608,7 +610,7 @@ Calculations will be set up in:
         self.restarter.write('DONE')
         print('Simulation setup complete, please execute the run_simulation.sh script in:\n {}\n to '
               'begin a 100ns cmd production run.\n'.format(self.inputpath + '/simulation'))
-        print('A quick analysis of the simulation run can be performed using the strip.sh script in your simulation folder\n\n')
+        print('A quick analysis of the simulation run can be performed using the \"pyconsolv sim-01 -a\" command, in your simulation folder\n\n')
 
         if self.addSolvent == True:
             Copier(self.inputpath+'/Solvent/solv_param/SLV.frcmod',
@@ -656,7 +658,7 @@ Calculations will be set up in:
         f.close()
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water'):
+            solvent: str = 'Water', multiplicity: int = 1):
         """
         Run the conformer generation
 
@@ -673,7 +675,7 @@ Calculations will be set up in:
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
         self.checkRestart()
-        self.setup(charge, method, basis, dsp, solvent, cpu)
+        self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity)
 
         if self.restart < 2:
             if self.orca() == 0:
