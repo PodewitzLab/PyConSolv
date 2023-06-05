@@ -40,7 +40,7 @@ The creation of a new virtual environment is highly recommended:
 
 using conda:
 ```
-conda create -c conda-forge --name PyConSolvXTR python=3.10 rdkit numpy pandas
+conda create -c conda-forge --name PyConSolv python=3.10 rdkit numpy pandas
 conda activate PyConSolv
 pip install PyConSolv
 ```

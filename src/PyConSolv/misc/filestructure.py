@@ -145,10 +145,17 @@ END\n'''.format(epsilon, refrac)
         Class variables:
         """
         status = 0
-        if len(os.listdir(self.path)) > 2:
+        warn = False
+        folderContents = os.listdir(self.path)
+        problem_files = ['orca_calculations' , 'equilibration', 'simulation', 'MCPB_setup']
+        for item in folderContents:
+            if item in problem_files:
+                warn = True
+
+        if warn:
             self.check = 0
             print(
-                Color.RED + 'Your calculation directory includes unexpected folders/files. Please make sure it only contains your input xyz file!\n' + Color.END)
+                Color.RED + 'Your calculation directory includes folders/files from a previous run. Please make sure it only contains your input xyz file!\n' + Color.END)
             print('Do you want to get rid of every other file/folder in the calculation directory except your xyz file and then restart?\n'
                   '[y/n]\n'
                   'ATTENTION: "n" will close the program!')
