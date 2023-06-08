@@ -299,6 +299,10 @@ Calculations will be set up in:
             shutil.copyfile(self.ionPath + '{}.mol2'.format(ionname),
                             self.MCPB + '/{}.mol2'.format(ionname))
 
+        f = open(self.inputpath + '/simulation/solvent', 'w')
+        f.write(cpcm)
+        f.close()
+
         print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
 
         self.restarter = RestartFile(self.inputpath)

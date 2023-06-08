@@ -19,6 +19,7 @@ def main():
     parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int, help='number of cpu cores to be used for calculations, default 12')
     parser.add_argument('-mult', '--multiplicity',  nargs='?', default=1, type=int, help = 'multiplicity of the system, default 1')
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
+    parser.add_argument('-nosp', '--nosp', action='store_true', help='do not run single point calculations')
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
     parser.add_argument('-cluster', '--cluster', nargs='?', default=0, type=str, help='clustering method')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
@@ -39,7 +40,7 @@ def main():
         else:
             cluster = args.cluster
         analysis = Analysis(path = inputfilepath, alignMask= mask)
-        analysis.run(clustering=cluster)
+        analysis.run(clustering=cluster, nosp = args.nosp)
 
     elif '.xyz' not in inputfilepath:
         print('Path does not contain a valid XYZ file\n')
