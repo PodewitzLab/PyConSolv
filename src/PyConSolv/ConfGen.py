@@ -78,7 +78,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.0.1'
+        self.version = '0.9.2.1'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -96,7 +96,8 @@ class PyConSolv:
         self.inputpath = '/'.join(path.split('/')[:-1])
         if self.inputFile != 'input.xyz':
             print('Copying {} to input.xyz\n'.format(self.inputFile))
-            shutil.copyfile(self.path,self.inputpath + self.inputFile)
+            shutil.copyfile(self.path,self.inputpath + '/input.xyz')
+            self.inputFile = 'input.xyz'
         if '.xyz' not in self.inputFile:
             error('Initialization... make sure the input is an xyz file')
         self.status = 0
@@ -261,7 +262,7 @@ Calculations will be set up in:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
-            setup = Setup(self.path, charge=charge, multi = multiplicity)
+            setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity)
             setup.Method(method, basis, dsp, cpcm, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
@@ -297,6 +298,10 @@ Calculations will be set up in:
                             self.MCPB + '/{}.frcmod'.format(ionname))
             shutil.copyfile(self.ionPath + '{}.mol2'.format(ionname),
                             self.MCPB + '/{}.mol2'.format(ionname))
+
+        f = open(self.inputpath + '/simulation/solvent', 'w')
+        f.write(cpcm)
+        f.close()
 
         print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
 

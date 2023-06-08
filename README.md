@@ -40,7 +40,7 @@ The creation of a new virtual environment is highly recommended:
 
 using conda:
 ```
-conda create -c conda-forge --name PyConSolvXTR python=3.10 rdkit numpy pandas
+conda create -c conda-forge --name PyConSolv python=3.10 rdkit numpy pandas
 conda activate PyConSolv
 pip install PyConSolv
 ```
@@ -56,7 +56,7 @@ pip install numpy pandas rdkit PyConSolv
 
 ### Console:
 ```
-pyconsolv [-h] [-c [CHARGE]] [-m [METHOD]] [-b [BASIS]] [-d [DISPERSION]] [-s [SOLVENT]] [-p [CPU]] [-mult [MULTIPLICITY]] [-a [ANALYZE]] [-mask [MASK]] [-cluster [CLUSTER]] [-v] input
+pyconsolv [-h] [-c [CHARGE]] [-m [METHOD]] [-b [BASIS]] [-d [DISPERSION]] [-s [SOLVENT]] [-p [CPU]] [-mult [MULTIPLICITY]] [-a [ANALYZE]] [-mask [MASK]] [-cluster [CLUSTER]] [-nosp] [-v] input
 ```
 
 positional arguments:  
@@ -71,6 +71,7 @@ options:
   -s [SOLVENT], --solvent [SOLVENT] solvent to be used for MD simulations/ OM Calculations, default Water  
   -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
   -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1  
+  -nosp skip single point calculations for clusters
   -a , --analyze analyze a simulation  
   -mask [MASK], --mask [MASK] atomid mask for clustering  
   -cluster [CLUSTER], --cluster [CLUSTER] clustering method  

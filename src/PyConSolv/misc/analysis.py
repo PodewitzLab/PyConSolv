@@ -1,8 +1,10 @@
 import os
 import shutil
 import subprocess
+import sys
 
 from .clustering import Cluster
+from .solvent import Solvent
 from ..interfaces.calculate import Calculation
 from ..interfaces.cpptraj import CPPtraj
 
@@ -20,11 +22,16 @@ class Analysis:
             - self.path = root path for calculations
             - self.homefolder = current working directory when calculations are started
             - self.simname = base name for the simulation
-            - self.align = atom mask to align the simulation to
+            - self.alignMask = atom mask to align the simulation to
             - self.orcafile = name of the orca input file for the single point calculations
             - self.reps = list of the cluster representatives
             - self.status = status of the calculation. 0 means an error occurred and everything should be stopped
+            - self.aligndryFile = input file for cpptraj to align a dried solvent using the provided atommask
+            - self.dryfile = input file for cpptraj to dry a simulation
+            - self.alignfile = input file for cpptraj to aling a simulation to the provided atommask with solvent
+            - self.solvent = solvent used for the simulation
         """
+        self.solvent = None
         self.cpptraj = CPPtraj()
         self.rank = []
         self.path = os.path.abspath(path)
@@ -33,13 +40,29 @@ class Analysis:
         self.alignMask = alignMask
         self.reps = []
         self.orcafile = 'orca_sp.inp'
-        calc = Calculation(self.path)
-        calc.checkpath()
-        if calc.status == 0:
-            print("ORCA was not found on your system.\n Aborting...\n")
-        else:
-            self.orcapath = calc.orcapath
         os.chdir(self.homefolder)
+
+        self.alignfile ='''parm {}.prmtop
+trajin {}
+autoimage
+align @{} first
+trajout solv_aligned.nc
+run
+quit'''
+        self.dryfile = '''parm {}.prmtop
+trajin {}
+strip :{}
+autoimage
+trajout dry.nc
+run
+quit'''
+        self.aligndryFile = '''parm {}.prmtop
+trajin {}
+autoimage
+align @{} first
+trajout dry_aligned.nc
+run
+quit'''
 
     def alignSolv(self):
         """
@@ -183,10 +206,17 @@ class Analysis:
         f.write(inputstring)
         f.close()
 
+    def writeFile(self,name, template, replacelist):
+        f = open(name, 'w')
+        for line in template.format(*replacelist):
+            f.write(line)
+        f.close()
     def useMask(self):
+        self.writeFile('align.in', self.alignfile, ['LIG_solv', self.simname + '.nc', self.alignMask])
+        self.writeFile('align_dry.in', self.aligndryFile, ['LIG_dry', 'dry.nc', self.alignMask])
+        self.writeFile('dry_sim.in', self.dryfile, ['LIG_solv', self.simname + '.nc', self.solvent])
 
-        command = 'sed -i "s/atommask/{}/g" prepare.sh'
-        cmd = subprocess.run(command, shell=True)
+
 
     def rankClusters(self):
         """
@@ -199,6 +229,13 @@ class Analysis:
         self.rank = sorted(self.rank, key=lambda x: x[1])
 
     def checkORCAFile(self) -> bool:
+        """
+        Check if orce file exists, if not, try to create one
+
+        Parameters:
+
+        Class variables:
+        """
         found = False
         files = os.listdir(self.homefolder)
         for file in files:
@@ -224,7 +261,34 @@ class Analysis:
                 found = False
         return found
 
-    def run(self, clustering='kmeans'):
+    def getSolvent(self):
+        """
+        Get the solvent used for the simulation
+
+        Parameters:
+
+        Class variables:
+        """
+        solv = Solvent()
+        try:
+            f = open('solvent','r')
+            for line in f:
+                s = line.replace('\n','')
+            f.close()
+            self.solvent = solv.solventDict[s]
+        except:
+            s = input('Unable to detect solvent used, please provide the solvent (e.g Water, CH2Cl2, custom):\n')
+        self.solvent = solv.solventDict[s]
+
+    def checkORCAPath(self):
+        calc = Calculation(self.path)
+        calc.checkpath()
+        if calc.status == 0:
+            print("ORCA was not found on your system.\n Aborting...\n")
+            sys.exit()
+        else:
+            self.orcapath = calc.orcapath
+    def run(self, clustering='kmeans', nosp = False):
         """
         Run clustering and ranking
 
@@ -233,16 +297,22 @@ class Analysis:
 
         Class variables:
         """
+        self.getSolvent()
+        self.useMask()
         self.alignSolv()
         self.dry()
         self.align()
         self.cluster(clustering)
-        if not self.checkORCAFile():
-            print('No calculation template file found, please make sure orca_sp.inp exists in this folder\n')
-            return
-        self.getReps()
-        for rep in self.reps:
-            print('Running single point for {}'.format(rep))
-            self.singlePoint(rep)
-        self.rankClusters()
-        print(self.rank)
+        if not nosp:
+            self.checkORCAPath()
+            if not self.checkORCAFile():
+                print('No calculation template file found, please make sure orca_sp.inp exists in this folder\n')
+                return
+            self.getReps()
+            for rep in self.reps:
+                print('Running single point for {}'.format(rep))
+                self.singlePoint(rep)
+            self.rankClusters()
+            print(self.rank)
+        else:
+            print('nosp option detected, Clusters have not been ranked.\n')
