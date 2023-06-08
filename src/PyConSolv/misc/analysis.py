@@ -48,21 +48,21 @@ class Analysis:
         os.chdir(self.homefolder)
 
         self.alignfile ='''parm {}.prmtop
-trajin {}.nc
+trajin {}
 autoimage
 align @{} first
 trajout solv_aligned.nc
 run
 quit'''
         self.dryfile = '''parm {}.prmtop
-trajin {}.nc
+trajin {}
 strip :{}
 autoimage
 trajout dry.nc
 run
 quit'''
         self.aligndryFile = '''parm {}.prmtop
-trajin {}.nc
+trajin {}
 autoimage
 align @{} first
 trajout dry_aligned.nc
@@ -211,17 +211,15 @@ quit'''
         f.write(inputstring)
         f.close()
 
-    def writeFile(self,name, replacelist):
+    def writeFile(self,name, template, replacelist):
         f = open(name, 'w')
-        for line in self.alignSolv.format():
+        for line in template.format(*replacelist):
             f.write(line)
         f.close()
     def useMask(self):
-        # command = 'sed -i "s/atommask/{}/g" prepare.sh'.format(self.alignMask)
-        # cmd = subprocess.run(command, shell=True)
-        self.writeFile('align.in', ['LIG_solv', self.simname + '.nc', self.alignMask])
-        self.writeFile('align_dry.in', ['LIG_dry', 'dry.nc', self.alignMask])
-        self.writeFile('dry_sim.in', ['LIG_solv', self.simname + '.nc', self.solvent])
+        self.writeFile('align.in', self.alignfile, ['LIG_solv', self.simname + '.nc', self.alignMask])
+        self.writeFile('align_dry.in', self.aligndryFile, ['LIG_dry', 'dry.nc', self.alignMask])
+        self.writeFile('dry_sim.in', self.dryfile, ['LIG_solv', self.simname + '.nc', self.solvent])
 
 
 
@@ -295,6 +293,7 @@ quit'''
         Class variables:
         """
         self.getSolvent()
+        self.useMask()
         self.alignSolv()
         self.dry()
         self.align()
