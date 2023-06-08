@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import sys
 
 from .clustering import Cluster
 from .solvent import Solvent
@@ -39,12 +40,6 @@ class Analysis:
         self.alignMask = alignMask
         self.reps = []
         self.orcafile = 'orca_sp.inp'
-        calc = Calculation(self.path)
-        calc.checkpath()
-        if calc.status == 0:
-            print("ORCA was not found on your system.\n Aborting...\n")
-        else:
-            self.orcapath = calc.orcapath
         os.chdir(self.homefolder)
 
         self.alignfile ='''parm {}.prmtop
@@ -278,11 +273,21 @@ quit'''
         try:
             f = open('solvent','r')
             for line in f:
-                s = line
+                s = line.replace('\n','')
             f.close()
+            self.solvent = solv.solventDict[s]
         except:
-            s = input('Unable to detect solvent use, please provide the solvent used (e.g Water, CH2Cl2, custom):\n')
+            s = input('Unable to detect solvent used, please provide the solvent (e.g Water, CH2Cl2, custom):\n')
         self.solvent = solv.solventDict[s]
+
+    def checkORCAPath(self):
+        calc = Calculation(self.path)
+        calc.checkpath()
+        if calc.status == 0:
+            print("ORCA was not found on your system.\n Aborting...\n")
+            sys.exit()
+        else:
+            self.orcapath = calc.orcapath
     def run(self, clustering='kmeans', nosp = False):
         """
         Run clustering and ranking
@@ -299,6 +304,7 @@ quit'''
         self.align()
         self.cluster(clustering)
         if not nosp:
+            self.checkORCAPath()
             if not self.checkORCAFile():
                 print('No calculation template file found, please make sure orca_sp.inp exists in this folder\n')
                 return
