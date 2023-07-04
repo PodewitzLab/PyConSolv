@@ -1,5 +1,20 @@
 class Cluster:
     def __init__(self, clustering):
+        """
+        Class to generate cpptraj input files for clustering
+
+        Parameters:
+            :param str clustering: clustering method
+
+        Class variables:
+            - self.runtypes - clustering methods in cpptraj
+            - self.clustering - chosen clustering method
+            - self.kmeans - template input file for kmeans clustering
+            - self.dpeaks - template input file for dpeaks clustering
+            - self.dbscan - template input file for dbscan clustering
+            - self.hierarchical - template input file for hierarchical clustering
+        """
+
         self.runtypes = ['kmeans', 'hierarchical', 'dbscan', 'dpeaks']
         self.clustering = clustering
         self.kmeans = r"""parm LIG_dry.prmtop
@@ -80,14 +95,14 @@ run
 
             case 'hierarchical':
                 clusters = input('Please enter the number of desired clusters: (default 10)\n') or '10'
-                linkage = input('Please enter the linkage type: (Default average)\n') or 'average'
+                linkage = input('Please enter the linkage type (linkage, averagelinkage, complete): (Default averagelinkage)\n') or 'averagelinkage'
                 match linkage:
                     case 'linkage':
-                        inputstr = self.hierarchical.format(clusters, linkage)
+                        inputstr = self.hierarchical.format(clusters, linkage, '{}')
                     case 'averagelinkage':
-                        inputstr = self.hierarchical.format(clusters, linkage)
+                        inputstr = self.hierarchical.format(clusters, linkage, '{}')
                     case 'complete':
-                        inputstr = self.hierarchical.format(clusters, linkage)
+                        inputstr = self.hierarchical.format(clusters, linkage, '{}')
 
         sieve = input('Please enter the value for the frame number sieve: (default 10)\n') or '10'
         return inputstr.format(sieve)
