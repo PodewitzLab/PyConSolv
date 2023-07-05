@@ -230,8 +230,9 @@ quit'''
         """
         self.rank = sorted(self.rank, key=lambda x: x[1])
         f = open('cluster_ranking.dat', 'w')
+        f.write('Cluster Energy\n')
         for el in self.rank:
-            f.write(el + '\n')
+            f.write('{} {} \n'.format(el[0],el[1]))
         f.close()
 
     def checkORCAFile(self) -> bool:
