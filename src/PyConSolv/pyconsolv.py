@@ -8,7 +8,7 @@ from PyConSolv.misc.analysis import Analysis
 
 
 def main():
-    ver = '0.9.2'
+    ver = '0.9.3.0'
     parser = argparse.ArgumentParser(prog = 'PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help = 'input file in XYZ format')
     parser.add_argument('-c', '--charge',  nargs='?', default=0, type=int, help = 'charge of the system, default 0')
@@ -22,6 +22,7 @@ def main():
     parser.add_argument('-nosp', '--nosp', action='store_true', help='do not run single point calculations')
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
     parser.add_argument('-cluster', '--cluster', nargs='?', default=0, type=str, help='clustering method')
+    parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str, help='MD engine to be used for equilibration and simulation')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
 
     args = parser.parse_args()
@@ -35,7 +36,7 @@ def main():
         else:
             mask = args.mask
         if not args.cluster:
-            print('Please provide a clustering method:\n')
+            print('Please provide a clustering method: [kmeans, dbcscan, dpeaks, hierarchical]\n')
             cluster = input()
         else:
             cluster = args.cluster
@@ -49,7 +50,7 @@ def main():
     else:
         conf = PyConSolv(inputfilepath)
         conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-                solvent = args.solvent, multiplicity = args.multiplicity )
+                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine )
     sys.exit()
 
 if __name__ == '__main__':

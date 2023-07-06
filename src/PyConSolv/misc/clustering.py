@@ -76,7 +76,7 @@ run
                 inputstr = self.dbscan.format(minpoints, epsilon, kdist, '{}')
             case 'dpeaks':
                 epsilon = input('Please enter the epsilon value: ()\n')
-                inputstr = self.dbscan.format(epsilon, '{}')
+                inputstr = self.dpeaks.format(epsilon, '{}')
 
             case 'hierarchical':
                 clusters = input('Please enter the number of desired clusters: (default 10)\n') or '10'
