@@ -115,6 +115,24 @@ class TleapAdder:
         except:
             print('File copy error')
             self.status = 0
+    def changeTleapBox(self, boxsizeadd, leapin):
+        """
+        Change the size of a tleap box
+
+        Parameters:
+            :param float boxsize:
+            :param str leapin: path to tleap file to be used as input
+
+        Class variables:
+        """
+        self.readLeapFile(leapin)
+        f = open(leapin, 'w')
+        for line in self.tleap:
+            if 'solvatebox' in line:
+                f.write(' '.join(line.split()[:-1]) + ' {:.1f}\n'.format(boxsizeadd + float(line.split()[-1])))
+            else:
+                f.write(line)
+        f.close()
 
     def applyItem(self, item: str, leapin: str, leapout: str, path: str, solutename = 'LIG') -> int:
         """

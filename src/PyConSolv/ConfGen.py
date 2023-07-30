@@ -3,6 +3,7 @@ import os
 from tkinter import *
 import numpy as np
 
+from .interfaces.mdengines import MDEngine
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
 from .utils.charge import ChargeChanger
@@ -18,6 +19,13 @@ from .misc.outgen import Faker
 from .misc.ui import GUI
 from .misc.restart import RestartFile
 from .utils.copier import Copier
+
+
+def printlog(message, file):
+    print(message)
+    f = open(file)
+    f.write(message)
+    f.close()
 
 
 def error(step):
@@ -49,6 +57,8 @@ class PyConSolv:
         - path: location of XYZ file
 
     Class variables:
+        - self.engine - MD engine to be used for the equilibration and simulation
+        - self.MDEngine - MD engine instance
         - self.version - program version
         - self.hasMetal - True when a metal is part of the structure, False otherwise
         - self.restarter - object for reading restart files (see restart.py)
@@ -73,12 +83,14 @@ class PyConSolv:
     """
 
     def __init__(self, path):
+        self.engine = None
+        self.MDEngine = None
         path = os.path.abspath(path)
         self.counterIon = ''
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '0.9.2.3'
+        self.version = '0.9.3.0'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -538,15 +550,17 @@ Calculations will be set up in:
         print('Solvent of choice is: {}\n'.format(solvent))
         return 1
 
-    def equilibration(self, cpu: int = 12):
+    def equilibration(self, cpu: int = 12, engine = 'amber'):
         """
         Run system equilibration
 
         Parameters:
             :param int cpu = number of cpus to be used for the equilibration
+            :param string engine = MD engine to be used for equilibration
 
         Class variables:
         """
+        self.engine = engine
         self.restarter.write('tleap')
 
         print(Color.GREEN + 'Setting up system equilibration...\n' + Color.END)
@@ -558,17 +572,27 @@ Calculations will be set up in:
             if len(self.xyz.filenames) == 1:
                 self.hasMetal = False
 
+        #old amber only equilibration
+        # shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7') # different for different engines
+        # shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')
+        #
+        # if self.amber is None:
+        #     self.amber = amberInterface(self.MCPB)
+        # self.amber.equil(self.inputpath)
+        #
+        # print('Done!\n')
+        # print(Color.GREEN + 'Starting equilibration...' + Color.END)
+        #
+        # self.status = self.amber.equilibrate(cpus = cpu)
+
         shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
+        shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/LIG_solv.inpcrd')
         shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')
-
-        if self.amber is None:
-            self.amber = amberInterface(self.MCPB)
-        self.amber.equil(self.inputpath)
-
+        self.MDEngine = MDEngine(self.MCPB, engine = self.engine)
         print('Done!\n')
         print(Color.GREEN + 'Starting equilibration...' + Color.END)
+        self.status = self.MDEngine.run(self.inputpath, cpus = cpu)
 
-        self.status = self.amber.equilibrate(cpus = cpu)
 
         if self.status == 0:
             error('Equilibration')
@@ -600,11 +624,11 @@ Calculations will be set up in:
             shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/dry_sim.in', self.inputpath + '/simulation/dry_sim.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/align.in', self.inputpath + '/simulation/align.in')
-            shutil.copyfile(sourceloc + '/scripts_and_inputs/cluster_kmeans.in', self.inputpath + '/simulation/cluster_kmeans.in')
+            # shutil.copyfile(sourceloc + '/scripts_and_inputs/cluster_kmeans.in', self.inputpath + '/simulation/cluster_kmeans.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/dry.vmd', self.inputpath + '/simulation/dry.vmd')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/solv.vmd', self.inputpath + '/simulation/solv.vmd')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/dry_aligned.vmd', self.inputpath + '/simulation/dry_aligned.vmd')
-            shutil.copyfile(sourceloc + '/scripts_and_inputs/strip.sh', self.inputpath + '/simulation/strip.sh')
+            # shutil.copyfile(sourceloc + '/scripts_and_inputs/strip.sh', self.inputpath + '/simulation/strip.sh')
         except:
             print('Failed to copy files into simulation folder')
             return 1
@@ -663,7 +687,7 @@ Calculations will be set up in:
         f.close()
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber'):
         """
         Run the conformer generation
 
@@ -674,6 +698,9 @@ Calculations will be set up in:
             :param string basis: Basis set for ORCA calculations
             :param string dsp: Dispersion corrections
             :param int cpu: number of CPU cores to be used
+            :param str solvent: solvent to be used
+            :param int multiplicity: multiplicity of the system
+            :param str engine: MD engine to be used for equilibration/simulation
 
         Class variables:
         """
@@ -707,7 +734,7 @@ Calculations will be set up in:
                 return
 
         if self.restart < 8:
-            if self.equilibration(cpu) == 0:
+            if self.equilibration(cpu, engine) == 0:
                 return
 
         if self.restart < 9:

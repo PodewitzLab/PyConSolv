@@ -333,6 +333,8 @@ quit'''
                 print('Running single point for {}'.format(rep))
                 self.singlePoint(rep)
             self.rankClusters()
-            print(self.rank)
+            print('Cluster Energy(Ha)\n')
+            for el in self.rank:
+                print("{} {}".format(el[0], el[1]))
         else:
             print('nosp option detected, Clusters have not been ranked.\n')

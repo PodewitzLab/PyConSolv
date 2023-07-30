@@ -1,6 +1,8 @@
 import os
+import shutil
 import subprocess
 
+from ..misc.tleapAdderInterface import TleapAdder
 from ..utils.colorgen import Color
 
 
@@ -102,6 +104,10 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         else:
             self.status = 0
 
+    def changeBoxSize(self, tleapfile: str,  sizeadd: int = 5):
+        tleap = TleapAdder(os.getcwd(), None, None)
+        tleap.changeTleapBox(sizeadd, tleapfile)
+
     def equilibrate(self, cpus: int=8):
         """
         Run equilibration with amber
@@ -119,17 +125,34 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             # 4
             ]
         gpucodeerror = ' Periodic box dimensions have changed too much from their initial values'
-
-        for i in range(1, 22):
+        boxsizeerror = ' Small box detected'
+        i = 1
+        while i < 22:
             # if i != 3:
             calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1), shell=True, stdout=subprocess.PIPE)
 
-            if gpucodeerror in calc.stdout.decode():
-                print('{}. Switching to CPU code for this step\n.'.format(gpucodeerror))
-                if cpus == 1:
-                    calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1).replace('.cuda',''), shell=True)
-                else:
-                    calc = subprocess.run(equilibrateCommand[1].format(cpus, i, i, i - 1, i, i - 1), shell=True)
+            if calc.stdout is not None:
+                if gpucodeerror in calc.stdout.decode():
+                    print('{}. Switching to CPU code for this step.\n'.format(gpucodeerror))
+                    if cpus == 1:
+                        calc = subprocess.run(equilibrateCommand[0].format(i, i, i - 1, i, i - 1).replace('.cuda',''), shell=True)
+                    else:
+                        calc = subprocess.run(equilibrateCommand[1].format(cpus, i, i, i - 1, i, i - 1), shell=True)
+            if calc.stdout is not None:
+                if boxsizeerror in calc.stdout.decode():
+                    print('{}. Increasing box size to fix this issue.\n'.format(boxsizeerror))
+                    self.changeBoxSize(self.path + '/LIG_tleap.in')
+                    os.chdir(self.path)
+                    self.runTleap()
+                    try:
+                        shutil.copyfile(self.path + '/LIG_solv.prmtop', self.path + '/../equilibration/LIG_solv.prmtop')
+                        shutil.copyfile(self.path + '/LIG_solv.inpcrd', self.path + '/../equilibration/00.rst7')
+                    except:
+                        print('Could not copy files\n')
+                    os.chdir(self.path + '/../equilibration')
+                    i = 1
+                    continue
+
 
             if calc.returncode == 0:
                 print('Equlibration step {} completed successfully\n'.format(i))
@@ -145,6 +168,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
                         f.write(equilibrateCommand[1].format(cpus, j, j, j - 1, j, j - 1) + '\n')
                 f.close()
                 return self.status
+            i += 1
 
     def runTleap(self):
         """
@@ -381,7 +405,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
         Class variables:
         """
 
-        file = '''source oldff/leaprc.ff99SB
+        file = '''source oldff/leaprc.ff19SB
 source leaprc.gaff
 LIG = loadmol2 LIG.mol2
 loadamberparams LIG.frcmod
@@ -420,3 +444,7 @@ quit
         f = open(path + '/LIG_tleap.in', 'w')
         f.write(file)
         f.close()
+
+    def prepare(self, path):
+        self.checkpath()
+        self.equil(path)
