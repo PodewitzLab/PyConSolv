@@ -18,6 +18,7 @@ class Analysis:
             - path = path that contains the simulation output file
 
         Class variables:
+            - self.pyconsolv = check if the simulation was created using pyconsolv
             - self.orcapath = path to call ORCA executable
             - self.path = root path for calculations
             - self.homefolder = current working directory when calculations are started
@@ -31,6 +32,7 @@ class Analysis:
             - self.alignfile = input file for cpptraj to aling a simulation to the provided atommask with solvent
             - self.solvent = solvent used for the simulation
         """
+        self.pyconsolv = None
         self.solvent = None
         self.cpptraj = CPPtraj()
         self.rank = []
@@ -227,6 +229,11 @@ quit'''
         Class variables:
         """
         self.rank = sorted(self.rank, key=lambda x: x[1])
+        f = open('cluster_ranking.dat', 'w')
+        f.write('Cluster Energy\n')
+        for el in self.rank:
+            f.write('{} {} \n'.format(el[0],el[1]))
+        f.close()
 
     def checkORCAFile(self) -> bool:
         """
@@ -288,6 +295,12 @@ quit'''
             sys.exit()
         else:
             self.orcapath = calc.orcapath
+
+    def checkPyConSolv(self) -> bool:
+        if os.path.exists('solvent'):
+            return True
+        else:
+            return False
     def run(self, clustering='kmeans', nosp = False):
         """
         Run clustering and ranking
@@ -297,12 +310,19 @@ quit'''
 
         Class variables:
         """
-        self.getSolvent()
-        self.useMask()
-        self.alignSolv()
-        self.dry()
-        self.align()
-        self.cluster(clustering)
+        self.pyconsolv = self.checkPyConSolv()
+        if self.pyconsolv is False:
+            print('This simulation was not created using PyConSolv, but can still be analyzed. Skipping to clustering...\n')
+            self.useMask()
+            self.align()
+            self.cluster(clustering)
+        else:
+            self.getSolvent()
+            self.useMask()
+            self.alignSolv()
+            self.dry()
+            self.align()
+            self.cluster(clustering)
         if not nosp:
             self.checkORCAPath()
             if not self.checkORCAFile():
