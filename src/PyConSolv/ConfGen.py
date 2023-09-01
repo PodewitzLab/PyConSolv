@@ -594,6 +594,7 @@ Calculations will be set up in:
         shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
         shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/LIG_solv.inpcrd')
         shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')
+
         self.MDEngine = MDEngine(self.MCPB, engine = self.engine)
         print('Done!\n')
         print(Color.GREEN + 'Starting equilibration...' + Color.END)
@@ -608,7 +609,7 @@ Calculations will be set up in:
         self.restarter.write('equilibration')
         return 1
 
-    def prepareSimulation(self, solvent: str):
+    def prepareSimulation(self, solvent: str, engine: str = 'amber'):
         """
         Function to copy scripts and inputs needed for running and analysing the simulation
 
@@ -624,10 +625,7 @@ Calculations will be set up in:
             # PyConSolv / scripts_and_inputs
             shutil.copyfile(self.MCPB + '/LIG_dry.prmtop', self.inputpath + '/simulation/LIG_dry.prmtop')
             shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/simulation/LIG_solv.prmtop')
-            shutil.copyfile(self.inputpath + '/equilibration/21.rst7', self.inputpath + '/simulation/eq.rst7')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/align_dry.in', self.inputpath + '/simulation/align_dry.in')
-            shutil.copyfile(sourceloc + '/scripts_and_inputs/run_simulation.sh', self.inputpath + '/simulation/run-simulation.sh')
-            shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/dry_sim.in', self.inputpath + '/simulation/dry_sim.in')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/align.in', self.inputpath + '/simulation/align.in')
             # shutil.copyfile(sourceloc + '/scripts_and_inputs/cluster_kmeans.in', self.inputpath + '/simulation/cluster_kmeans.in')
@@ -638,6 +636,31 @@ Calculations will be set up in:
         except:
             print('Failed to copy files into simulation folder')
             return 1
+
+        if engine == 'gromacs':
+            if self.MDEngine == None:
+                self.MDEngine = self.MDEngine = MDEngine(self.MCPB, engine = engine)
+                self.MDEngine.MD.checkpath()
+
+            executable = self.MDEngine.MD.executable
+
+            shutil.copyfile(self.MCPB + '/LIG_dry.top', self.inputpath + '/simulation/LIG_dry.top')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation_gro.mdp', self.inputpath + '/simulation/simulation_gro.mdp')
+            shutil.copyfile(self.inputpath + '/equilibration/LIG_solv.top', self.inputpath + '/simulation/LIG_solv.top')
+            shutil.copyfile(self.inputpath + '/equilibration/index.ndx', self.inputpath + '/simulation/index.ndx')
+            shutil.copyfile(self.inputpath + '/equilibration/npt.gro', self.inputpath + '/simulation/npt.gro')
+            shutil.copyfile(self.inputpath + '/equilibration/npt.cpt', self.inputpath + '/simulation/npt.cpt')
+
+            f = open(self.inputpath + '/simulation/run_simulation_gro.sh', 'w')
+            f.write('{} grompp -f simulation_gro.mdp -n index.ndx -c npt.gro -t npt.cpt -p LIG_solv.top -o sim-01.tpr\n'.format(executable))
+            f.write('{} mdrun -deffnm sim-01 -nb gpu\n'.format(executable))
+            f.close()
+
+        else:
+            shutil.copyfile(self.inputpath + '/equilibration/21.rst7', self.inputpath + '/simulation/eq.rst7')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/run_simulation.sh', self.inputpath + '/simulation/run-simulation.sh')
+            shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
+
         solv = Solvent()
         solvID = solv.solventDict[solvent]
         self.modifyDryScript(self.inputpath + '/simulation/dry_sim.in', solvID)
@@ -744,7 +767,7 @@ Calculations will be set up in:
                 return
 
         if self.restart < 9:
-            if self.prepareSimulation(solvent) == 0:
+            if self.prepareSimulation(solvent, engine) == 0:
                 return
         if self.restart == 9:
             print('This structure has already completed parametrization, please make sure you are using the correct input\n')

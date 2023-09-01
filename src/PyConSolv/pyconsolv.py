@@ -41,7 +41,7 @@ def main():
         else:
             cluster = args.cluster
         analysis = Analysis(path = inputfilepath, alignMask= mask)
-        analysis.run(clustering=cluster, nosp = args.nosp)
+        analysis.run(clustering=cluster, nosp = args.nosp, engine = args.engine)
 
     elif '.xyz' not in inputfilepath:
         print('Path does not contain a valid XYZ file\n')

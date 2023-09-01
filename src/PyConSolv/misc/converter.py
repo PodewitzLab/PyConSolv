@@ -58,7 +58,15 @@ class Converter:
         parm = pmd.load_file('LIG_solv.prmtop', 'LIG_solv.inpcrd')
 
         if self.outtype == 'gromacs':
+            if os.path.exists('LIG_solv.top'):
+                os.remove('LIG_solv.top')
+            if os.path.exists('LIG_solv.gro'):
+                os.remove('LIG_solv.gro')
+            if os.path.exists('LIG_dry.gro'):
+                os.remove('LIG_dry.gro')
             parm.save('LIG_solv.top')
             parm.save('LIG_solv.gro')
 
+            parm = pmd.load_file('LIG_dry.prmtop', 'LIG_dry.inpcrd')
+            parm.save('LIG_dry.top')
         os.chdir(self.original_wd)

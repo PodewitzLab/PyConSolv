@@ -44,25 +44,25 @@ class Analysis:
         self.orcafile = 'orca_sp.inp'
         os.chdir(self.homefolder)
 
-        self.alignfile ='''parm {}.prmtop
+        self.alignfile ='''parm {}
 trajin {}
 autoimage
 align @{} first
-trajout solv_aligned.nc
+trajout solv_aligned{}
 run
 quit'''
-        self.dryfile = '''parm {}.prmtop
+        self.dryfile = '''parm {}
 trajin {}
 strip :{}
 autoimage
-trajout dry.nc
+trajout dry{}
 run
 quit'''
-        self.aligndryFile = '''parm {}.prmtop
+        self.aligndryFile = '''parm {}
 trajin {}
 autoimage
 align @{} first
-trajout dry_aligned.nc
+trajout dry_aligned{}
 run
 quit'''
 
@@ -173,7 +173,7 @@ quit'''
         f.close()
         return energy
 
-    def cluster(self, clustering):
+    def cluster(self, clustering, engine):
         """
         Cluster the dry_aligned trajectory
 
@@ -181,7 +181,7 @@ quit'''
             :param string clustering: type of clustering to be performed, for options see ..misc.clustering.py
         Class variables:
         """
-        cluster = Cluster(clustering)
+        cluster = Cluster(clustering, engine)
         runtypes = cluster.runtypes
         if clustering in runtypes:
             print('clustering using {}\n'.format(clustering))
@@ -213,10 +213,16 @@ quit'''
         for line in template.format(*replacelist):
             f.write(line)
         f.close()
-    def useMask(self):
-        self.writeFile('align.in', self.alignfile, ['LIG_solv', self.simname + '.nc', self.alignMask])
-        self.writeFile('align_dry.in', self.aligndryFile, ['LIG_dry', 'dry.nc', self.alignMask])
-        self.writeFile('dry_sim.in', self.dryfile, ['LIG_solv', self.simname + '.nc', self.solvent])
+    def useMask(self, engine):
+        if engine == 'gromacs':
+            suffix = '.xtc'
+            top = '.top'
+        else:
+            suffix = '.nc'
+            top = '.prmtop'
+        self.writeFile('align.in', self.alignfile, ['LIG_solv' + top, self.simname + suffix, self.alignMask, suffix])
+        self.writeFile('align_dry.in', self.aligndryFile, ['LIG_dry' + top, 'dry' + suffix, self.alignMask, suffix])
+        self.writeFile('dry_sim.in', self.dryfile, ['LIG_solv' + top, self.simname + suffix, self.solvent, suffix])
 
 
 
@@ -301,7 +307,7 @@ quit'''
             return True
         else:
             return False
-    def run(self, clustering='kmeans', nosp = False):
+    def run(self, clustering='kmeans', nosp = False, engine = 'amber'):
         """
         Run clustering and ranking
 
@@ -313,16 +319,16 @@ quit'''
         self.pyconsolv = self.checkPyConSolv()
         if self.pyconsolv is False:
             print('This simulation was not created using PyConSolv, but can still be analyzed. Skipping to clustering...\n')
-            self.useMask()
+            self.useMask(engine)
             self.align()
             self.cluster(clustering)
         else:
             self.getSolvent()
-            self.useMask()
+            self.useMask(engine)
             self.alignSolv()
             self.dry()
             self.align()
-            self.cluster(clustering)
+            self.cluster(clustering, engine)
         if not nosp:
             self.checkORCAPath()
             if not self.checkORCAFile():

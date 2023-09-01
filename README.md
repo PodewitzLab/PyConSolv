@@ -60,7 +60,7 @@ pyconsolv [-h] [-c [CHARGE]] [-m [METHOD]] [-b [BASIS]] [-d [DISPERSION]] [-s [S
 ```
 
 positional arguments:  
-input input file in XYZ format
+input file in XYZ format
 
 options:  
   -h, --help            show this help message and exit  
@@ -75,7 +75,10 @@ options:
   -a , --analyze analyze a simulation  
   -mask [MASK], --mask [MASK] atomid mask for clustering  
   -cluster [CLUSTER], --cluster [CLUSTER] clustering method  
+  -e, --engine         choice of simulation engine
+
   -v, --version         show program's version number and exit  
+
 
 see user manual for more details
 
