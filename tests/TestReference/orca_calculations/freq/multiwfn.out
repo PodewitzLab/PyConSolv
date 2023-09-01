@@ -10,9 +10,9 @@
  Multiwfn English forum: http://sobereva.com/wfnbbs
  Multiwfn Chinese forum: http://bbs.keinsci.com/wfn
 
- ( Number of parallel threads:   8  Current date: 2023-03-28  Time: 12:44:31 )
+ ( Number of parallel threads:   8  Current date: 2023-09-01  Time: 17:24:05 )
  
- Input file path, for example E:\Blood-C\Saya_Kisaragi.wfn
+ Input file path, for example E:\Gun_Gale_Online\Kirito.wfn
  (Supported: .mwfn/wfn/wfx/fch/molden/31/chg/pdb/xyz/mol/mol2/cif/cub, etc.)
  Hint: Press ENTER button directly can select file in a GUI window. To reload the file last time used, simply input the letter "o". Input such as ?miku.fch can open the miku.fch in the same folder as the file last time used.
  Please wait...
@@ -115,7 +115,7 @@
  vdW radius used in fitting for Pt is missing, input it in Angstrom, e.g. 1.7
  Hint: If pressing ENTER button directly, corresponding UFF radii scaled by 1/1.2 will be used, which usually is a proper workaround. (If you want to automatically employ this treatment, setting "ispecial" in settings.ini to 1)
  Radius of Pt has been set to  1.1475 Angstrom
- Number of MK fitting points used:      8987
+ Number of MK fitting points used:      8968
  Calculating ESP at fitting points, please wait...
  
  Initializing LIBRETA library (fast version) for ESP evaluation ...
@@ -124,8 +124,8 @@
  NOTE: The ESP evaluation code based on LIBRETA library is being used. Please *NOT ONLY* cite Multiwfn original paper (J. Comput. Chem., 33, 580-592 (2012)) in your work, *BUT ALSO* cite the paper describing the efficient ESP evaluation algorithm adopted by Multiwfn:
  Jun Zhang, Tian Lu, Phys. Chem. Chem. Phys., 23, 20323 (2021) DOI: 10.1039/D1CP02805G
  
- Progress: [--------------------------------------------------]    0.00 %     - Progress: [#-------------------------------------------------]    3.34 %     \ Progress: [###-----------------------------------------------]    6.68 %     | Progress: [#####---------------------------------------------]   10.01 %     / Progress: [######--------------------------------------------]   13.35 %     - Progress: [######--------------------------------------------]   13.36 %     \ Progress: [##########----------------------------------------]   20.03 %     | Progress: [##########----------------------------------------]   20.04 %     / Progress: [#############-------------------------------------]   26.71 %     - Progress: [#############-------------------------------------]   26.72 %     \ Progress: [################----------------------------------]   33.38 %     | Progress: [##################--------------------------------]   36.72 %     / Progress: [####################------------------------------]   40.06 %     - Progress: [#####################-----------------------------]   43.40 %     \ Progress: [#####################-----------------------------]   43.41 %     | Progress: [#########################-------------------------]   50.07 %     / Progress: [##########################------------------------]   53.41 %     - Progress: [##########################------------------------]   53.42 %     \ Progress: [##############################--------------------]   60.09 %     | Progress: [##############################--------------------]   60.10 %     / Progress: [#################################-----------------]   66.76 %     - Progress: [###################################---------------]   70.10 %     \ Progress: [####################################--------------]   73.44 %     | Progress: [####################################--------------]   73.45 %     / Progress: [########################################----------]   80.12 %     - Progress: [#########################################---------]   83.45 %     \ Progress: [###########################################-------]   86.79 %     | Progress: [#############################################-----]   90.13 %     / Progress: [##############################################----]   93.47 %     - Progress: [################################################--]   96.81 %     \ Progress: [##################################################]  100.00 %     | 
- Calculation of ESP took up wall clock time         1 s
+ Progress: [--------------------------------------------------]    0.00 %     - Progress: [#-------------------------------------------------]    3.35 %     \ Progress: [#-------------------------------------------------]    3.36 %     | Progress: [#####---------------------------------------------]   10.04 %     / Progress: [#####---------------------------------------------]   10.05 %     - Progress: [########------------------------------------------]   16.73 %     \ Progress: [########------------------------------------------]   16.74 %     | Progress: [###########---------------------------------------]   23.42 %     / Progress: [###########---------------------------------------]   23.43 %     - Progress: [###############-----------------------------------]   30.11 %     \ Progress: [################----------------------------------]   33.45 %     | Progress: [##################--------------------------------]   36.80 %     / Progress: [##################--------------------------------]   36.81 %     - Progress: [#####################-----------------------------]   43.49 %     | Progress: [#####################-----------------------------]   43.50 %     \ Progress: [#########################-------------------------]   50.18 %     / Progress: [##########################------------------------]   53.52 %     - Progress: [##########################------------------------]   53.53 %     \ Progress: [##############################--------------------]   60.21 %     | Progress: [##############################--------------------]   60.23 %     / Progress: [##############################--------------------]   60.24 %     - Progress: [###################################---------------]   70.25 %     \ Progress: [###################################---------------]   70.26 %     | Progress: [######################################------------]   76.94 %     / Progress: [########################################----------]   80.29 %     - Progress: [########################################----------]   80.30 %     \ Progress: [###########################################-------]   86.98 %     | Progress: [#############################################-----]   90.32 %     / Progress: [##############################################----]   93.67 %     - Progress: [##############################################----]   93.68 %     \ Progress: [##############################################----]   93.69 %     | Progress: [##################################################]  100.00 %     / 
+ Calculation of ESP took up wall clock time         0 s
  
  No charge constraint is imposed in this stage
  No atom equivalence constraint is imposed in this fitting stage
@@ -133,30 +133,30 @@
  **** Stage 1: RESP fitting under weak hyperbolic penalty
  Convergence criterion:  0.0000010000
  Hyperbolic restraint strength (a): 0.000500    Tightness (b): 0.100000
- Iter:   1   Maximum charge variation:    0.5151006981
- Iter:   2   Maximum charge variation:    0.0289697186
- Iter:   3   Maximum charge variation:    0.0004047985
- Iter:   4   Maximum charge variation:    0.0000055983
- Iter:   5   Maximum charge variation:    0.0000000770
+ Iter:   1   Maximum charge variation:    0.5138731006
+ Iter:   2   Maximum charge variation:    0.0302588446
+ Iter:   3   Maximum charge variation:    0.0004381733
+ Iter:   4   Maximum charge variation:    0.0000061081
+ Iter:   5   Maximum charge variation:    0.0000000849
  Successfully converged!
  
  **** Stage 2: RESP fitting under strong hyperbolic penalty
  Stage 2 of standard RESP fitting is skipped since no atom needs to be fitted
  
    Center       Charge
-     1(Pt)  -0.0516240037
-     2(N )  -0.5444781705
-     3(H )   0.3386093775
-     4(H )   0.3383202840
-     5(H )   0.3040824309
-     6(N )  -0.5168980756
-     7(H )   0.3306865812
-     8(H )   0.2961448993
-     9(H )   0.3315911811
-    10(Cl)  -0.4129738850
-    11(Cl)  -0.4134606192
- Sum of charges:  -0.0000000000
- RMSE:    0.003816   RRMSE:    0.070869
+     1(Pt)  -0.0497105584
+     2(N )  -0.5445760109
+     3(H )   0.3447584260
+     4(H )   0.3441152090
+     5(H )   0.3117300280
+     6(N )  -0.5341066426
+     7(H )   0.3410737786
+     8(H )   0.3087176992
+     9(H )   0.3422905444
+    10(Cl)  -0.4322028118
+    11(Cl)  -0.4320896615
+ Sum of charges:   0.0000000000
+ RMSE:    0.003819   RRMSE:    0.067447
  
  If outputting atom coordinates with charges to orca_freq.molden.chg in current folder? (y/n)
  Result have been saved to orca_freq.molden.chg in current folder

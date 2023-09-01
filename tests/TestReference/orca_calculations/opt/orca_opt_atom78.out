@@ -45,7 +45,7 @@
                   #######################################################
 
 
-                         Program Version 5.0.3 -  RELEASE  -
+                         Program Version 5.0.4 -  RELEASE  -
 
 
  With contributions from (in alphabetic order):
@@ -411,13 +411,13 @@ Calculating Nuclear repulsion               ... done (  0.0 sec) ENN=      0.000
 Calculating 4-index integrals               ... 
     -> SHARK/Ints2Disk: Thresh =     1.000000e-10 TCut=    1.000000e-11 
     -> calling libint FockFlag=2 Lmax_loc=3
-    -> L=0 0 1 3:     0.000 sec done=        63 (=100.0%) skipped=         0 
+    -> L=0 0 1 3:     0.001 sec done=        63 (=100.0%) skipped=         0 
     -> L=0 1 0 3:     0.000 sec done=       108 (=100.0%) skipped=         0 
     -> L=0 1 1 3:     0.000 sec done=        54 (=100.0%) skipped=         0 
-    -> L=0 1 2 2:     0.000 sec done=        54 (=100.0%) skipped=         0 
+    -> L=0 1 2 2:     0.001 sec done=        54 (=100.0%) skipped=         0 
     -> L=0 1 3 3:     0.000 sec done=        18 (=100.0%) skipped=         0 
     -> L=0 2 0 3:     0.000 sec done=        72 (=100.0%) skipped=         0 
-    -> L=0 2 1 3:     0.000 sec done=        36 (=100.0%) skipped=         0 
+    -> L=0 2 1 3:     0.001 sec done=        36 (=100.0%) skipped=         0 
     -> L=0 2 2 2:     0.001 sec done=        36 (=100.0%) skipped=         0 
     -> L=0 3 0 3:     0.000 sec done=        21 (=100.0%) skipped=         0 
     -> L=0 3 1 1:     0.000 sec done=        36 (=100.0%) skipped=         0 
@@ -426,14 +426,14 @@ Calculating 4-index integrals               ...
     -> L=0 3 2 2:     0.000 sec done=        18 (=100.0%) skipped=         0 
     -> L=1 1 1 2:     0.000 sec done=        36 (=100.0%) skipped=         0 
     -> L=1 1 1 3:     0.000 sec done=        18 (=100.0%) skipped=         0 
-    -> L=1 1 2 2:     0.000 sec done=        18 (=100.0%) skipped=         0 
-    -> L=1 2 1 2:     0.000 sec done=        21 (=100.0%) skipped=         0 
+    -> L=1 1 2 2:     0.001 sec done=        18 (=100.0%) skipped=         0 
+    -> L=1 2 1 2:     0.001 sec done=        21 (=100.0%) skipped=         0 
     -> L=1 2 1 3:     0.000 sec done=        18 (=100.0%) skipped=         0 
     -> L=1 2 2 2:     0.001 sec done=        18 (=100.0%) skipped=         0 
     -> L=1 3 1 3:     0.000 sec done=         6 (=100.0%) skipped=         0 
     -> L=1 3 2 2:     0.000 sec done=         9 (=100.0%) skipped=         0 
     -> L=2 2 2 2:     0.001 sec done=         6 (=100.0%) skipped=         0 
-    ->Total LIBINT loop time =    0.006 sec
+    ->Total LIBINT loop time =    0.010 sec
     -> L=0 0 0 0:     0.000 sec done=       231 (=100.0%) skipped=         0 
     -> L=1 0 0 0:     0.000 sec done=       378 (=100.0%) skipped=         0 
     -> L=1 0 1 0:     0.000 sec done=       171 (=100.0%) skipped=         0 
@@ -452,12 +452,12 @@ Calculating 4-index integrals               ...
     -> L=3 2 0 0:     0.000 sec done=        42 (=100.0%) skipped=         0 
     -> L=3 2 1 0:     0.000 sec done=        36 (=100.0%) skipped=         0 
     -> L=3 2 1 1:     0.000 sec done=        12 (=100.0%) skipped=         0 
-    -> L=3 2 2 0:     0.000 sec done=        24 (=100.0%) skipped=         0 
+    -> L=3 2 2 0:     0.001 sec done=        24 (=100.0%) skipped=         0 
     -> L=3 2 2 1:     0.001 sec done=        12 (=100.0%) skipped=         0 
-    -> L=3 2 2 2:     0.001 sec done=         6 (=100.0%) skipped=         0 
+    -> L=3 2 2 2:     0.002 sec done=         6 (=100.0%) skipped=         0 
     -> L=3 2 3 0:     0.000 sec done=        12 (=100.0%) skipped=         0 
     -> L=3 2 3 1:     0.001 sec done=         6 (=100.0%) skipped=         0 
-    -> L=3 2 3 2:     0.001 sec done=         3 (=100.0%) skipped=         0 
+    -> L=3 2 3 2:     0.000 sec done=         3 (=100.0%) skipped=         0 
     -> L=3 3 0 0:     0.000 sec done=        21 (=100.0%) skipped=         0 
     -> L=3 3 1 1:     0.000 sec done=         6 (=100.0%) skipped=         0 
     -> L=3 3 2 0:     0.000 sec done=        12 (=100.0%) skipped=         0 
@@ -465,10 +465,10 @@ Calculating 4-index integrals               ...
     -> L=3 3 2 2:     0.001 sec done=         3 (=100.0%) skipped=         0 
     -> L=3 3 3 0:     0.000 sec done=         6 (=100.0%) skipped=         0 
     -> L=3 3 3 1:     0.000 sec done=         3 (=100.0%) skipped=         0 
-    -> L=3 3 3 2:     0.001 sec done=         2 (=100.0%) skipped=         0 
+    -> L=3 3 3 2:     0.000 sec done=         2 (=100.0%) skipped=         0 
     -> L=3 3 3 3:     0.001 sec done=         1 (=100.0%) skipped=         0 
-    ->Total SHARK integral loop time =    0.011 sec
-    -> Total Integral generation matrix time =    0.024 sec
+    ->Total SHARK integral loop time =    0.013 sec
+    -> Total Integral generation matrix time =    0.027 sec
     -> Number of small integrals   =         0
     -> Number of medium integrals  =         4
     -> Number of large integrals   =     14810
@@ -538,11 +538,11 @@ Convergence Tolerance:
 
 Diagonalization of the overlap matrix:
 Smallest eigenvalue                        ... 1.604e-02
-Time for diagonalization                   ...    0.001 sec
+Time for diagonalization                   ...    0.002 sec
 Threshold for overlap eigenvalues          ... 1.000e-08
 Number of eigenvalues below threshold      ... 0
 Time for construction of square roots      ...    0.000 sec
-Total time needed                          ...    0.001 sec
+Total time needed                          ...    0.002 sec
 
 --------------------
 INITIAL GUESS: HCORE
@@ -938,17 +938,17 @@ TIMINGS
 
 Total SCF time: 0 days 0 hours 0 min 0 sec 
 
-Total time                  ....       0.384 sec
-Sum of individual times     ....       0.020 sec  (  5.2%)
+Total time                  ....       0.187 sec
+Sum of individual times     ....       0.017 sec  (  9.0%)
 
-Fock matrix formation       ....       0.011 sec  (  2.7%)
-Diagonalization             ....       0.008 sec  (  2.0%)
+Fock matrix formation       ....       0.011 sec  (  5.8%)
+Diagonalization             ....       0.004 sec  (  2.2%)
 Density matrix formation    ....       0.000 sec  (  0.1%)
 Population analysis         ....       0.000 sec  (  0.0%)
-Initial guess               ....       0.000 sec  (  0.1%)
+Initial guess               ....       0.001 sec  (  0.5%)
 Orbital Transformation      ....       0.000 sec  (  0.0%)
 Orbital Orthonormalization  ....       0.000 sec  (  0.0%)
-DIIS solution               ....       0.001 sec  (  0.2%)
+DIIS solution               ....       0.001 sec  (  0.5%)
 
 Maximum memory used throughout the entire SCF-calculation: 228.1 MB
 
@@ -1007,8 +1007,8 @@ x,y,z [Debye]:    -0.000000    -0.000000    -0.000000
 
 Timings for individual modules:
 
-Sum of individual times         ...        0.508 sec (=   0.008 min)
-GTO integral calculation        ...        0.112 sec (=   0.002 min)  22.1 %
-SCF iterations                  ...        0.396 sec (=   0.007 min)  77.9 %
+Sum of individual times         ...        0.325 sec (=   0.005 min)
+GTO integral calculation        ...        0.124 sec (=   0.002 min)  38.2 %
+SCF iterations                  ...        0.201 sec (=   0.003 min)  61.8 %
                              ****ORCA TERMINATED NORMALLY****
-TOTAL RUN TIME: 0 days 0 hours 0 minutes 0 seconds 615 msec
+TOTAL RUN TIME: 0 days 0 hours 0 minutes 0 seconds 396 msec

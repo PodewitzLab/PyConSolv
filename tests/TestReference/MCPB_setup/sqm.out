@@ -40,24 +40,24 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
 | QMMM:                              norbs =        7
 | QMMM:    diag iterations used for timing =       20
 | QMMM:
-| QMMM:              Internal diag routine = 0.000064 seconds
-| QMMM:                 Dspev diag routine = 0.000276 seconds
-| QMMM:                Dspevd diag routine = 0.000185 seconds
-| QMMM:                Dspevx diag routine = 0.000361 seconds
-| QMMM:                 Dsyev diag routine = 0.001211 seconds
+| QMMM:              Internal diag routine = 0.000062 seconds
+| QMMM:                 Dspev diag routine = 0.000224 seconds
+| QMMM:                Dspevd diag routine = 0.000181 seconds
+| QMMM:                Dspevx diag routine = 0.000362 seconds
+| QMMM:                 Dsyev diag routine = 0.000219 seconds
 | QMMM:                Dsyevd diag routine = 0.000210 seconds
-| QMMM:                Dsyevr diag routine = 0.000252 seconds
+| QMMM:                Dsyevr diag routine = 0.000246 seconds
 | QMMM:
-| QMMM:                Pseudo diag routine = 0.000011 seconds
+| QMMM:                Pseudo diag routine = 0.000008 seconds
 | QMMM:
 | QMMM: Using internal diagonalization routine (diag_routine=1).
 
   QMMM: QM Region Cartesian Coordinates (*=link atom) 
   QMMM: QM_NO.   MM_NO.  ATOM         X         Y         Z
-  QMMM:     1        1      N       -3.1920    1.8070   -1.0260
-  QMMM:     2        2      H       -3.0530    2.7020   -0.5320
-  QMMM:     3        3      H       -4.1750    1.7810   -1.3480
-  QMMM:     4        4      H       -2.5930    1.8250   -1.8660
+  QMMM:     1        1      N       -3.1790    1.8000   -1.0170
+  QMMM:     2        2      H       -3.0300    2.6900   -0.5150
+  QMMM:     3        3      H       -4.1560    1.8000   -1.3560
+  QMMM:     4        4      H       -2.5670    1.8150   -1.8480
 
 --------------------------------------------------------------------------------
   RESULTS
@@ -66,13 +66,13 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
   ... geometry converged !
  
  Final MO eigenvalues (eV):
- -32.6880  -15.9014  -15.9014  -10.4184    4.2228    6.1678    6.1678
+ -32.6881  -15.9014  -15.9014  -10.4184    4.2228    6.1678    6.1678
 
  Heat of formation   =         -7.29251288 kcal/mol  (       -0.31622709 eV)
 
  Total SCF energy    =      -5732.76248335 kcal/mol  (     -248.59123556 eV)
- Electronic energy   =     -10024.63445690 kcal/mol  (     -434.70077000 eV)
- Core-core repulsion =       4291.87197355 kcal/mol  (      186.10953443 eV)
+ Electronic energy   =     -10024.63566131 kcal/mol  (     -434.70082222 eV)
+ Core-core repulsion =       4291.87317796 kcal/mol  (      186.10958666 eV)
  
     Atomic Charges for Step       1 :
   Atom    Element       Mulliken Charge
@@ -83,16 +83,16 @@ QMMM: RHF CALCULATION, NO. OF DOUBLY OCCUPIED LEVELS =  4
  Total Mulliken Charge =      -0.000
  
                   X        Y        Z     TOTAL  
-  QM DIPOLE    -0.395    1.442   -1.084    1.847
+  QM DIPOLE    -0.349    1.458   -1.079    1.847
  
  Final Structure
 
   QMMM: QM Region Cartesian Coordinates (*=link atom) 
   QMMM: QM_NO.   MM_NO.  ATOM         X         Y         Z
-  QMMM:     1        1      N       -3.1989    1.8303   -1.0437
-  QMMM:     2        2      H       -3.0570    2.6809   -0.5417
-  QMMM:     3        3      H       -4.1506    1.7810   -1.3398
-  QMMM:     4        4      H       -2.6066    1.8227   -1.8468
+  QMMM:     1        1      N       -3.1850    1.8256   -1.0355
+  QMMM:     2        2      H       -3.0341    2.6692   -0.5244
+  QMMM:     3        3      H       -4.1326    1.7978   -1.3469
+  QMMM:     4        4      H       -2.5803    1.8124   -1.8292
 
            --------- Calculation Completed ----------
 

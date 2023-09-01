@@ -1,6 +1,6 @@
-! BP86 def2-SVP D3 
+! BP86 def2-SVP D4 
 ! FREQ
-! CPCM(CH2Cl2)
+! CPCM(Water)
 
 %PAL NPROCS 8 END
 

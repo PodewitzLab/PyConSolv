@@ -302,7 +302,7 @@ gen_vel                 = no        ; Velocity generation is off
             f.write(el)
         f.close()
     def prepare(self, path = None):
-        os.chdir(path)
+        os.chdir(self.path)
         self.checkpath()
         self.converter = Converter(self.path, intype='amber', outtype='gromacs')
         self.converter.getAtoms()
@@ -310,10 +310,11 @@ gen_vel                 = no        ; Velocity generation is off
         self.atoms = self.converter.atoms
         self.system_size = self.converter.system_size
         self.converter.convert()
+        self.addModifyTop('LIG_solv.top')
         shutil.copyfile(self.path+'/LIG_solv.top', path + '/equilibration/LIG_solv.top')
         shutil.copyfile(self.path + '/LIG_solv.gro', path + '/equilibration/LIG_solv.gro')
-        self.addModifyTop('LIG_solv.top')
+        os.chdir(path + '/equilibration')
         self.createIndex(self.atoms,self.system_size)
         self.createRestraints(self.atoms)
-        self.equil(path)
+        self.equil(self.path)
         os.chdir(self.path)

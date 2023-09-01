@@ -8,8 +8,6 @@ addAtomTypes {
         { "Y5"  "Cl" "sp3" }
         { "Y6"  "Cl" "sp3" }
 }
-DCM = loadmol2 DCM.mol2
-loadamberparams DCM.frcmod
 PT1 = loadmol2 PT1.mol2
 B1 = loadmol2 B1.mol2
 C1 = loadmol2 C1.mol2
@@ -28,7 +26,7 @@ bond mol.1.PT mol.4.CL8
 bond mol.1.PT mol.5.CL9
 savepdb mol LIG_dry.pdb
 saveamberparm mol LIG_dry.prmtop LIG_dry.inpcrd
-solvatebox mol DCM 20.0 iso
+solvatebox mol OPCBOX 15.0
 addions mol Na+ 0
 addions mol Cl- 0
 savepdb mol LIG_solv.pdb

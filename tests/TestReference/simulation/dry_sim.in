@@ -1,6 +1,6 @@
 parm LIG_solv.prmtop
 trajin sim-01.nc
-strip :DCM
+strip :WAT
 autoimage
 trajout dry.nc
 run

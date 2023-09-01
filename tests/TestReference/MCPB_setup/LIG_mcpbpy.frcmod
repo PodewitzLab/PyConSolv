@@ -7,24 +7,22 @@ Y5 35.450        1.910               same as cl
 Y6 35.450        1.910               same as cl
  
 BOND
-M1-Y1  106.0    2.0735      Created by Seminario method using MCPB.py
-M1-Y2  106.1    2.0734      Created by Seminario method using MCPB.py
-M1-Y5  105.0    2.3446      Created by Seminario method using MCPB.py
-M1-Y6   58.8    5.9273      Created by Seminario method using MCPB.py
+M1-Y1   107.7    2.0701    Created by Seminario method using MCPB.py
+M1-Y2   107.9    2.0699    Created by Seminario method using MCPB.py
+M1-Y5   101.3    2.351    Created by Seminario method using MCPB.py
+M1-Y6   57.2    2.3505    Created by Seminario method using MCPB.py
 Y1-hn  392.4    1.0190      SOURCE3_SOURCE5    5944	 0.0012
 Y2-hn  392.4    1.0190      SOURCE3_SOURCE5    5944	 0.0012
  
 ANGL
-M1-Y1-hn    46.52     111.55    Created by Seminario method using MCPB.py
-M1-Y2-hn    46.24     111.54    Created by Seminario method using MCPB.py
-Y2-M1-Y1   120.87      93.40    Created by Seminario method using MCPB.py
-Y5-M1-Y1    98.20      85.81    Created by Seminario method using MCPB.py
-Y5-M1-Y2   101.85     179.21    Created by Seminario method using MCPB.py
-Y5-M1-Y5      nan       0.00    Created by Seminario method using MCPB.py
-Y6-M1-Y1   246.18      75.76    Created by Seminario method using MCPB.py
-Y6-M1-Y2   214.89      67.81    Created by Seminario method using MCPB.py
-Y6-M1-Y5   146.21     112.00    Created by Seminario method using MCPB.py
-Y6-M1-Y6      nan       0.00    Created by Seminario method using MCPB.py
+M1-Y1-hn    46.18     111.72    Created by Seminario method using MCPB.py
+M1-Y2-hn    46.19     111.70    Created by Seminario method using MCPB.py
+Y2-M1-Y1   118.57    92.23    Created by Seminario method using MCPB.py
+Y5-M1-Y1   97.43    86.58    Created by Seminario method using MCPB.py
+Y5-M1-Y2   100.09    178.81    Created by Seminario method using MCPB.py
+Y6-M1-Y1   243.53    178.8    Created by Seminario method using MCPB.py
+Y6-M1-Y2   212.79    86.58    Created by Seminario method using MCPB.py
+Y6-M1-Y5   147.70    94.61    Created by Seminario method using MCPB.py
 hn-Y1-hn    41.4      106.40      SOURCE3_SOURCE5         2019    0.9777
 hn-Y2-hn    41.4      106.40      SOURCE3_SOURCE5         2019    0.9777
  
