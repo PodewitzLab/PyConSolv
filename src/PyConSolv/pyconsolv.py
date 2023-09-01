@@ -8,7 +8,7 @@ from PyConSolv.misc.analysis import Analysis
 
 
 def main():
-    ver = '0.9.3.0'
+    ver = '1.0.0'
     parser = argparse.ArgumentParser(prog = 'PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help = 'input file in XYZ format')
     parser.add_argument('-c', '--charge',  nargs='?', default=0, type=int, help = 'charge of the system, default 0')

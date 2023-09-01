@@ -1,1 +1,0 @@
-pmemd.cuda -O -i simulation.in -o sim-01.out -p LIG_solv.prmtop -c eq.rst7 -x sim-01.nc -r sim-01.rst7 -ref eq.rst7

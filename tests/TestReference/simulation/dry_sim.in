@@ -1,7 +1,0 @@
-parm LIG_solv.prmtop
-trajin sim-01.nc
-strip :DCM
-autoimage
-trajout dry.nc
-run
-quit

@@ -6,6 +6,7 @@ import numpy as np
 from .interfaces.mdengines import MDEngine
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
+from .misc.parameterChecker import ParameterChecker
 from .utils.charge import ChargeChanger
 from .misc.solvenGen import solventParametrizer
 from .misc.solvent import Solvent
@@ -59,6 +60,7 @@ class PyConSolv:
     Class variables:
         - self.engine - MD engine to be used for the equilibration and simulation
         - self.MDEngine - MD engine instance
+        - self.parameterChecker - instance of frcmod parameter error checker
         - self.version - program version
         - self.hasMetal - True when a metal is part of the structure, False otherwise
         - self.restarter - object for reading restart files (see restart.py)
@@ -85,12 +87,13 @@ class PyConSolv:
     def __init__(self, path):
         self.engine = None
         self.MDEngine = None
+        self.parameterChecker = None
         path = os.path.abspath(path)
         self.counterIon = ''
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '0.9.3.0'
+        self.version = '1.0.0'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -502,6 +505,9 @@ Calculations will be set up in:
         if self.status == 0:
             error('MCPB step 4')
             return 0
+
+        self.parameterChecker = ParameterChecker(self.MCPB)
+        self.parameterChecker.run()
 
         self.restarter.write('mcpb')
         return 1
