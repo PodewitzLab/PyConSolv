@@ -1,0 +1,7 @@
+parm LIG_solv.prmtop
+trajin sim-01.nc
+autoimage
+align @replaceme first
+trajout solv_aligned.nc
+run
+quit

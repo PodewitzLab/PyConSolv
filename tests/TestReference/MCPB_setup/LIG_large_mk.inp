@@ -1,0 +1,20 @@
+ $SYSTEM MEMDDI=400 MWORDS=200 $END
+ $CONTRL DFTTYP=B3LYP ICHARG=0 MULT=1 $END
+ $ELPOT IEPOT=1 WHERE=PDC $END
+ $PDC PTSEL=CONNOLLY CONSTR=NONE $END
+ $BASIS GBASIS=N31 NGAUSS=6 NDFUNC=1 $END
+ $DATA
+Cluster/6-31G(d)
+C1
+Pt        78.0    -2.880    0.137    0.180
+N          7.0    -0.903    0.643    0.527
+H          1.0    -0.793    1.559    0.991
+H          1.0    -0.336    0.670   -0.335
+H          1.0    -0.479   -0.067    1.149
+N          7.0    -3.179    1.800   -1.017
+H          1.0    -3.030    2.690   -0.515
+H          1.0    -4.156    1.800   -1.356
+H          1.0    -2.567    1.815   -1.848
+Cl        17.0    -2.495   -1.736    1.546
+Cl        17.0    -5.129   -0.399   -0.247
+ $END

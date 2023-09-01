@@ -1,0 +1,11 @@
+! BP86 def2-SVP D4 
+! FREQ
+! CPCM(Water)
+
+%PAL NPROCS 8 END
+
+%scf
+maxiter 350
+end
+
+* xyzfile 0 1 input.xyz

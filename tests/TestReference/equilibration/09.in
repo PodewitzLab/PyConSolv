@@ -1,0 +1,5 @@
+minimization
+&cntrl
+	imin=1,ncyc=500,maxcyc=1000,ntr=1,cut=8.0,
+	restraint_wt=200.0,restraintmask="!@H=&:1",
+/
