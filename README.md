@@ -6,6 +6,13 @@ The interface bridges to the well known MCPB.py package available within amberto
 consists of only a simple xyz file and all required steps for parametrization are performed automatically,
 with minimal user intervention.
 
+Publication:
+
+PyConSolv: A Python Package for Conformer Generation of (Metal-Containing) Systems in Explicit Solvent
+R. A. Talmazan and M. Podewitz
+Journal of Chemical Information and Modeling Article ASAP
+DOI: 10.1021/acs.jcim.3c00798
+
 
 
 ## Features
