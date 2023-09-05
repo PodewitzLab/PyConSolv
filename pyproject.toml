@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "PyConSolv"
-version = "1.0.0"
+version = "1.0.1"
 dynamic = ["dependencies"]
 authors = [
   { name="R. A. Talmazan", email="radu.talmazan@tuwien.ac.at" },

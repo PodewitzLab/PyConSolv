@@ -93,7 +93,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.0'
+        self.version = '1.0.1'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -285,9 +285,9 @@ Calculations will be set up in:
                 return 0
 
         if cpcm == 'custom':
-            shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.frcmod',
+            shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/SLV_param/SLV.frcmod',
                             self.MCPB + '/SLV.frcmod')
-            shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/solv_param/SLV.mol2',
+            shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/SLV_param/SLV.mol2',
                             self.MCPB + '/SLV.mol2')
         else:
             solvent = Solvent()
