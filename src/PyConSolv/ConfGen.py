@@ -710,7 +710,9 @@ Calculations will be set up in:
         """
         f = open(self.path, 'r')
         for line in f:
-            if line.split()[0].upper() in self.metals:
+            if not line.split():
+                continue
+            elif line.split()[0].upper() in self.metals:
                 self.hasMetal = True
                 break
         f.close()
