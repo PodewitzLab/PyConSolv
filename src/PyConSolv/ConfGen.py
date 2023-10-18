@@ -259,7 +259,7 @@ Calculations will be set up in:
 
 
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
-              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1) -> int:
+              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, opt: bool = True) -> int:
         """
         Run setup for creating the appropriate folders and parse XYZ file
 
@@ -292,7 +292,7 @@ Calculations will be set up in:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
-            setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity)
+            setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity, opt = opt)
             setup.Method(method, basis, dsp, cpcmname, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
@@ -343,12 +343,12 @@ Calculations will be set up in:
 
         return 1
 
-    def orca(self):
+    def orca(self, opt: bool = True):
         """
         Run ORCA optimization and frequency calculations
 
         Parameters:
-
+            :param opt bool: if set to False, a single point calculation will be performed
         Class variables:
         """
         try:
@@ -358,9 +358,9 @@ Calculations will be set up in:
 
         calculation = Calculation(self.inputpath + '/orca_calculations')
         if self.hasMetal:
-            self.status = calculation.run()
+            self.status = calculation.run(opt = opt)
         else:
-            self.status = calculation.run(freq=False)
+            self.status = calculation.run(freq=False, opt = opt)
             shutil.copyfile(self.inputpath + '/orca_calculations/opt/orca_opt.xyz', self.inputpath + '/MCPB_setup/input.xyz')
         if self.status == 0:
             error('ORCA Calculations')
@@ -757,7 +757,7 @@ Calculations will be set up in:
         f.close()
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber'):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True):
         """
         Run the conformer generation
 
@@ -771,16 +771,17 @@ Calculations will be set up in:
             :param str solvent: solvent to be used
             :param int multiplicity: multiplicity of the system
             :param str engine: MD engine to be used for equilibration/simulation
+            :param bool opt : if set to False, no geometry optimization will be performed
 
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
         self.checkRestart()
-        self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity)
+        self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
 
         if self.restart < 2:
-            if self.orca() == 0:
+            if self.orca(opt = opt) == 0:
                 return
 
         if self.restart < 3:

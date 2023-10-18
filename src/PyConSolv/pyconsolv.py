@@ -18,12 +18,14 @@ def main():
     parser.add_argument('-s', '--solvent', nargs='?', default='Water', type=str, help='solvent to be used for MD simulations/ OM Calculations, default Water')
     parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int, help='number of cpu cores to be used for calculations, default 12')
     parser.add_argument('-mult', '--multiplicity',  nargs='?', default=1, type=int, help = 'multiplicity of the system, default 1')
+    parser.add_argument('-noopt', '--noopt', action='store_false', help='do not perform geometry optimization for parametrization')
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
     parser.add_argument('-nosp', '--nosp', action='store_true', help='do not run single point calculations')
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
     parser.add_argument('-cluster', '--cluster', nargs='?', default=0, type=str, help='clustering method')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str, help='MD engine to be used for equilibration and simulation')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
+
 
     args = parser.parse_args()
 
@@ -50,7 +52,7 @@ def main():
     else:
         conf = PyConSolv(inputfilepath)
         conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine )
+                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt )
     sys.exit()
 
 if __name__ == '__main__':

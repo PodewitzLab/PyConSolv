@@ -8,17 +8,17 @@ with minimal user intervention.
 
 Publication:
 
-PyConSolv: A Python Package for Conformer Generation of (Metal-Containing) Systems in Explicit Solvent
+[PyConSolv: A Python Package for Conformer Generation of (Metal-Containing) Systems in Explicit Solvent
 R. A. Talmazan and M. Podewitz
-Journal of Chemical Information and Modeling Article ASAP
-DOI: 10.1021/acs.jcim.3c00798
+Journal of Chemical Information and Modeling 2023, 63, 17, 5400–5407
+DOI: 10.1021/acs.jcim.3c00798](https://pubs.acs.org/doi/full/10.1021/acs.jcim.3c00798)
 
 
 
 ## Features
 Utilizes freely available software, with high performance
 
-18 predefined solvents and 6 counterions, with the ability to use any solvent or counterion
+18 predefined solvents and 6 counterions (along with 40+ single atom ions), with the ability to use any solvent or counterion
 
 Automated molecule splitting for transition metal parametrization
 
@@ -63,7 +63,7 @@ pip install numpy pandas rdkit PyConSolv
 
 ### Console:
 ```
-pyconsolv [-h] [-c [CHARGE]] [-m [METHOD]] [-b [BASIS]] [-d [DISPERSION]] [-s [SOLVENT]] [-p [CPU]] [-mult [MULTIPLICITY]] [-a [ANALYZE]] [-mask [MASK]] [-cluster [CLUSTER]] [-nosp] [-v] input
+pyconsolv [-h] [-c [CHARGE]] [-m [METHOD]] [-b [BASIS]] [-d [DISPERSION]] [-s [SOLVENT]] [-p [CPU]] [-mult [MULTIPLICITY]] [-noopt] [-a [ANALYZE]] [-mask [MASK]] [-cluster [CLUSTER]] [-nosp] [-v] input
 ```
 
 positional arguments:  
@@ -77,7 +77,8 @@ options:
   -d [DISPERSION], --dispersion [DISPERSION] dispersion corrections, default = D4  
   -s [SOLVENT], --solvent [SOLVENT] solvent to be used for MD simulations/ OM Calculations, default Water  
   -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
-  -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1  
+  -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1   
+  -noopt perform a single point instead of a geometry optimization
   -nosp skip single point calculations for clusters
   -a , --analyze analyze a simulation  
   -mask [MASK], --mask [MASK] atomid mask for clustering  

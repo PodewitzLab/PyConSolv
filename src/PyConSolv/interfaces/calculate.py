@@ -54,7 +54,7 @@ class Calculation:
         Run orca calculations
 
         Parameters:
-            - calctype = type of calculation, opt or freq
+            - calctype = type of calculation, sp, opt or freq
 
         Class variables:
         """
@@ -67,6 +67,14 @@ class Calculation:
             inputfile = 'orca_opt.inp'
             os.chdir(self.path + loc)
             print('Running geometry optimization in ' + os.getcwd())
+        elif calctype == 'sp':
+            loc = '/opt'
+            output = 'orca_opt.out'
+            inputfile = 'orca_opt.inp'
+            os.chdir(self.path + loc)
+            shutil.copyfile(self.path + loc + '/input.xyz',
+                                self.path + loc + '/orca_opt.xyz')
+            print('Running single point calculation in ' + os.getcwd())
         elif calctype == 'freq':
             output = 'orca_freq.out'
             inputfile = 'orca_freq.inp'
@@ -116,7 +124,7 @@ Moving on!
             self.status = 0
             return
 
-    def run(self,freq: bool = True) -> int:
+    def run(self,freq: bool = True, opt: bool = True) -> int:
         """
         Run all ORCA calculations
 
@@ -126,11 +134,17 @@ Moving on!
         Class variables:
 
         """
+        if not opt:
+            print('Geometry optimization will not be performed, only a single point energy calculation\n')
         self.checkpath()
         if self.status == 0:
             print(Color.RED + 'Aborting calculation!' + Color.END)
             return self.status
-        self.calculate(calctype='opt')
+        if opt:
+            self.calculate(calctype='opt')
+        else:
+            self.calculate(calctype='sp')
+
         if self.status == 0:
             print(Color.RED + 'Aborting calculation!' + Color.END)
             return self.status

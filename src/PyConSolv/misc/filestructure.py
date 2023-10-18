@@ -5,7 +5,7 @@ from ..utils.colorgen import Color
 
 
 class Setup:
-    def __init__(self, path: str, charge: int = 0, multi: int = 1) -> NotImplemented:
+    def __init__(self, path: str, charge: int = 0, multi: int = 1, opt: bool = True) -> NotImplemented:
         """
         Class for setting up all the necessary input files and folders for the generation of the parameters
 
@@ -13,6 +13,7 @@ class Setup:
             - path = path to the input file in XMOL format
             - charge = charge of the structure, default is 0
             - multi = multiplicity, default is 1
+            - opt = perform geometry optimization, default is true
 
         Class variables:
             - self.db_file = path to database file which contains atom radius information
@@ -28,6 +29,7 @@ class Setup:
             - self.MCPB_folder = folder where MCPB setup calculations will be performed
             - self.equilibration_folder = folder where system equilibration will be performed
             - self.simulation_folder = folder where a CMD will be performed
+            - self.opt = perform geometry optimization whent true
         """
         self.db_file = os.path.split(__file__)[0] + '/db/atom-radius.txt'
         self.path = '/'.join(path.split('/')[:-1])
@@ -41,7 +43,7 @@ class Setup:
         self.frequency_folder = self.calculation_folder + '/' + 'freq'
         self.optimization_folder = self.calculation_folder + '/' + 'opt'
         self.MCPB_folder = self.path + '/' + 'MCPB_setup'
-
+        self.opt = opt
         # ORCA input file template
         self.orca_inp = '''{}
 {}
@@ -94,7 +96,11 @@ end
         #####
         print('Creating necessary files...')
         f = open(self.optimization_folder + '/orca_opt.inp', 'w')
-        f.write(self.orca_inp.format(self.method, '! OPT', self.solvent, self.cores, self.charge, self.multi))
+        if self.opt == True:
+            keyword = '! OPT'
+        else:
+            keyword = '! SP'
+        f.write(self.orca_inp.format(self.method, keyword, self.solvent, self.cores, self.charge, self.multi))
         f.close()
 
         f = open(self.frequency_folder + '/orca_freq.inp', 'w')
