@@ -6,6 +6,7 @@ import numpy as np
 from .interfaces.mdengines import MDEngine
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
+from .misc.ions import ionlib
 from .misc.parameterChecker import ParameterChecker
 from .utils.charge import ChargeChanger
 from .misc.solvenGen import solventParametrizer
@@ -124,7 +125,9 @@ class PyConSolv:
         self.amber = None
         self.MCPB = self.inputpath + '/MCPB_setup'
         self.xyz = None
-        self.counterIonsImplemented = ['OTf-','BF4-', 'BARF-', 'PFC-', 'ScF6-', 'ClO4-', 'BPh4-', 'custom']
+        ions = ionlib()
+        amberions = list(ions.ionsinAmber.keys())
+        self.counterIonsImplemented = amberions +['OTf-','BF4-', 'BARF-', 'PFC-', 'ScF6-', 'ClO4-', 'BPh4-', 'custom']
         self.solventsImplemented = ['Water', 'Acetonitrile', 'Acetone', 'Benzene', 'Cyclohexane', 'Chloroform', 'CCl4',
                                     'CH2Cl2', 'DMF', 'DMSO', 'Ethanol', 'Hexane', 'Methanol', 'Ammonia', 'Octanol',
                                     'THF', 'Toluene', 'custom']
@@ -228,12 +231,19 @@ Calculations will be set up in:
                     if ion not in self.counterIonsImplemented:
                         print('Selected ion not supported, try again...\n')
                     else:
+                        print('Please enter the number of counterions to be used:\n')
+                        amount = int(input())
                         answered = True
+                        f = open(self.inputpath + '/counterion', 'w')
+                        f.write('{} {}'.format(ion, amount))
+                        f.close()
             elif answer == 'n':
                 ion = ''
                 answered = True
             else:
                 print('Wrong input, try again\n')
+
+
         if ion == 'custom':
             print('You have chosen a custom counterion for your system, which needs to be parametrized\n' +
                   'Please provide a path to the location of an XYZ file containing your ion\n')
@@ -308,11 +318,15 @@ Calculations will be set up in:
 
         else:
             cIon = Counterion()
-            ionname = cIon.counterionDict[self.counterIon]
-            shutil.copyfile(self.ionPath + '/{}.frcmod'.format(ionname),
-                            self.MCPB + '/{}.frcmod'.format(ionname))
-            shutil.copyfile(self.ionPath + '{}.mol2'.format(ionname),
-                            self.MCPB + '/{}.mol2'.format(ionname))
+            ions = ionlib()
+            if self.counterIon in list(ions.ionsinAmber.keys()):
+                ionname = ions.ionsinAmber[self.counterIon]
+            else:
+                ionname = cIon.counterionDict[self.counterIon]
+                shutil.copyfile(self.ionPath + '/{}.frcmod'.format(ionname),
+                                self.MCPB + '/{}.frcmod'.format(ionname))
+                shutil.copyfile(self.ionPath + '{}.mol2'.format(ionname),
+                                self.MCPB + '/{}.mol2'.format(ionname))
 
         f = open(self.inputpath + '/simulation/solvent', 'w')
         f.write(cpcm)
@@ -539,10 +553,25 @@ Calculations will be set up in:
         solv = Solvent()
         solv.applyItem(solvent, self.MCPB + '/LIG_tleap.in',
                           self.MCPB + '/LIG_tleap.in', self.MCPB, solutename)
+        if os.path.exists(self.inputpath+'/counterion'):
+            f = open(self.inputpath+'/counterion','r')
+            for line in f:
+                amount = line.split()[1]
+                self.counterion = line.split()[0]
+            f.close()
+        else:
+            self.counterion = ''
+            amount = 0
         if self.counterIon != '':
+            print('this is the counterion section')
             ion = Counterion()
-            ion.applyItem(self.counterIon, self.MCPB + '/LIG_tleap.in',
-                              self.MCPB + '/LIG_tleap.in', self.MCPB, solutename)
+            ionsAmber = ionlib()
+            if self.counterIon in list(ionsAmber.ionsinAmber.keys()):
+                ion.applyItem(self.counterIon, self.MCPB + '/LIG_tleap.in',
+                              self.MCPB + '/LIG_tleap.in', self.MCPB, solutename, amount)
+            else:
+                ion.applyItem(self.counterIon, self.MCPB + '/LIG_tleap.in',
+                                  self.MCPB + '/LIG_tleap.in', self.MCPB, solutename, amount)
         self.amber.tleapChecker(self.MCPB)
         self.status = self.amber.runTleap()
 

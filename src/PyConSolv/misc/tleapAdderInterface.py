@@ -15,6 +15,8 @@ class TleapAdder:
             - self.itemDict - dictionary of supported items
             - self.tleap - list to contain tleap file info
             - self.status - status of program (0 for error, 1 for success)
+            - self.stype - type of item to be added e.g. solvent, counterion
+            - self.amberNative - flag to determine if a mol2 and frcmod should be loaded for this item
         """
         self.referenceFilesPath = os.path.split(__file__)[0] + '/{}/'.format(folder)
         self.item = None
@@ -22,18 +24,24 @@ class TleapAdder:
         self.tleap = []
         self.status = 1
         self.stype = stype
+        self.amberNative = False
 
     def checkItem(self, item: str) -> int:
         """
         Checks whether the solvent desired is available
 
         Parameters:
-            :param str solvent: solvent to be used for MD simulation, check solvent list for available options
+            :param str item: item to be used for MD simulation, check item list(solvent/counterions) for available options
 
         Class variables:
         """
         if item in self.itemDict:
             self.item = self.itemDict[item]
+            if type(self.item) is list:
+                self.item = self.itemDict[item][0]
+                self.amberNative = True
+                print('self.item is')
+                print(self.item)
             return 1
         else:
             print('Selected {} is not supported\n'.format(self.stype))
@@ -58,12 +66,13 @@ class TleapAdder:
             print('File read error')
             return 0
 
-    def writeLeapFile(self, path: str, solutename = 'LIG') -> int:
+    def writeLeapFile(self, path: str, solutename = 'LIG', amount: int = 1) -> int:
         """
         read tleap file
 
         Parameters:
             :param str path: full path to the tleap file
+            :param int amount: number of counterions to add
 
         Class variables:
         """
@@ -76,10 +85,12 @@ class TleapAdder:
             f = open(path,'w')
             for line in self.tleap:
                 if 'loadmol2' in line and flag == 0:
-                    f.write('{} = loadmol2 {}.mol2\n'.format(self.item,self.item))
+                    if not self.amberNative:
+                        f.write('{} = loadmol2 {}.mol2\n'.format(self.item,self.item))
                     flag = 1
                 if 'loadmol2' in line and flag == 1:
-                    f.write('loadamberparams {}.frcmod\n'.format(self.item))
+                    if not self.amberNative:
+                        f.write('loadamberparams {}.frcmod\n'.format(self.item))
                     flag = 2
                 if self.stype == 'solvent':
                     if 'solvatebox' in line and flag == 2:
@@ -87,8 +98,8 @@ class TleapAdder:
                         flag = 3
                         continue
                 elif self.stype == 'counterion':
-                    if 'addions' in line:
-                        f.write('addions {} {} 1\n'.format(solutename, self.item))
+                    if 'saveamberparm LIG LIG_dry.prmtop LIG_dry.inpcrd' in line:
+                        f.write('addions {} {} {}\n'.format(solutename, self.item, amount))
                         flag = 3
                 f.write(line)
             f.close()
@@ -134,7 +145,7 @@ class TleapAdder:
                 f.write(line)
         f.close()
 
-    def applyItem(self, item: str, leapin: str, leapout: str, path: str, solutename = 'LIG') -> int:
+    def applyItem(self, item: str, leapin: str, leapout: str, path: str, solutename = 'LIG', amount: int = 1) -> int:
         """
         apply changes to solvent in tleapfile
 
@@ -143,6 +154,7 @@ class TleapAdder:
             :param str leapin: path to tleap file to be used as input
             :param str leapout: path to tleap file to be written
             :param str path: full path to the modelling folder containing the tleap file
+            :param int amount: amount of counterions to be added
 
         Class variables:
         """
@@ -152,7 +164,7 @@ class TleapAdder:
         self.status = self.readLeapFile(leapin)
         if self.status == 0:
             return 0
-        self.status = self.writeLeapFile(leapout, solutename)
+        self.status = self.writeLeapFile(leapout, solutename, amount)
         if self.status == 0:
             return 0
         if item != 'custom':
