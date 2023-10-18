@@ -20,5 +20,4 @@ class Counterion(TleapAdder):
                                'custom': 'CTI'}
         ions = ionlib()
         self.counterionDict.update(ions.ionsinAmber)
-        print(self.counterionDict.keys())
         TleapAdder.__init__(self, '../counterions', self.counterionDict, 'counterion')

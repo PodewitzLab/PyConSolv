@@ -25,6 +25,7 @@ class TleapAdder:
         self.status = 1
         self.stype = stype
         self.amberNative = False
+        self.watermodel = None
 
     def checkItem(self, item: str) -> int:
         """
@@ -35,13 +36,14 @@ class TleapAdder:
 
         Class variables:
         """
+        if 'Water' in item:
+            self.watermodel = item
+            item = 'Water'
         if item in self.itemDict:
             self.item = self.itemDict[item]
             if type(self.item) is list:
                 self.item = self.itemDict[item][0]
                 self.amberNative = True
-                print('self.item is')
-                print(self.item)
             return 1
         else:
             print('Selected {} is not supported\n'.format(self.stype))
@@ -78,7 +80,21 @@ class TleapAdder:
         """
         if self.stype == 'solvent':
             if self.item == self.itemDict['Water']:
-                return 1
+                if self.watermodel == 'WaterOPC':
+                    self.tleap = [line.replace('.water.tip3p', '.water.opc') for line in self.tleap]
+                    self.tleap = [line.replace('TIP3PBOX', 'OPCBOX') for line in self.tleap]
+                elif self.watermodel == 'WaterTIP4PEW':
+                    self.tleap = [line.replace('.water.tip3p', '.water.tip4pew') for line in self.tleap]
+                    self.tleap = [line.replace('TIP3PBOX', 'TIP4PEWBOX') for line in self.tleap]
+                try:
+                    f = open(path,'w')
+                    for line in self.tleap:
+                        f.write(line)
+                    f.close()
+                    return 1
+                except:
+                    print('File write error')
+                    return 0
         flag = 0
         try:
             print('writing into ' + path)
@@ -168,7 +184,8 @@ class TleapAdder:
         if self.status == 0:
             return 0
         if item != 'custom':
-            self.status = self.copyfiles(path)
+            if 'Water' not in item:
+                self.status = self.copyfiles(path)
         if self.status == 0:
             print('Error: Tleap file not modified!\n')
             return 0

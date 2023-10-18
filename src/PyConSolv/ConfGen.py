@@ -128,10 +128,10 @@ class PyConSolv:
         ions = ionlib()
         amberions = list(ions.ionsinAmber.keys())
         self.counterIonsImplemented = amberions +['OTf-','BF4-', 'BARF-', 'PFC-', 'ScF6-', 'ClO4-', 'BPh4-', 'custom']
-        self.solventsImplemented = ['Water', 'Acetonitrile', 'Acetone', 'Benzene', 'Cyclohexane', 'Chloroform', 'CCl4',
+        self.solventsImplemented = ['Water', 'WaterOPC', 'WaterTIP4PEW','Acetonitrile', 'Acetone', 'Benzene', 'Cyclohexane', 'Chloroform', 'CCl4',
                                     'CH2Cl2', 'DMF', 'DMSO', 'Ethanol', 'Hexane', 'Methanol', 'Ammonia', 'Octanol',
                                     'THF', 'Toluene', 'custom']
-
+        self.watermodels = ['Water', 'WaterOPC', 'WaterTIP4PEW']
         self.metalCheck()
         self.addSolvent = False
         self.solventAbb = ''
@@ -279,30 +279,35 @@ Calculations will be set up in:
         if cpcm not in self.solventsImplemented:
             print(Color.RED + 'Selected solvent is not yet implemented\n' + Color.END)
             return 0
+        if cpcm in self.watermodels:
+            cpcmname = 'Water'
+        else:
+            cpcmname = cpcm
 
         if charge != 0:
-            self.prepareCounterion(method, basis, dsp, cpu, charge, cpcm)
+            if not os.path.exists(self.inputpath+'/counterion'):
+                self.prepareCounterion(method, basis, dsp, cpu, charge, cpcmname)
 
         if self.restart == 0:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
             setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity)
-            setup.Method(method, basis, dsp, cpcm, cpu, self.epsilon, self.refrac)
+            setup.Method(method, basis, dsp, cpcmname, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
                 error('Setup')
                 return 0
 
-        if cpcm == 'custom':
+        if cpcmname == 'custom':
             shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/SLV_param/SLV.frcmod',
                             self.MCPB + '/SLV.frcmod')
             shutil.copyfile('/'.join(self.solventParamPath.split('/')[:-1]) + '/SLV_param/SLV.mol2',
                             self.MCPB + '/SLV.mol2')
         else:
             solvent = Solvent()
-            solvname = solvent.solventDict[cpcm]
-            if cpcm != 'Water':
+            solvname = solvent.solventDict[cpcmname]
+            if cpcmname != 'Water':
                 shutil.copyfile(self.solventPath + '/{}.frcmod'.format(solvname),
                                 self.MCPB + '/{}.frcmod'.format(solvname))
                 shutil.copyfile(self.solventPath + '{}.mol2'.format(solvname),
@@ -329,7 +334,7 @@ Calculations will be set up in:
                                 self.MCPB + '/{}.mol2'.format(ionname))
 
         f = open(self.inputpath + '/simulation/solvent', 'w')
-        f.write(cpcm)
+        f.write(cpcmname)
         f.close()
 
         print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
@@ -466,6 +471,10 @@ Calculations will be set up in:
 
         Class variables:
         """
+        if self.hasMetal:
+            self.restarter.write('mcpb')
+            return 1
+
         self.restarter.write('multiwfn')
 
         print(Color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + Color.END)
@@ -563,7 +572,6 @@ Calculations will be set up in:
             self.counterion = ''
             amount = 0
         if self.counterIon != '':
-            print('this is the counterion section')
             ion = Counterion()
             ionsAmber = ionlib()
             if self.counterIon in list(ionsAmber.ionsinAmber.keys()):
@@ -691,6 +699,8 @@ Calculations will be set up in:
             shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
 
         solv = Solvent()
+        if solvent in self.watermodels:
+            solvent = 'Water'
         solvID = solv.solventDict[solvent]
         self.modifyDryScript(self.inputpath + '/simulation/dry_sim.in', solvID)
         self.modifyDryScript(self.inputpath + '/simulation/solv.vmd', solvID)
