@@ -31,6 +31,7 @@ class Analysis:
             - self.dryfile = input file for cpptraj to dry a simulation
             - self.alignfile = input file for cpptraj to aling a simulation to the provided atommask with solvent
             - self.solvent = solvent used for the simulation
+            - self.orcaqmmmfile = input file for orca qmmmm single point calculations
         """
         self.pyconsolv = None
         self.solvent = None
@@ -43,6 +44,32 @@ class Analysis:
         self.reps = []
         self.orcafile = 'orca_sp.inp'
         os.chdir(self.homefolder)
+
+        self.orcaqmmmfile = '''!QMMM {}
+!L-OPT
+%QMMM
+        QMATOMS {} END
+        ORCAFFFilename "LIG_solv.ORCAFF.prms"
+END
+
+%PAL NPROCS {} END
+%geom
+        maxIter 2000
+end
+%maxcore {}
+%scf
+maxiter 350
+end
+
+* xyzfile 0 1 input.xyz'''
+
+        self.qmmmfile = '''parm {}
+trajin {}
+autoimage
+align @{} first
+trajout rep.c{}_solv.pdb onlyframes {}
+run
+quit'''
 
         self.alignfile ='''parm {}
 trajin {}
@@ -307,7 +334,14 @@ quit'''
             return True
         else:
             return False
-    def run(self, clustering='kmeans', nosp = False, engine = 'amber'):
+
+    def setupQMMM(self):
+
+        pass
+
+    def convertFF(self):
+        pass
+    def run(self, clustering: object = 'kmeans', nosp: object = False, engine: object = 'amber', qmmm_methods: str = None, qmmm_atoms: str = None) -> object:
         """
         Run clustering and ranking
 
@@ -331,6 +365,8 @@ quit'''
             self.cluster(clustering, engine)
         if not nosp:
             self.checkORCAPath()
+            if qmmm_methods is not None:
+                self.setupQMMM()
             if not self.checkORCAFile():
                 print('No calculation template file found, please make sure orca_sp.inp exists in this folder\n')
                 return

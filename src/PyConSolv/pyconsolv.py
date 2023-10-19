@@ -8,7 +8,7 @@ from PyConSolv.misc.analysis import Analysis
 
 
 def main():
-    ver = '1.0.2'
+    ver = '1.1.0'
     parser = argparse.ArgumentParser(prog = 'PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help = 'input file in XYZ format')
     parser.add_argument('-c', '--charge',  nargs='?', default=0, type=int, help = 'charge of the system, default 0')
@@ -24,6 +24,7 @@ def main():
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
     parser.add_argument('-cluster', '--cluster', nargs='?', default=0, type=str, help='clustering method')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str, help='MD engine to be used for equilibration and simulation')
+    parser.add_argument('-qmmm', '--qmmm', action='store_true', help='use a qmmm approach to determine cluster energy ranking')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
 
 
@@ -32,6 +33,14 @@ def main():
     inputfilepath = os.path.abspath(args.input)
 
     if args.analyze:
+        if args.qmmm:
+            qmmm_method = None
+            qmmm_atoms = None
+            print('You have chosen to use a QM/MM scheme for evaluating the conformers.\n')
+            print('Please provide the QM method (ex: BP86 def2-SV(P) D3):\n')
+            qmmm_method = input()
+            print('Please provide the QM atoms (ex: 1,2,3-50):\n')
+            qmmm_atoms = input()
         if not args.mask:
             print('Warning, you have not provided an input mask for alignment, please provide a list of atom ids in the format: 1,2,3-10\n')
             mask = input()
@@ -43,7 +52,7 @@ def main():
         else:
             cluster = args.cluster
         analysis = Analysis(path = inputfilepath, alignMask= mask)
-        analysis.run(clustering=cluster, nosp = args.nosp, engine = args.engine)
+        analysis.run(clustering=cluster, nosp = args.nosp, engine = args.engine, qmmm_method = qmmm_method, qmmm_atoms = qmmm_atoms)
 
     elif '.xyz' not in inputfilepath:
         print('Path does not contain a valid XYZ file\n')
