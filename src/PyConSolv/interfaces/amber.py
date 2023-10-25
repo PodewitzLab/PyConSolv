@@ -22,7 +22,7 @@ class amberInterface:
             - self.defaultbox - default box size for tleap
         """
 
-        self.defaultbox = 5
+        self.defaultbox = 10
         self.amberhome = None
         self.path = path
         self.status = 0
@@ -111,6 +111,15 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             self.status = 0
 
     def changeBoxSize(self, tleapfile: str,  sizeadd: int = 5):
+        """
+        Change system box size by adding to it
+
+        Parameters:
+            :param str tleapfile: location of tleapfile
+            :param int sizeadd: by what value should be the size changed
+
+        Class variables:
+        """
         tleap = TleapAdder(os.getcwd(), None, None)
         tleap.changeTleapBox(sizeadd, tleapfile)
 

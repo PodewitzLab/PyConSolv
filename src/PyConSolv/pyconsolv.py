@@ -21,7 +21,7 @@ def main():
     parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int, help='number of cpu cores to be used for calculations, default 12')
     parser.add_argument('-mult', '--multiplicity',  nargs='?', default=1, type=int, help = 'multiplicity of the system, default 1')
     parser.add_argument('-noopt', '--noopt', action='store_false', help='do not perform geometry optimization for parametrization')
-    parser.add_argument('-box', '--box', nargs='?', default=20, type=int, help='set the box size to use with ambertools, for solvating the system')
+    parser.add_argument('-box', '--box', nargs='?', default=10, type=int, help='set the box size to use with ambertools, for solvating the system')
 
     #analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')

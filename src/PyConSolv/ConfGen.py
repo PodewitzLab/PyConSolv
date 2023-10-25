@@ -472,7 +472,8 @@ Calculations will be set up in:
 
         Class variables:
         """
-        if self.hasMetal:
+
+        if not self.hasMetal:
             self.restarter.write('mcpb')
             return 1
 
@@ -489,6 +490,7 @@ Calculations will be set up in:
                         self.inputpath + '/MCPB_setup/LIG_small_opt.fchk')
         shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakelog.log',
                         self.inputpath + '/MCPB_setup/LIG_small_fc.log')
+
 
         print(Color.GREEN + 'Proceeding with MCPB steps...\n' + Color.END)
 
@@ -536,7 +538,7 @@ Calculations will be set up in:
         self.restarter.write('mcpb')
         return 1
 
-    def tleap(self, solvent: str, boxsize: int = 20) -> int:
+    def tleap(self, solvent: str, boxsize: int = 10) -> int:
         """
         Run tleap
 
@@ -583,7 +585,7 @@ Calculations will be set up in:
                 ion.applyItem(self.counterIon, self.MCPB + '/LIG_tleap.in',
                                   self.MCPB + '/LIG_tleap.in', self.MCPB, solutename, amount)
         self.amber.tleapChecker(self.MCPB)
-        #self.amber.changeBoxSize(self.MCPB + '/LIG_tleap.in',self.boxsize-self.amber.defaultbox)
+        self.amber.changeBoxSize(self.MCPB + '/LIG_tleap.in',self.boxsize- self.amber.defaultbox)
         self.status = self.amber.runTleap()
 
         if self.status == 0:
@@ -781,6 +783,7 @@ Calculations will be set up in:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
+
         self.checkRestart()
         self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
 
@@ -805,7 +808,7 @@ Calculations will be set up in:
                 return
 
         if self.restart < 7:
-            if self.tleap(solvent) == 0:
+            if self.tleap(solvent, box) == 0:
                 return
 
         if self.restart < 8:

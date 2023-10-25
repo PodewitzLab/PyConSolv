@@ -157,7 +157,11 @@ class TleapAdder:
         for line in self.tleap:
             if 'solvatebox' in line:
                 print(line)
-                f.write(' '.join(line.split()[:-1]) + ' {:.1f}\n'.format(boxsizeadd + float(line.split()[-1])))
+                tmp = line.split()
+                print(boxsizeadd)
+                tmp[3] = str(float(tmp[3]) + boxsizeadd)
+                f.write(' '.join(tmp) + '\n' )
+                print(' '.join(tmp))
             else:
                 f.write(line)
         f.close()
