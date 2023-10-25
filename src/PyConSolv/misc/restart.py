@@ -45,3 +45,9 @@ class RestartFile:
         f = open(self.restart, 'w')
         f.write(state)
         f.close()
+
+    def parseInput(self):
+        pass
+
+    def writeInput(self):
+        pass

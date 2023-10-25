@@ -135,6 +135,7 @@ class PyConSolv:
         self.metalCheck()
         self.addSolvent = False
         self.solventAbb = ''
+        self.boxsize = 20
 
 
         print(Color.BLUE + r'''
@@ -471,7 +472,8 @@ Calculations will be set up in:
 
         Class variables:
         """
-        if self.hasMetal:
+
+        if not self.hasMetal:
             self.restarter.write('mcpb')
             return 1
 
@@ -488,6 +490,7 @@ Calculations will be set up in:
                         self.inputpath + '/MCPB_setup/LIG_small_opt.fchk')
         shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakelog.log',
                         self.inputpath + '/MCPB_setup/LIG_small_fc.log')
+
 
         print(Color.GREEN + 'Proceeding with MCPB steps...\n' + Color.END)
 
@@ -535,7 +538,7 @@ Calculations will be set up in:
         self.restarter.write('mcpb')
         return 1
 
-    def tleap(self, solvent: str) -> int:
+    def tleap(self, solvent: str, boxsize: int = 10) -> int:
         """
         Run tleap
 
@@ -545,6 +548,7 @@ Calculations will be set up in:
         Class variables:
         """
         self.restarter.write('mcpb')
+        self.boxsize = boxsize
 
         os.chdir(self.MCPB)
         print('Solvent of choice is: {}'.format(solvent))
@@ -581,6 +585,7 @@ Calculations will be set up in:
                 ion.applyItem(self.counterIon, self.MCPB + '/LIG_tleap.in',
                                   self.MCPB + '/LIG_tleap.in', self.MCPB, solutename, amount)
         self.amber.tleapChecker(self.MCPB)
+        self.amber.changeBoxSize(self.MCPB + '/LIG_tleap.in',self.boxsize- self.amber.defaultbox)
         self.status = self.amber.runTleap()
 
         if self.status == 0:
@@ -757,7 +762,7 @@ Calculations will be set up in:
         f.close()
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20):
         """
         Run the conformer generation
 
@@ -772,10 +777,12 @@ Calculations will be set up in:
             :param int multiplicity: multiplicity of the system
             :param str engine: MD engine to be used for equilibration/simulation
             :param bool opt : if set to False, no geometry optimization will be performed
+            :param int box : set box size for amber tleap
 
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
+
 
         self.checkRestart()
         self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
@@ -801,7 +808,7 @@ Calculations will be set up in:
                 return
 
         if self.restart < 7:
-            if self.tleap(solvent) == 0:
+            if self.tleap(solvent, box) == 0:
                 return
 
         if self.restart < 8:
