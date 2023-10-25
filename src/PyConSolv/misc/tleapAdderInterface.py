@@ -110,7 +110,7 @@ class TleapAdder:
                     flag = 2
                 if self.stype == 'solvent':
                     if 'solvatebox' in line and flag == 2:
-                        f.write('solvatebox {} {} 20.0 iso\n'.format(solutename, self.item))
+                        f.write('solvatebox {} {} 10.0 iso\n'.format(solutename, self.item))
                         flag = 3
                         continue
                 elif self.stype == 'counterion':
@@ -156,12 +156,11 @@ class TleapAdder:
         f = open(leapin, 'w')
         for line in self.tleap:
             if 'solvatebox' in line:
-                print(line)
                 tmp = line.split()
-                print(boxsizeadd)
                 tmp[3] = str(float(tmp[3]) + boxsizeadd)
+                if 'iso' not in line:
+                    tmp.append(' iso') #add iso parameter everywhere for the box
                 f.write(' '.join(tmp) + '\n' )
-                print(' '.join(tmp))
             else:
                 f.write(line)
         f.close()
