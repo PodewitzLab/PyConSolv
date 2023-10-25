@@ -1,4 +1,5 @@
 
+
 # PyConSolv
 
 A python based interface for generation of conformers of transition metal complexes in explicit solvent.
@@ -33,13 +34,13 @@ Automated clustering
 
 ## Requirements
 
-Python >=3.10
+Python >= 3.10
 
-AmberTools 20+
+AmberTools >= 20
 
-ORCA 5.0+
+ORCA >= 5.0
 
-MultiWfn 3.8+
+MultiWfn >= 3.8
 
 ## Installation
 
@@ -47,7 +48,7 @@ The creation of a new virtual environment is highly recommended:
 
 using conda:
 ```
-conda create -c conda-forge --name PyConSolv python=3.10 rdkit numpy pandas
+conda create -c conda-forge --name PyConSolv python=3.10 rdkit numpy pandas parmed
 conda activate PyConSolv
 pip install PyConSolv
 ```
@@ -56,7 +57,7 @@ using pip:
 ```
 python3 -m venv env
 source env/bin/activate
-pip install numpy pandas rdkit PyConSolv
+pip install numpy pandas rdkit parmed PyConSolv
 ```
 
 ## Usage
@@ -66,11 +67,11 @@ pip install numpy pandas rdkit PyConSolv
 pyconsolv [-h] [-c [CHARGE]] [-m [METHOD]] [-b [BASIS]] [-d [DISPERSION]] [-s [SOLVENT]] [-p [CPU]] [-mult [MULTIPLICITY]] [-noopt] [-a [ANALYZE]] [-mask [MASK]] [-cluster [CLUSTER]] [-nosp] [-v] input
 ```
 
-positional arguments:  
+**positional arguments:**  
 input file in XYZ format
 
-options:  
-  -h, --help            show this help message and exit  
+**options that affect simulation setup:**  
+ 
   -c [CHARGE], --charge [CHARGE] charge of the system, default 0  
   -m [METHOD], --method [METHOD] ORCA optimization/frequency calculations method of choice, default PBE0  
   -b [BASIS], --basis [BASIS] basis set to be used for calculations, default def2-SVP  
@@ -78,13 +79,18 @@ options:
   -s [SOLVENT], --solvent [SOLVENT] solvent to be used for MD simulations/ OM Calculations, default Water  
   -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
   -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1   
-  -noopt perform a single point instead of a geometry optimization
-  -nosp skip single point calculations for clusters
+  -noopt perform a single point calculation instead of a geometry optimization
+  
+**options that affect analysis**:   
   -a , --analyze analyze a simulation  
   -mask [MASK], --mask [MASK] atomid mask for clustering  
   -cluster [CLUSTER], --cluster [CLUSTER] clustering method  
-  -e, --engine         choice of simulation engine
+  -e, --engine         choice of simulation engine  
+  -nosp skip single point calculations for clusters
 
+
+**general options:**
+  -h, --help            show this help message and exit  
   -v, --version         show program's version number and exit  
 
 
