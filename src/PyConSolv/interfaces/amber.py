@@ -434,8 +434,8 @@ source leaprc.gaff
 source leaprc.water.tip3p
 LIG = loadmol2 LIG.mol2 
 loadamberparams LIG.frcmod
-savepdb LIG LIG_dry.pdb
 saveamberparm LIG LIG_dry.prmtop LIG_dry.inpcrd
+savepdb LIG LIG_dry.pdb
 solvatebox LIG TIP3PBOX 20 iso
 savepdb LIG LIG_solv.pdb
 saveamberparm LIG LIG_solv.prmtop LIG_solv.inpcrd
