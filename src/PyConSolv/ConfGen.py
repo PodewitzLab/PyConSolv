@@ -96,7 +96,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.3'
+        self.version = '1.0.3.1'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -462,13 +462,18 @@ Calculations will be set up in:
             self.xyz.hasMetal = False
             self.xyz.readRESP(self.inputpath + '/orca_calculations/')
             chargeChanger = ChargeChanger()
-            for residue in residues:
-                chargeChanger.change(self.MCPB + '/{}.mol2'.format(residue), self.MCPB + '/{}x.mol2'.format(residue), residue, self.xyz.charges)
 
-            mol2parser = mol2Parser(self.MCPB,['{}x'.format(x) for x in residues])
-            mol2parser.writeCombinedMol2()
-            frcmodparser = frcmodParser(self.MCPB, residues)
-            frcmodparser.writeCombinedFrcmod()
+            if len(residues) > 1:
+                for residue in residues:
+                    chargeChanger.change(self.MCPB + '/{}.mol2'.format(residue),
+                                         self.MCPB + '/{}x.mol2'.format(residue), residue, self.xyz.charges)
+                mol2parser = mol2Parser(self.MCPB,['{}x'.format(x) for x in residues])
+                mol2parser.writeCombinedMol2()
+                frcmodparser = frcmodParser(self.MCPB, residues)
+                frcmodparser.writeCombinedFrcmod()
+            else:
+                 chargeChanger.change(self.MCPB + '/A.mol2',
+                                         self.MCPB + '/LIG.mol2', 'A', self.xyz.charges)
         else:
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
             self.status = multiwfn.run(cores)
