@@ -6,7 +6,9 @@ import numpy as np
 from .interfaces.mdengines import MDEngine
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
+from .misc.frcmod import frcmodParser
 from .misc.ions import ionlib
+from .misc.mol2 import mol2Parser
 from .misc.parameterChecker import ParameterChecker
 from .utils.charge import ChargeChanger
 from .misc.solvenGen import solventParametrizer
@@ -424,6 +426,7 @@ Calculations will be set up in:
 
         else:  # if no metal, proceed with tleap, presumes only 1 ligand
             # os.chdir(self.inputpath + '/equilibration/')
+            print(antechamberFiles)
             shutil.copyfile(self.MCPB + '/' + str(antechamberFiles[0][0]) + '.mol2',
                             self.MCPB + '/LIG.mol2')
             shutil.copyfile(self.MCPB + '/' + antechamberFiles[0][0] + '.frcmod',
@@ -446,14 +449,26 @@ Calculations will be set up in:
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.hasMetal = self.hasMetal
-            self.xyz.readFilenames(self.MCPB)  # todo this might not be needed
+            self.xyz.readFilenames(self.MCPB)
         if not self.hasMetal:
+            print('filenames')
+            print(self.xyz.filenames)
+            residues = []
+            for elem in self.xyz.filenames:
+                residues.append(elem.replace('.pdb',''))
+
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/opt/', orcaname='orca_opt')
             self.status = multiwfn.run(cores)
             self.xyz.hasMetal = False
             self.xyz.readRESP(self.inputpath + '/orca_calculations/')
             chargeChanger = ChargeChanger()
-            chargeChanger.change(self.MCPB + '/A.mol2', self.MCPB + '/LIG.mol2', 'A', self.xyz.charges)
+            for residue in residues:
+                chargeChanger.change(self.MCPB + '/{}.mol2'.format(residue), self.MCPB + '/{}x.mol2'.format(residue), residue, self.xyz.charges)
+
+            mol2parser = mol2Parser(self.MCPB,['{}x'.format(x) for x in residues])
+            mol2parser.writeCombinedMol2()
+            frcmodparser = frcmodParser(self.MCPB, residues)
+            frcmodparser.writeCombinedFrcmod()
         else:
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
             self.status = multiwfn.run(cores)
