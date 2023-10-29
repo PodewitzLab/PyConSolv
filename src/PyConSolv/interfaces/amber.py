@@ -15,8 +15,14 @@ class amberInterface:
             :param string path: full path to the folder where parametrization will take place
 
         Class variables:
+            - self.amberhome - path to amber install location
+            - self.path - path to the folder where the parametrization will take place
+            - self.status - error status, 1 for ok, 0 for error
+            - self.original_wd - directory from where this function was called from
+            - self.defaultbox - default box size for tleap
         """
 
+        self.defaultbox = 10
         self.amberhome = None
         self.path = path
         self.status = 0
@@ -86,7 +92,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
 
         return self.status
 
-    def runMCPB(self, step):
+    def runMCPB(self, step: str):
         """
         Run MCPB.py
 
@@ -105,6 +111,15 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             self.status = 0
 
     def changeBoxSize(self, tleapfile: str,  sizeadd: int = 5):
+        """
+        Change system box size by adding to it
+
+        Parameters:
+            :param str tleapfile: location of tleapfile
+            :param int sizeadd: by what value should be the size changed
+
+        Class variables:
+        """
         tleap = TleapAdder(os.getcwd(), None, None)
         tleap.changeTleapBox(sizeadd, tleapfile)
 
@@ -434,13 +449,13 @@ source leaprc.gaff
 source leaprc.water.tip3p
 LIG = loadmol2 LIG.mol2 
 loadamberparams LIG.frcmod
-savepdb LIG LIG_dry.pdb
 saveamberparm LIG LIG_dry.prmtop LIG_dry.inpcrd
-solvatebox LIG TIP3PBOX 20 iso
+savepdb LIG LIG_dry.pdb
+solvatebox LIG TIP3PBOX {} iso
 savepdb LIG LIG_solv.pdb
 saveamberparm LIG LIG_solv.prmtop LIG_solv.inpcrd
 quit
-'''.replace('LIG', name)
+'''.replace('LIG', name).format(self.defaultbox)
         f = open(path + '/LIG_tleap.in', 'w')
         f.write(file)
         f.close()

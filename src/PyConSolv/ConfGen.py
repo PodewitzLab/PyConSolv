@@ -6,7 +6,9 @@ import numpy as np
 from .interfaces.mdengines import MDEngine
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
+from .misc.frcmod import frcmodParser
 from .misc.ions import ionlib
+from .misc.mol2 import mol2Parser
 from .misc.parameterChecker import ParameterChecker
 from .utils.charge import ChargeChanger
 from .misc.solvenGen import solventParametrizer
@@ -94,7 +96,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.2'
+        self.version = '1.0.3.1'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -135,6 +137,7 @@ class PyConSolv:
         self.metalCheck()
         self.addSolvent = False
         self.solventAbb = ''
+        self.boxsize = 20
 
 
         print(Color.BLUE + r'''
@@ -423,6 +426,7 @@ Calculations will be set up in:
 
         else:  # if no metal, proceed with tleap, presumes only 1 ligand
             # os.chdir(self.inputpath + '/equilibration/')
+            print(antechamberFiles)
             shutil.copyfile(self.MCPB + '/' + str(antechamberFiles[0][0]) + '.mol2',
                             self.MCPB + '/LIG.mol2')
             shutil.copyfile(self.MCPB + '/' + antechamberFiles[0][0] + '.frcmod',
@@ -445,14 +449,31 @@ Calculations will be set up in:
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.hasMetal = self.hasMetal
-            self.xyz.readFilenames(self.MCPB)  # todo this might not be needed
+            self.xyz.readFilenames(self.MCPB)
         if not self.hasMetal:
+            print('filenames')
+            print(self.xyz.filenames)
+            residues = []
+            for elem in self.xyz.filenames:
+                residues.append(elem.replace('.pdb',''))
+
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/opt/', orcaname='orca_opt')
             self.status = multiwfn.run(cores)
             self.xyz.hasMetal = False
             self.xyz.readRESP(self.inputpath + '/orca_calculations/')
             chargeChanger = ChargeChanger()
-            chargeChanger.change(self.MCPB + '/A.mol2', self.MCPB + '/LIG.mol2', 'A', self.xyz.charges)
+
+            if len(residues) > 1:
+                for residue in residues:
+                    chargeChanger.change(self.MCPB + '/{}.mol2'.format(residue),
+                                         self.MCPB + '/{}x.mol2'.format(residue), residue, self.xyz.charges)
+                mol2parser = mol2Parser(self.MCPB,['{}x'.format(x) for x in residues])
+                mol2parser.writeCombinedMol2()
+                frcmodparser = frcmodParser(self.MCPB, residues)
+                frcmodparser.writeCombinedFrcmod()
+            else:
+                 chargeChanger.change(self.MCPB + '/A.mol2',
+                                         self.MCPB + '/LIG.mol2', 'A', self.xyz.charges)
         else:
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
             self.status = multiwfn.run(cores)
@@ -471,7 +492,8 @@ Calculations will be set up in:
 
         Class variables:
         """
-        if self.hasMetal:
+
+        if not self.hasMetal:
             self.restarter.write('mcpb')
             return 1
 
@@ -488,6 +510,7 @@ Calculations will be set up in:
                         self.inputpath + '/MCPB_setup/LIG_small_opt.fchk')
         shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakelog.log',
                         self.inputpath + '/MCPB_setup/LIG_small_fc.log')
+
 
         print(Color.GREEN + 'Proceeding with MCPB steps...\n' + Color.END)
 
@@ -535,7 +558,7 @@ Calculations will be set up in:
         self.restarter.write('mcpb')
         return 1
 
-    def tleap(self, solvent: str) -> int:
+    def tleap(self, solvent: str, boxsize: int = 10) -> int:
         """
         Run tleap
 
@@ -545,6 +568,7 @@ Calculations will be set up in:
         Class variables:
         """
         self.restarter.write('mcpb')
+        self.boxsize = boxsize
 
         os.chdir(self.MCPB)
         print('Solvent of choice is: {}'.format(solvent))
@@ -581,6 +605,7 @@ Calculations will be set up in:
                 ion.applyItem(self.counterIon, self.MCPB + '/LIG_tleap.in',
                                   self.MCPB + '/LIG_tleap.in', self.MCPB, solutename, amount)
         self.amber.tleapChecker(self.MCPB)
+        self.amber.changeBoxSize(self.MCPB + '/LIG_tleap.in',self.boxsize- self.amber.defaultbox)
         self.status = self.amber.runTleap()
 
         if self.status == 0:
@@ -757,7 +782,7 @@ Calculations will be set up in:
         f.close()
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20):
         """
         Run the conformer generation
 
@@ -772,10 +797,12 @@ Calculations will be set up in:
             :param int multiplicity: multiplicity of the system
             :param str engine: MD engine to be used for equilibration/simulation
             :param bool opt : if set to False, no geometry optimization will be performed
+            :param int box : set box size for amber tleap
 
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
+
 
         self.checkRestart()
         self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
@@ -801,7 +828,7 @@ Calculations will be set up in:
                 return
 
         if self.restart < 7:
-            if self.tleap(solvent) == 0:
+            if self.tleap(solvent, box) == 0:
                 return
 
         if self.restart < 8:
