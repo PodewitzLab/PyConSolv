@@ -8,9 +8,11 @@ from PyConSolv.misc.analysis import Analysis
 
 
 def main():
-    ver = '1.0.2'
+    ver = '1.0.3'
     parser = argparse.ArgumentParser(prog = 'PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help = 'input file in XYZ format')
+
+    #parametrization
     parser.add_argument('-c', '--charge',  nargs='?', default=0, type=int, help = 'charge of the system, default 0')
     parser.add_argument('-m', '--method', nargs='?', default='PBE0', type=str, help='ORCA optimization/frequency calculations method of choice, default PBE0')
     parser.add_argument('-b', '--basis', nargs='?', default='def2-SVP', type=str, help='basis set to be used for calculations, default def2-SVP')
@@ -19,6 +21,9 @@ def main():
     parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int, help='number of cpu cores to be used for calculations, default 12')
     parser.add_argument('-mult', '--multiplicity',  nargs='?', default=1, type=int, help = 'multiplicity of the system, default 1')
     parser.add_argument('-noopt', '--noopt', action='store_false', help='do not perform geometry optimization for parametrization')
+    parser.add_argument('-box', '--box', nargs='?', default=10, type=int, help='set the box size to use with ambertools, for solvating the system')
+
+    #analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
     parser.add_argument('-nosp', '--nosp', action='store_true', help='do not run single point calculations')
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
@@ -52,7 +57,7 @@ def main():
     else:
         conf = PyConSolv(inputfilepath)
         conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt )
+                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt, box = args.box )
     sys.exit()
 
 if __name__ == '__main__':
