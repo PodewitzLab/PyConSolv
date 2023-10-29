@@ -8,7 +8,7 @@ Please update version 1.0.2 to 1.0.3.1 to fix a bug with generating parameters. 
 Changelog from v 1.0.1:
 
 - More counterions are parametrized and supported by default
-- Box size can not be specified using the `-box` parameter
+- Box size can now be specified using the `-box` parameter
 
 
 # PyConSolv
