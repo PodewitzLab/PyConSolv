@@ -450,12 +450,13 @@ Calculations will be set up in:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.hasMetal = self.hasMetal
             self.xyz.readFilenames(self.MCPB)
+        print('We are checking for metals, the molecule has metal = {}'.format(self.hasMetal))
         if not self.hasMetal:
             print('filenames')
             print(self.xyz.filenames)
             residues = []
             for elem in self.xyz.filenames:
-                residues.append(elem.replace('.pdb',''))
+                residues.append(elem.replace('.pdb','').replace('\n',''))
 
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/opt/', orcaname='orca_opt')
             self.status = multiwfn.run(cores)
