@@ -1,14 +1,15 @@
 ![License](https://img.shields.io/badge/license-GPL3-blue)
-[![Latest Version](https://img.shields.io/badge/release-v.1.0.3.1-red)](https://pypi.org/project/PyConSolv/1.0.3.1/)
+[![Latest Version](https://img.shields.io/badge/release-v.1.0.4-red)](https://pypi.org/project/PyConSolv/1.0.4/)
 [![DOI](https://img.shields.io/badge/DOI-10.1021%2Facs.jcim.3c00798-blue)](https://pubs.acs.org/doi/full/10.1021/acs.jcim.3c00798)
 
 # Latest:
-Please update version 1.0.2 to 1.0.3.1 to fix a bug with generating parameters. Versions before 1.0.2 should not be affected.
+Please update version 1.0.2 to 1.0.3.1+ to fix a bug with generating parameters. Versions before 1.0.2 should not be affected.
 
 Changelog from v 1.0.1:
 
 - More counterions are parametrized and supported by default
 - Box size can now be specified using the `-box` parameter
+- Support for multiple non-covalently bound solutes
 
 
 # PyConSolv
@@ -91,6 +92,7 @@ input file in XYZ format
   -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
   -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1   
   -noopt perform a single point calculation instead of a geometry optimization
+  -box specify box size for your system
   
 **options that affect analysis**:   
   -a , --analyze analyze a simulation  
