@@ -4,6 +4,7 @@ from tkinter import *
 import numpy as np
 
 from .interfaces.mdengines import MDEngine
+from .interfaces.parmed import Parmed
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
 from .misc.frcmod import frcmodParser
@@ -96,7 +97,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.3.2'
+        self.version = '1.0.4'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -455,7 +456,7 @@ Calculations will be set up in:
             print(self.xyz.filenames)
             residues = []
             for elem in self.xyz.filenames:
-                residues.append(elem.replace('.pdb',''))
+                residues.append(elem.replace('.pdb','').replace('\n',''))
 
             multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/opt/', orcaname='orca_opt')
             self.status = multiwfn.run(cores)
@@ -614,9 +615,18 @@ Calculations will be set up in:
 
         self.restarter.write('tleap')
 
+        print('Checking topology files for inconsitencies...')
+        self.checkTop()
+        print('Done!\n')
+
         print('Parametrization complete!\n')
         print('Solvent of choice is: {}\n'.format(solvent))
         return 1
+
+    def checkTop(self):
+        parmed = Parmed(self.MCPB)
+        parmed.checkTop('LIG_solv')
+        parmed.checkTop('LIG_dry')
 
     def equilibration(self, cpu: int = 12, engine = 'amber'):
         """
