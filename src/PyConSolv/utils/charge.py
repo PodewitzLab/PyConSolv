@@ -3,6 +3,7 @@ class ChargeChanger:
         self.iterator = 0
 
     def change(self, filein, fileout, resname, charges, fragmented = False, mapfile = None):
+        print(filein)
         fin = open(filein, 'r')  # read mol2 files corresponding to the pdb
         fout = open(fileout, 'w')  # create new mol2 file
         switch = 0
