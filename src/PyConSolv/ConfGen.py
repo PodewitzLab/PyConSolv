@@ -4,6 +4,7 @@ from tkinter import *
 import numpy as np
 
 from .interfaces.mdengines import MDEngine
+from .interfaces.parmed import Parmed
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
 from .misc.frcmod import frcmodParser
@@ -450,7 +451,6 @@ Calculations will be set up in:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.hasMetal = self.hasMetal
             self.xyz.readFilenames(self.MCPB)
-        print('We are checking for metals, the molecule has metal = {}'.format(self.hasMetal))
         if not self.hasMetal:
             print('filenames')
             print(self.xyz.filenames)
@@ -615,9 +615,18 @@ Calculations will be set up in:
 
         self.restarter.write('tleap')
 
+        print('Checking topology files for inconsitencies...')
+        self.checkTop()
+        print('Done!\n')
+
         print('Parametrization complete!\n')
         print('Solvent of choice is: {}\n'.format(solvent))
         return 1
+
+    def checkTop(self):
+        parmed = Parmed(self.MCPB)
+        parmed.checkTop('LIG_solv')
+        parmed.checkTop('LIG_dry')
 
     def equilibration(self, cpu: int = 12, engine = 'amber'):
         """

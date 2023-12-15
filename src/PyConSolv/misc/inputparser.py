@@ -600,8 +600,8 @@ USER_CHARGES
                 shutil.copyfile(path + '/freq/orca_freq.chg',path + '/freq/orca_freq.molden.chg')
             filepath = path + '/freq/orca_freq.molden.chg'
         else:
-            if not os.path.exists(path + '/freq/orca_freq.molden.chg'):
-                shutil.copyfile(path + '/freq/orca_freq.chg',path + '/freq/orca_freq.molden.chg')
+            if not os.path.exists(path + '/opt/orca_opt.molden.chg'):
+                shutil.copyfile(path + '/opt/orca_opt.chg',path + '/opt/orca_opt.molden.chg')
             filepath = path + '/opt/orca_opt.molden.chg'
         f = open(filepath, 'r')
         self.charges = []
