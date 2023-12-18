@@ -38,14 +38,7 @@ def main():
     inputfilepath = os.path.abspath(args.input)
 
     if args.analyze:
-        if args.qmmm:
-            qmmm_method = None
-            qmmm_atoms = None
-            print('You have chosen to use a QM/MM scheme for evaluating the conformers.\n')
-            print('Please provide the QM method (ex: BP86 def2-SV(P) D3):\n')
-            qmmm_method = input()
-            print('Please provide the QM atoms (ex: 1,2,3-50):\n')
-            qmmm_atoms = input()
+
         if not args.mask:
             print('Warning, you have not provided an input mask for alignment, please provide a list of atom ids in the format: 1,2,3-10\n')
             mask = input()
@@ -57,7 +50,7 @@ def main():
         else:
             cluster = args.cluster
         analysis = Analysis(path = inputfilepath, alignMask= mask)
-        analysis.run(clustering=cluster, nosp = args.nosp, engine = args.engine, qmmm_method = qmmm_method, qmmm_atoms = qmmm_atoms)
+        analysis.run(clustering=cluster, nosp = args.nosp, engine = args.engine, qmmm = args.qmmm)
 
     elif '.xyz' not in inputfilepath:
         print('Path does not contain a valid XYZ file\n')
