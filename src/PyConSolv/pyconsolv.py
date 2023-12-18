@@ -29,6 +29,7 @@ def main():
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
     parser.add_argument('-cluster', '--cluster', nargs='?', default=0, type=str, help='clustering method')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str, help='MD engine to be used for equilibration and simulation')
+    parser.add_argument('-qmmm', '--qmmm', action='store_true', help='use a qmmm approach to determine cluster energy ranking')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
 
 
@@ -37,6 +38,7 @@ def main():
     inputfilepath = os.path.abspath(args.input)
 
     if args.analyze:
+
         if not args.mask:
             print('Warning, you have not provided an input mask for alignment, please provide a list of atom ids in the format: 1,2,3-10\n')
             mask = input()
@@ -48,7 +50,7 @@ def main():
         else:
             cluster = args.cluster
         analysis = Analysis(path = inputfilepath, alignMask= mask)
-        analysis.run(clustering=cluster, nosp = args.nosp, engine = args.engine)
+        analysis.run(clustering=cluster, nosp = args.nosp, engine = args.engine, qmmm = args.qmmm)
 
     elif '.xyz' not in inputfilepath:
         print('Path does not contain a valid XYZ file\n')

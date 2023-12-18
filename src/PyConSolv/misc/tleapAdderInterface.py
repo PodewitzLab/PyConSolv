@@ -80,12 +80,19 @@ class TleapAdder:
         """
         if self.stype == 'solvent':
             if self.item == self.itemDict['Water']:
+                self.tleap = [line.replace('water.opc', 'water.tip3p') for line in self.tleap]
+                self.tleap = [line.replace('OPCBOX', 'TIP3PBOX') for line in self.tleap]
+                self.tleap = [line.replace('frcmod.ionslm_126_opc', 'frcmod.ions1lm_126_tip3p') for line in self.tleap]
                 if self.watermodel == 'WaterOPC':
                     self.tleap = [line.replace('.water.tip3p', '.water.opc') for line in self.tleap]
                     self.tleap = [line.replace('TIP3PBOX', 'OPCBOX') for line in self.tleap]
+                    self.tleap = [line.replace('frcmod.ions1lm_126_tip3p', 'frcmod.ionslm_126_opc') for line in
+                                  self.tleap]
                 elif self.watermodel == 'WaterTIP4PEW':
                     self.tleap = [line.replace('.water.tip3p', '.water.tip4pew') for line in self.tleap]
                     self.tleap = [line.replace('TIP3PBOX', 'TIP4PEWBOX') for line in self.tleap]
+                    self.tleap = [line.replace('frcmod.ions1lm_126_tip3p', 'frcmod.ions1lm_126_tip4pew') for line in
+                                  self.tleap]
                 try:
                     f = open(path,'w')
                     for line in self.tleap:
