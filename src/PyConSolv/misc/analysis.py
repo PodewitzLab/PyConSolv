@@ -3,6 +3,8 @@ import shutil
 import subprocess
 import sys
 
+import numpy as np
+
 from .clustering import Cluster
 from .solvent import Solvent
 from ..interfaces.calculate import Calculation
@@ -121,7 +123,7 @@ quit'''
         """
         self.cpptraj.run('dry_sim')
 
-    def singlePoint(self, name: str):
+    def Calculation(self, name: str, opt: bool = False):
         """
         Create folder and run single point calculation using orca. Folders are automatically created using the pdb file
         basename
@@ -140,7 +142,15 @@ quit'''
             shutil.copyfile('LIG_solv.ORCAFF.prms', dirname + '/LIG_solv.ORCAFF.prms')
         os.chdir(dirname)
         calc = subprocess.run(command, shell=True)
-        self.rank.append([dirname, float(self.getEnergy())])
+        if opt:
+            energy = None
+            f = open('orca_sp-minimize-ener.csv','r')
+            for line in f:
+                energy = line.split()[4].replace(';','')
+            f.close()
+            self.rank.append([dirname, float(energy)])
+        else:
+            self.rank.append([dirname, float(self.getEnergy())])
         os.chdir(self.homefolder)
 
     def getReps(self):
@@ -192,7 +202,7 @@ quit'''
         Class variables:
         """
         f = open('orca_sp.out', 'r')
-        pattern = 'FINAL SINGLE POINT ENERGY'
+        pattern = 'FINAL SINGLE POINT ENERGY  '
         for line in f:
             if pattern in line:
                 energy = line.split()[-1]
@@ -262,10 +272,11 @@ quit'''
         Class variables:
         """
         self.rank = sorted(self.rank, key=lambda x: x[1])
+        reference_energy = float(self.rank[0][1])
         f = open('cluster_ranking.dat', 'w')
         f.write('Cluster Energy\n')
         for el in self.rank:
-            f.write('{} {} \n'.format(el[0],el[1]))
+            f.write('{} {} Ha {} kJ/mol\n'.format(el[0],el[1], round((float(el[1])-reference_energy)*2625.5,2)))
         f.close()
 
     def checkORCAFile(self) -> bool:
@@ -335,7 +346,7 @@ quit'''
         else:
             return False
 
-    def setupQMMM(self, method: str = 'BP86 def2-SVP D3', atoms: str = '0:1', cpu: int = 8, multiplicity: int = 1):
+    def setupQMMM(self, method: str = 'BP86 def2-SVP D3', atoms: str = '0:1', cpu: int = 8, multiplicity: int = 1, opt = False):
         '''
         Set up the files needed to perform a qmmm calculation. Charge of the whole system should be 0, as the solvent box will neutralize any potential charges
         :return:
@@ -353,7 +364,7 @@ END
 
 
 %geom
-        maxIter 2000
+        maxIter 2
 end
 
 %maxcore 2000
@@ -363,6 +374,8 @@ end
 
 * xyzfile 0 {} input.xyz
 '''.format(method,'{'+atoms+'}',cpu,multiplicity)
+        if opt:
+            inputfile = inputfile.replace('!SP', '!L-OPT SP')
         f = open('orca_qmmm.inp', 'w')
         f.write(inputfile)
         f.close()
@@ -426,22 +439,30 @@ end
             if self.qmmm:
                 print('You have selected to use a QM/MM approach for the single point calculations. Please provide the following information:\n')
                 method = input('Please enter the method to be used for QM/MM in orca format(e.g. XTB, BP86 def2-SVP D3)')
-                atoms = input('Please enter the atoms that you want to include in the QM zone (ORCA format, 0-indexed):')
+                atoms = input('Please enter the atoms that you want to include in the QM zone (ORCA format, 0-indexed e.g.: 0:10):')
+                if '-' in atoms:
+                    atoms = atoms.replace('-',':')
                 multiplicity = input('Please provide the multiplicity of the system:')
                 cpu = input('Number of threads to use for the calculation:')
-                self.setupQMMM(method,atoms,cpu,multiplicity)
+                qmmmOpt = input('Do you want to perform a QM/MM optimization? [y/n], default n:')
+                if qmmmOpt == 'y':
+                    opt = True
+                    self.setupQMMM(method,atoms,cpu,multiplicity, opt = opt)
+                else:
+                    opt = False
+                    self.setupQMMM(method, atoms, cpu, multiplicity)
             if not self.checkORCAFile():
                 print('No calculation template file found, please make sure orca_sp.inp exists in this folder\n')
                 return
             for rep in self.reps:
-                print('Running single point for {}'.format(rep))
+                print('Running calculation for {}'.format(rep))
                 if self.qmmm:
-                    self.singlePoint('{}_solv'.format(rep))
+                    self.Calculation('{}_solv'.format(rep),opt=opt)
                 else:
-                    self.singlePoint(rep)
+                    self.Calculation(rep)
             self.rankClusters()
-            print('Cluster Energy(Ha)\n')
+            print('Cluster Energy\n')
             for el in self.rank:
-                print("{} {}".format(el[0], el[1]))
+                print("{} {}Ha".format(el[0], el[1]))
         else:
             print('nosp option detected, Clusters have not been ranked.\n')
