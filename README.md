@@ -1,5 +1,5 @@
 ![License](https://img.shields.io/badge/license-GPL3-blue)
-[![Latest Version](https://img.shields.io/badge/release-v.1.0.4-red)](https://pypi.org/project/PyConSolv/1.0.4/)
+[![Latest Version](https://img.shields.io/badge/release-v.1.0.5-red)](https://pypi.org/project/PyConSolv/1.0.5/)
 [![DOI](https://img.shields.io/badge/DOI-10.1021%2Facs.jcim.3c00798-blue)](https://pubs.acs.org/doi/full/10.1021/acs.jcim.3c00798)
 
 # Latest:
@@ -10,6 +10,7 @@ Changelog from v 1.0.1:
 - More counterions are parametrized and supported by default
 - Box size can now be specified using the `-box` parameter
 - Support for multiple non-covalently bound solutes
+- Support for QM/MM calculations as criteria for the energy ranking of generated conformers
 
 
 # PyConSolv
@@ -92,14 +93,15 @@ input file in XYZ format
   -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
   -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1   
   -noopt perform a single point calculation instead of a geometry optimization
-  -box specify box size for your system
+  -box specify box size for your system  
+  -e, --engine         choice of simulation engine  
   
 **options that affect analysis**:   
   -a , --analyze analyze a simulation  
   -mask [MASK], --mask [MASK] atomid mask for clustering  
   -cluster [CLUSTER], --cluster [CLUSTER] clustering method  
-  -e, --engine         choice of simulation engine  
-  -nosp skip single point calculations for clusters
+  -nosp skip single point calculations for clusters  
+  -qmmm, --qmmm use a qmmm approach to determine cluster energy ranking
 
 
 **general options:**

@@ -22,13 +22,14 @@ def main():
     parser.add_argument('-mult', '--multiplicity',  nargs='?', default=1, type=int, help = 'multiplicity of the system, default 1')
     parser.add_argument('-noopt', '--noopt', action='store_false', help='do not perform geometry optimization for parametrization')
     parser.add_argument('-box', '--box', nargs='?', default=10, type=int, help='set the box size to use with ambertools, for solvating the system')
+    parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str,
+                        help='MD engine to be used for equilibration and simulation')
 
     #analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
     parser.add_argument('-nosp', '--nosp', action='store_true', help='do not run single point calculations')
     parser.add_argument('-mask', '--mask', nargs='?', default=0, type=str, help='atomid mask for clustering')
     parser.add_argument('-cluster', '--cluster', nargs='?', default=0, type=str, help='clustering method')
-    parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str, help='MD engine to be used for equilibration and simulation')
     parser.add_argument('-qmmm', '--qmmm', action='store_true', help='use a qmmm approach to determine cluster energy ranking')
     parser.add_argument('-v', '--version', action = 'version', version = '%(prog)s {}'.format(ver))
 
