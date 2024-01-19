@@ -141,26 +141,28 @@ class PyConSolv:
         self.boxsize = 20
 
 
+        self.startInfo()
+
+    def startInfo(self):
         print(Color.BLUE + r'''
 
-          _____        _____             _____       _       
-         |  __ \      / ____|           / ____|     | |      
-         | |__) |   _| |     ___  _ __ | (___   ___ | |_   __
-         |  ___/ | | | |    / _ \| '_ \ \___ \ / _ \| \ \ / /
-         | |   | |_| | |___| (_) | | | |____) | (_) | |\ V / 
-         |_|    \__, |\_____\___/|_| |_|_____/ \___/|_| \_/  
-                 __/ |                                       
-                |___/                                        
-                                Ver {}
-                    
-Welcome to PyConSolv, your friendly neighbourhood conformer generator
+                  _____        _____             _____       _       
+                 |  __ \      / ____|           / ____|     | |      
+                 | |__) |   _| |     ___  _ __ | (___   ___ | |_   __
+                 |  ___/ | | | |    / _ \| '_ \ \___ \ / _ \| \ \ / /
+                 | |   | |_| | |___| (_) | | | |____) | (_) | |\ V / 
+                 |_|    \__, |\_____\___/|_| |_|_____/ \___/|_| \_/  
+                         __/ |                                       
+                        |___/                                        
+                                        Ver {}
 
-Calculations will be set up in:
+        Welcome to PyConSolv, your friendly neighbourhood conformer generator
 
-{}
+        Calculations will be set up in:
 
-        '''.format(self.version, self.inputpath) + Color.END)
+        {}
 
+                '''.format(self.version, self.inputpath) + Color.END)
     def checkRestart(self):
         """
         Check for the existence of a restart file (pyconsolv.restart) and get last completed step
