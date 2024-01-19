@@ -90,7 +90,7 @@ class XYZ:
 
         Class variables:
             - self.coords - [x,3] sized array which contains the coordinates of all atoms in the XYZ file
-            - self.atoms - [x] length array which contains aton element labels
+            - self.atoms - [x] length array which contains atom element labels
         """
         self.coords = []
         self.atoms = []
@@ -117,7 +117,7 @@ class XYZ:
         """
         self.Dmat = np.empty((self.coords.shape[0], self.coords.shape[0]))
         self.Amat = np.empty((self.coords.shape[0], self.coords.shape[0]),
-                             dtype='<U5')  # <U is better for string frmatting due to less compatibility issues
+                             dtype='<U5')  # <U is better for string formatting due to less compatibility issues
         for i in range(self.coords.shape[0]):
             for j in range(self.coords.shape[0]):
                 self.Dmat[i][j] = np.linalg.norm(self.coords[i] - self.coords[j])
@@ -153,6 +153,7 @@ class XYZ:
                     dist = self.metalRadius.get(a[0].upper()) + self.db[a[1]]
                     met = True
                 if met:
+                    self.Adjmat[i][j] = 0
                     if self.Dmat[i][j] <= dist * 1.0:
                         self.metalBonds.append('{} @{}{} {}'.format(str(i), a[1], str(j), str(j)))
 
@@ -175,7 +176,10 @@ class XYZ:
                 if i == j:
                     continue
                 if self.Dmat[i][j] <= dist * 0.6:
-                    temp.append(j)
+                    if self.isMetal(a[0]) or self.isMetal(a[1]):
+                        continue
+                    else:
+                        temp.append(j)
             self.linkList.append(temp)
 
     def connectedCompponents(self):
