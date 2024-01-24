@@ -86,6 +86,7 @@ class PyConSolv:
         - self.solventPath - path to pre-parametrized solvents
         - self.counterIon - counterion to be used
         - self.counterIonsImplemented - list of supported counterions
+        - self.bondsTS - list of bonds to be added for the TS simulation
     """
 
     def __init__(self, path):
@@ -139,6 +140,7 @@ class PyConSolv:
         self.addSolvent = False
         self.solventAbb = ''
         self.boxsize = 20
+        self.bondsTS = []
 
 
         print(Color.BLUE + r'''
@@ -791,8 +793,24 @@ Calculations will be set up in:
                 break
         f.close()
 
+    def checkTS(self):
+        self.bondsTS = []
+        stop = False
+        while not stop:
+            print('You have selected to perform a simulation of a transition state. In this approach, the position of the atoms in the transition state will be held in place via the utilization of virtual bonds between atoms, with a very high potential')
+            bond = input('Please input the virtual bonds in the format "atomid 1 - atomid 2" e.g. 1-2:')
+            if len(bond.split('-')) != 2:
+                print('Input is not correct format\n')
+                continue
+            print('added bond, enter "n" to stop')
+            if bond != 'n':
+                self.bondsTS.append(bond)
+            else:
+                stop = True
+
+
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, ts: bool = False):
         """
         Run the conformer generation
 
@@ -808,11 +826,14 @@ Calculations will be set up in:
             :param str engine: MD engine to be used for equilibration/simulation
             :param bool opt : if set to False, no geometry optimization will be performed
             :param int box : set box size for amber tleap
+            :param bool ts : set if the simulation is of a transition state
 
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
+        if ts:
+            self.checkTS(ts)
 
         self.checkRestart()
         self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
