@@ -40,14 +40,17 @@ bcc
 
         atomstring = ''
         connectionstring = ''
-        counter = 0
+
         for i in range(len(atoms)):
             atoms[i][0] = str(i+1)
             atomstring = atomstring + ' '.join(atoms[i]) + '\n'
+
+        counter = 0
         for i in range(len(connect)):
-            if i >= atomsperfile[counter+1]-1:
-                counter += 1
-            connect[i][0] = str(int(connect[i][0]) + atomsperfile[counter])
+            if i > 0:
+                if (atomsperfile[counter] + int(connect[i][0]))< int(connect[i-1][0]) :
+                    counter += 1
+            connect[i][0] = str(i+1)
             connect[i][1] = str(int(connect[i][1]) + atomsperfile[counter])
             connect[i][2] = str(int(connect[i][2]) + atomsperfile[counter])
             connectionstring = connectionstring + ' '.join(connect[i]) + '\n'
