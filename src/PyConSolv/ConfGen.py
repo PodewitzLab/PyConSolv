@@ -617,7 +617,7 @@ Calculations will be set up in:
 
         self.restarter.write('tleap')
 
-        print('Checking topology files for inconsitencies...')
+        print('Checking topology files for inconsistencies...')
         self.checkTop()
         print('Done!\n')
 
