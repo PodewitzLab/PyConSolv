@@ -87,7 +87,9 @@ class PyConSolv:
         - self.solventPath - path to pre-parametrized solvents
         - self.counterIon - counterion to be used
         - self.counterIonsImplemented - list of supported counterions
-        - self.bondsTS - list of bonds to be added for the TS simulation
+        - self.bondsRT - list of bonds to be added for the restrained simulation
+        - self.strengthRT - list of harmonic potential offsets
+        - self.forceConstants - list of harmonic potential force constants
     """
 
     def __init__(self, path):
@@ -141,7 +143,9 @@ class PyConSolv:
         self.addSolvent = False
         self.solventAbb = ''
         self.boxsize = 20
-        self.bondsTS = []
+        self.bondsRT = []
+        self.strenghtRT = []
+        self.forceConstants = []
 
 
         self.startInfo()
@@ -660,44 +664,16 @@ class PyConSolv:
         shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')
 
         restrain = None
-        if self.bondsTS == []:
+        if self.bondsRT == []:
             if os.path.exists(self.inputpath + '/restraints'):
                 with open(self.inputpath + '/restraints', 'r') as f:
                     for line in f:
-                        self.bondsTS.append(line.split('-'))
+                        self.bondsRT.append(line.split('-')[:-2])
+                        self.strenghtRT.append(line.split('-')[-2])
+                        self.forceConstants.append(line.split('-')[-1])
 
-        if self.bondsTS != []:
+        if self.bondsRT != []:
             restrain = self.setupRestraint()
-#             restrain = '\n&wt TYPE=\'END\' /\nDISANG=disang.r\n'
-#
-#             print('Generating restraints file for TS\n')
-#             restraintTemplate = '''parm LIG_dry.prmtop
-# reference LIG_dry.pdb
-# rst {} reference offset 1.0 rk2 30.0 rk3 30.0 out disang.{}
-# run
-# quit'''
-#             restraintFile = []
-#             cpptraj = CPPtraj()
-#             counter = 0
-#
-#             for restraint in self.bondsTS:
-#                 atoms = ''
-#
-#                 for unit in restraint:
-#                     atoms = atoms + ':1@{} '.format(unit)
-#                 with open(self.MCPB + '/restraint.in', 'w') as f:
-#                     f.write(restraintTemplate.format(atoms,counter))
-#                 cpptraj.run('restraint')
-#                 with open(self.MCPB + '/disang.{}'.format(counter), 'r') as f:
-#                     for line in f:
-#                         restraintFile.append(line)
-#                 counter += 1
-#
-#             with open(self.MCPB + '/disang.r', 'w') as f:
-#                 for line in restraintFile:
-#                     f.write(line)
-#             shutil.copyfile(self.MCPB + '/disang.r', self.inputpath + '/equilibration/disang.r')
-#             shutil.copyfile(self.MCPB + '/disang.r', self.inputpath + '/simulation/disang.r')
 
         self.MDEngine = MDEngine(self.MCPB, engine = self.engine)
         print('Done!\n')
@@ -724,20 +700,20 @@ class PyConSolv:
         print('Generating restraints file for TS\n')
         restraintTemplate = '''parm LIG_dry.prmtop
         reference LIG_dry.pdb
-        rst {} reference offset {} rk2 30.0 rk3 30.0 out disang.{}
+        rst {} reference offset {} rk2 {} rk3 {} out disang.{}
         run
         quit'''
         restraintFile = []
         cpptraj = CPPtraj()
         counter = 0
 
-        for restraint in self.bondsTS:
+        for restraint in self.bondsRT:
             atoms = ''
 
             for unit in restraint:
                 atoms = atoms + ':1@{} '.format(unit)
             with open(self.MCPB + '/restraint.in', 'w') as f:
-                f.write(restraintTemplate.format(atoms, self.strenghtTS[counter],counter))
+                f.write(restraintTemplate.format(atoms, self.strenghtRT[counter],self.forceConstants[counter],self.forceConstants[counter],counter))
             cpptraj.run('restraint')
             with open(self.MCPB + '/disang.{}'.format(counter), 'r') as f:
                 for line in f:
@@ -801,7 +777,7 @@ class PyConSolv:
         else:
             shutil.copyfile(self.inputpath + '/equilibration/21.rst7', self.inputpath + '/simulation/eq.rst7')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/run_simulation.sh', self.inputpath + '/simulation/run-simulation.sh')
-            if self.bondsTS != []:
+            if self.bondsRT != []:
                 shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation_restraint.in',
                                 self.inputpath + '/simulation/simulation.in')
             else:
@@ -865,33 +841,48 @@ class PyConSolv:
                 break
         f.close()
 
-    def checkTS(self):
-        self.bondsTS = []
-        self.strenghtTS = []
+    def checkRT(self):
+        '''
+        This function will require input from the user to define restraints to be used in the simulation.
+        :return:
+        '''
+
+        self.bondsRT = []
+        self.strenghtRT = []
+        self.forceConstants = []
         stop = False
         print('You have selected to perform a restrained simulation. In this approach, the position of the atoms you '
               'selected will be held in place via the utilization of virtual bonds, angles or dihedrals between them,'
               ' with a very high potential')
 
         while not stop:
-            bond = input('Please input the virtual bonds in the format "atomid 1 - atomid 2" e.g. 1-2:\n')
+            bond = input(Color.CYAN + 'Please input the virtual bonds in the format "atomid 1 - atomid 2" e.g. 1-2:\n' + Color.END)
             if (len(bond.split('-')) < 2 or len(bond.split('-')) > 4) and bond != 'n':
                 print('Input is not correct format\n')
                 continue
 
-
-
-
             if bond != 'n':
-                strength = int(input('Please enter bond restraint strength (kcal/mol, default 1):') or "1")
-                self.bondsTS.append(bond.split('-'))
-                self.strenghtTS.append(strength)
+                try:
+                    strength = int(input('Please enter bond restraint offset (kcal/mol, default 1):\n') or "1")
+                except:
+                    print('Input is incorrect \n')
+                    continue
+                try:
+                    force = int(input('Please enter bond restraint force constant (kcal/mol, default 30):\n') or "30")
+                except:
+                    print('Input is incorrect \n')
+                    continue
+                self.bondsRT.append(bond.split('-'))
+                self.strenghtRT.append(strength)
+                self.forceConstants.append(force)
                 print('Added restraint, enter "n" to stop\n')
             else:
                 stop = True
         with open(self.inputpath + '/restraints', 'w') as f:
-            for line in self.bondsTS:
-                f.write('-'.join(line))
+            for i in range(len(self.bondsRT)):
+                f.write('{}-{}-{}\n'.format('-'.join(self.bondsRT[i]), self.strenghtRT[i],self.forceConstants[i]))
+
+
 
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
@@ -918,7 +909,7 @@ class PyConSolv:
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
         if ts:
-            self.checkTS()
+            self.checkRT()
 
         self.checkRestart()
         self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
