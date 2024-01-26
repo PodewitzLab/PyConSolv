@@ -11,6 +11,7 @@ Changelog from v 1.0.1:
 - Box size can now be specified using the `-box` parameter
 - Support for multiple non-covalently bound solutes
 - Support for QM/MM calculations as criteria for the energy ranking of generated conformers
+- Support for restrained simulations involving transition states (Currently only for AmberMD)
 
 
 # PyConSolv
@@ -95,6 +96,7 @@ input file in XYZ format
   -noopt perform a single point calculation instead of a geometry optimization
   -box specify box size for your system  
   -e, --engine         choice of simulation engine  
+  -rst, --restraint perform a restrained simulation, useful for transition states  
   
 **options that affect analysis**:   
   -a , --analyze analyze a simulation  
