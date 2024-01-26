@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 
+from .parmed import Parmed
 from ..misc.tleapAdderInterface import TleapAdder
 from ..utils.colorgen import Color
 
@@ -141,6 +142,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             ]
         gpucodeerror = ' Periodic box dimensions have changed too much from their initial values'
         boxsizeerror = ' Small box detected'
+        topologyerror = 'Error: Bad topology file'
         i = 1
         while i < 22:
             # if i != 3:
@@ -167,6 +169,11 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
                     os.chdir(self.path + '/../equilibration')
                     i = 1
                     continue
+            # if calc.stdout is not None:
+            #     if gpucodeerror in calc.stdout.decode():
+            #         parmed = Parmed(self.path + '/../equilibration')
+            #         parmed.checkTop('LIG_solv')
+            #         parmed.checkTop('LIG_dry')
 
 
             if calc.returncode == 0:
@@ -196,6 +203,9 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
 
         tleapCommand = 'tleap -f LIG_tleap.in > tleap.log'
         calc = subprocess.run([tleapCommand], shell=True)
+        parmed = Parmed(self.path)
+        parmed.checkTop('LIG_solv')
+        parmed.checkTop('LIG_dry')
         if calc.returncode == 0:
             print('Tleap completed successfully\n')
             self.status = 1

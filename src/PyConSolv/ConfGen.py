@@ -654,7 +654,7 @@ class PyConSolv:
             self.xyz.readFilenames(self.MCPB)
             if len(self.xyz.filenames) == 1:
                 self.hasMetal = False
-
+        self.checkTop()
         shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
         shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/LIG_solv.inpcrd')
         shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')

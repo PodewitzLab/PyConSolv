@@ -15,7 +15,7 @@ class Parmed():
 
     def checkTop(self, name: str ='LIG_solv'):
         '''
-        Function to check topology and input coordinates after generating the files wuth tleap. It is known that
+        Function to check topology and input coordinates after generating the files with tleap. It is known that
         sometimes tleap does not generate fully correct geometries and topologies when multiple molecules are involved.
         :param string name: name of the files that should be checked, generally LIG_solv and LIG_dry
         :return:
