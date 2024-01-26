@@ -93,7 +93,7 @@ input file in XYZ format
   -s [SOLVENT], --solvent [SOLVENT] solvent to be used for MD simulations/ OM Calculations, default Water  
   -p [CPU], --cpu [CPU] number of cpu cores to be used for calculations, default 12  
   -mult [MULTIPLICITY], --multiplicity [MULTIPLICITY] multiplicity of the system, default 1   
-  -noopt perform a single point calculation instead of a geometry optimization
+  -noopt perform a single point calculation instead of a geometry optimization  
   -box specify box size for your system  
   -e, --engine         choice of simulation engine  
   -rst, --restraint perform a restrained simulation, useful for transition states  
