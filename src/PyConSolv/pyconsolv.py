@@ -61,7 +61,7 @@ def main():
     else:
         conf = PyConSolv(inputfilepath)
         conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt, box = args.box, rst = args.rst )
+                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt, box = args.box, rst = args.restraint )
     sys.exit()
 
 if __name__ == '__main__':
