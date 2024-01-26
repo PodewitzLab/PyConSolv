@@ -3,6 +3,7 @@ import os
 from tkinter import *
 import numpy as np
 
+from .interfaces.cpptraj import CPPtraj
 from .interfaces.mdengines import MDEngine
 from .interfaces.parmed import Parmed
 from .misc.counterion import Counterion
@@ -652,27 +653,54 @@ Calculations will be set up in:
             if len(self.xyz.filenames) == 1:
                 self.hasMetal = False
 
-        #old amber only equilibration
-        # shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7') # different for different engines
-        # shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')
-        #
-        # if self.amber is None:
-        #     self.amber = amberInterface(self.MCPB)
-        # self.amber.equil(self.inputpath)
-        #
-        # print('Done!\n')
-        # print(Color.GREEN + 'Starting equilibration...' + Color.END)
-        #
-        # self.status = self.amber.equilibrate(cpus = cpu)
-
         shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/00.rst7')
         shutil.copyfile(self.MCPB + '/LIG_solv.inpcrd', self.inputpath + '/equilibration/LIG_solv.inpcrd')
         shutil.copyfile(self.MCPB + '/LIG_solv.prmtop', self.inputpath + '/equilibration/LIG_solv.prmtop')
 
+        restrain = None
+        if self.bondsTS == []:
+            if os.path.exists(self.inputpath + '/restraints'):
+                with open(self.inputpath + '/restraints', 'r') as f:
+                    for line in f:
+                        self.bondsTS.append(line.split('-'))
+
+        if self.bondsTS != []:
+            restrain = self.setupRestraint()
+#             restrain = '\n&wt TYPE=\'END\' /\nDISANG=disang.r\n'
+#
+#             print('Generating restraints file for TS\n')
+#             restraintTemplate = '''parm LIG_dry.prmtop
+# reference LIG_dry.pdb
+# rst {} reference offset 1.0 rk2 30.0 rk3 30.0 out disang.{}
+# run
+# quit'''
+#             restraintFile = []
+#             cpptraj = CPPtraj()
+#             counter = 0
+#
+#             for restraint in self.bondsTS:
+#                 atoms = ''
+#
+#                 for unit in restraint:
+#                     atoms = atoms + ':1@{} '.format(unit)
+#                 with open(self.MCPB + '/restraint.in', 'w') as f:
+#                     f.write(restraintTemplate.format(atoms,counter))
+#                 cpptraj.run('restraint')
+#                 with open(self.MCPB + '/disang.{}'.format(counter), 'r') as f:
+#                     for line in f:
+#                         restraintFile.append(line)
+#                 counter += 1
+#
+#             with open(self.MCPB + '/disang.r', 'w') as f:
+#                 for line in restraintFile:
+#                     f.write(line)
+#             shutil.copyfile(self.MCPB + '/disang.r', self.inputpath + '/equilibration/disang.r')
+#             shutil.copyfile(self.MCPB + '/disang.r', self.inputpath + '/simulation/disang.r')
+
         self.MDEngine = MDEngine(self.MCPB, engine = self.engine)
         print('Done!\n')
         print(Color.GREEN + 'Starting equilibration...' + Color.END)
-        self.status = self.MDEngine.run(self.inputpath, cpus = cpu)
+        self.status = self.MDEngine.run(self.inputpath, cpus = cpu, restrain=restrain)
 
 
         if self.status == 0:
@@ -682,6 +710,44 @@ Calculations will be set up in:
             return 0
         self.restarter.write('equilibration')
         return 1
+
+    def setupRestraint(self):
+        '''
+        Create the restraint files needed for a simulation with amber #TODO modify to work with GROMACS
+        :return: restraint string to be added to simulation
+        '''
+
+        restrain = '\n&wt TYPE=\'END\' /\nDISANG=disang.r\n'
+
+        print('Generating restraints file for TS\n')
+        restraintTemplate = '''parm LIG_dry.prmtop
+        reference LIG_dry.pdb
+        rst {} reference offset 1.0 rk2 30.0 rk3 30.0 out disang.{}
+        run
+        quit'''
+        restraintFile = []
+        cpptraj = CPPtraj()
+        counter = 0
+
+        for restraint in self.bondsTS:
+            atoms = ''
+
+            for unit in restraint:
+                atoms = atoms + ':1@{} '.format(unit)
+            with open(self.MCPB + '/restraint.in', 'w') as f:
+                f.write(restraintTemplate.format(atoms, counter))
+            cpptraj.run('restraint')
+            with open(self.MCPB + '/disang.{}'.format(counter), 'r') as f:
+                for line in f:
+                    restraintFile.append(line)
+            counter += 1
+
+        with open(self.MCPB + '/disang.r', 'w') as f:
+            for line in restraintFile:
+                f.write(line)
+        shutil.copyfile(self.MCPB + '/disang.r', self.inputpath + '/equilibration/disang.r')
+        shutil.copyfile(self.MCPB + '/disang.r', self.inputpath + '/simulation/disang.r')
+        return restrain
 
     def prepareSimulation(self, solvent: str, engine: str = 'amber'):
         """
@@ -733,7 +799,11 @@ Calculations will be set up in:
         else:
             shutil.copyfile(self.inputpath + '/equilibration/21.rst7', self.inputpath + '/simulation/eq.rst7')
             shutil.copyfile(sourceloc + '/scripts_and_inputs/run_simulation.sh', self.inputpath + '/simulation/run-simulation.sh')
-            shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
+            if self.bondsTS != []:
+                shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation_restraint.in',
+                                self.inputpath + '/simulation/simulation.in')
+            else:
+                shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
 
         solv = Solvent()
         if solvent in self.watermodels:
@@ -796,17 +866,24 @@ Calculations will be set up in:
     def checkTS(self):
         self.bondsTS = []
         stop = False
+        print('You have selected to perform a restrained simulation. In this approach, the position of the atoms you '
+              'selected will be held in place via the utilization of virtual bonds, angles or dihedrals between them,'
+              ' with a very high potential')
+
         while not stop:
-            print('You have selected to perform a simulation of a transition state. In this approach, the position of the atoms in the transition state will be held in place via the utilization of virtual bonds between atoms, with a very high potential')
             bond = input('Please input the virtual bonds in the format "atomid 1 - atomid 2" e.g. 1-2:')
-            if len(bond.split('-')) != 2:
+            if (len(bond.split('-')) < 2 or len(bond.split('-')) > 4) and bond != 'n':
                 print('Input is not correct format\n')
                 continue
             print('added bond, enter "n" to stop')
+            print(bond)
             if bond != 'n':
-                self.bondsTS.append(bond)
+                self.bondsTS.append(bond.split('-'))
             else:
                 stop = True
+        with open(self.inputpath + '/restraints', 'w') as f:
+            for line in self.bondsTS:
+                f.write('-'.join(line))
 
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
@@ -833,7 +910,7 @@ Calculations will be set up in:
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
         if ts:
-            self.checkTS(ts)
+            self.checkTS()
 
         self.checkRestart()
         self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)

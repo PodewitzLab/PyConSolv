@@ -301,7 +301,7 @@ gen_vel                 = no        ; Velocity generation is off
         for el in tmp:
             f.write(el)
         f.close()
-    def prepare(self, path = None):
+    def prepare(self, path = None, restrain: str = None): #TODO implement restraints for gromacs
         os.chdir(self.path)
         self.checkpath()
         self.converter = Converter(self.path, intype='amber', outtype='gromacs')
