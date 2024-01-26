@@ -722,7 +722,7 @@ Calculations will be set up in:
         print('Generating restraints file for TS\n')
         restraintTemplate = '''parm LIG_dry.prmtop
         reference LIG_dry.pdb
-        rst {} reference offset 2.0 rk2 30.0 rk3 30.0 out disang.{}
+        rst {} reference offset {} rk2 30.0 rk3 30.0 out disang.{}
         run
         quit'''
         restraintFile = []
@@ -735,7 +735,7 @@ Calculations will be set up in:
             for unit in restraint:
                 atoms = atoms + ':1@{} '.format(unit)
             with open(self.MCPB + '/restraint.in', 'w') as f:
-                f.write(restraintTemplate.format(atoms, counter))
+                f.write(restraintTemplate.format(atoms, self.strenghtTS[counter],counter))
             cpptraj.run('restraint')
             with open(self.MCPB + '/disang.{}'.format(counter), 'r') as f:
                 for line in f:
@@ -865,20 +865,26 @@ Calculations will be set up in:
 
     def checkTS(self):
         self.bondsTS = []
+        self.strenghtTS = []
         stop = False
         print('You have selected to perform a restrained simulation. In this approach, the position of the atoms you '
               'selected will be held in place via the utilization of virtual bonds, angles or dihedrals between them,'
               ' with a very high potential')
 
         while not stop:
-            bond = input('Please input the virtual bonds in the format "atomid 1 - atomid 2" e.g. 1-2:')
+            bond = input('Please input the virtual bonds in the format "atomid 1 - atomid 2" e.g. 1-2:\n')
             if (len(bond.split('-')) < 2 or len(bond.split('-')) > 4) and bond != 'n':
                 print('Input is not correct format\n')
                 continue
-            print('added bond, enter "n" to stop')
-            print(bond)
+
+
+
+
             if bond != 'n':
+                strength = int(input('Please enter bond restraint strength (kcal/mol, default 1):') or "1")
                 self.bondsTS.append(bond.split('-'))
+                self.strenghtTS.append(strength)
+                print('Added restraint, enter "n" to stop\n')
             else:
                 stop = True
         with open(self.inputpath + '/restraints', 'w') as f:
