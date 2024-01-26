@@ -8,7 +8,7 @@ from PyConSolv.misc.analysis import Analysis
 
 
 def main():
-    ver = '1.0.6'
+    ver = '1.0.6.1'
     parser = argparse.ArgumentParser(prog = 'PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help = 'input file in XYZ format')
 
@@ -61,7 +61,7 @@ def main():
     else:
         conf = PyConSolv(inputfilepath)
         conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt, box = args.box, ts = args.ts )
+                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt, box = args.box, rst = args.rst )
     sys.exit()
 
 if __name__ == '__main__':

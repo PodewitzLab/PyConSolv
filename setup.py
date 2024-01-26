@@ -27,7 +27,7 @@ with open(path.join(here, 'requirements.txt')) as requirements_file:
                     if not line.startswith('#')]
 setup(
     name="PyConSolv",
-    version="1.0.6",
+    version="1.0.6.1",
     description="A package for conformer generation of transition-metal-containing complexes",
     long_description=readme,
     author="Radu Alexandru Talmazan",

@@ -101,7 +101,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.6'
+        self.version = '1.0.6.1'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -697,7 +697,7 @@ class PyConSolv:
 
         restrain = '\n&wt TYPE=\'END\' /\nDISANG=disang.r\n'
 
-        print('Generating restraints file for TS\n')
+        print('Generating restraints file\n')
         restraintTemplate = '''parm LIG_dry.prmtop
         reference LIG_dry.pdb
         rst {} reference offset {} rk2 {} rk3 {} out disang.{}
@@ -886,7 +886,7 @@ class PyConSolv:
 
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, ts: bool = False):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, rst: bool = False):
         """
         Run the conformer generation
 
@@ -902,13 +902,13 @@ class PyConSolv:
             :param str engine: MD engine to be used for equilibration/simulation
             :param bool opt : if set to False, no geometry optimization will be performed
             :param int box : set box size for amber tleap
-            :param bool ts : set if the simulation is of a transition state
+            :param bool rst : set if the simulation is of a transition state
 
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
-        if ts:
+        if rst:
             self.checkRT()
 
         self.checkRestart()
