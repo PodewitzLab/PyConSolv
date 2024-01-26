@@ -222,69 +222,77 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             self.status = 0
             return self.status
 
-    def equil(self, path: str, restrained_residue: str='1'):
+    def equil(self, path: str, restrained_residue: str='1', restrain: str = None):
         """
         Create input files for a stepwise equilibration
 
         Parameters:
             :param string path: full path to the location of the solvated structure
             :param string restrained_residue: residue to be restrained in steps 1-19
+            :param str restrain: definition of restraint
 
         Class variables:
         """
+
+        # print('Restrain Y is:\n {}'.format(restrain))
         minseq = [1000, 500, 200, 100, 50, 20, 10, 5, 4, 3, 2, 1, 0.5]
 
+        if restrain is not None:
+            nmropt = ', nmropt = 1'
+        else:
+            nmropt = ''
+            restrain = ''
         # default amber settings
-        minheader = "minimization\n&cntrl\n\timin=1,ncyc=500,maxcyc=1000,ntr=1,cut=8.0,\n\t"
+        minheader = "minimization\n&cntrl\n\timin=1,ncyc=500,maxcyc=1000,ntr=1,cut=8.0{},\n\t".format(nmropt)
         nvtheader = "equilibration\n&cntrl\n\tntb=1,ntc=2,ntf=2,ntt=3,gamma_ln=2.0,cut=8.0,\n\t"
-        nptheader = "pressure equilibration\n&cntrl\n\tntb=2,ntp=1,pres0=1.0,tautp=2.0,\n\tntc=2,ntf=2,ntt=3,gamma_ln=2.0,\n\ttempi=300.0,temp0=300.0,\n\t"
+        nptheader = "pressure equilibration\n&cntrl\n\tntb=2,ntp=1,pres0=1.0,tautp=2.0,\n\tntc=2,ntf=2,ntt=3,gamma_ln=2.0,\n\ttempi=300.0,temp0=300.0{},\n\t".format(nmropt)
         nvtheader2 = "equilibration\n&cntrl\n\tntb=1,ntc=2,ntf=2,ntt=3,ntr=1,gamma_ln=2.0,cut=8.0\n\t"
 
         restrained_residue = restrained_residue
-        data = [[minheader, 'restraint_wt=1000.0,restraintmask="!@H="\n/\n'],  # 1
-                [minheader, 'restraint_wt=1000.0,restraintmask="!@H=&:{}",\n/\n'.format(restrained_residue)],  # 2
+        data = [[minheader, 'restraint_wt=1000.0,restraintmask="!@H="\n/\n{}'.format(restrain)],  # 1
+                [minheader, 'restraint_wt=1000.0,restraintmask="!@H=&:{}",\n/\n{}'.format(restrained_residue, restrain)],  # 2
                 [nvtheader,
                  'ntr=1,restraint_wt=1000.0,restraintmask="!@H=&:{}",\n\tnstlim=100000,nmropt=1,dt=0.001,\n/\n'.format(
-                     restrained_residue) + '&wt TYPE=\'TEMP0\', istep1=0, istep2=100000, value1=100.0,value2=300.0 /\n&wt TYPE=\'END\' /\n'],
+                     restrained_residue) + '&wt TYPE=\'TEMP0\', istep1=0, istep2=100000, value1=100.0,value2=300.0 /\n&wt TYPE=\'END\' /\n{}'.format(restrain.replace('&wt TYPE=\'END\' /',''))],
                 # 3
-                [nptheader, 'ntr=1,restraint_wt=1000.0,restraintmask="!@H=&:{}",\n\tnstlim=30000,dt=0.001,\n/\n'.format(
-                    restrained_residue)],  # 4s
-                [nptheader, 'ntr=1,restraint_wt=1000.0,restraintmask="!@H=&:{}",\n\tnstlim=70000,dt=0.001,\n/\n'.format(
-                    restrained_residue)],  # 4
+                [nptheader, 'ntr=1,restraint_wt=1000.0,restraintmask="!@H=&:{}",\n\tnstlim=30000,dt=0.001,\n/\n{}'.format(
+                    restrained_residue, restrain)],  # 4s
+                [nptheader, 'ntr=1,restraint_wt=1000.0,restraintmask="!@H=&:{}",\n\tnstlim=70000,dt=0.001,\n/\n{}'.format(
+                    restrained_residue, restrain)],  # 4
                 [nvtheader,
                  'ntr=1,restraint_wt=1000.0,restraintmask="!@H=&:{}",\n\tnstlim=100000,dt=0.001,nmropt=1,\n/\n'.format(
-                     restrained_residue) + '&wt TYPE=\'TEMP0\', istep1=0, istep2=100000, value1=300.0,value2=100.0 /\n&wt TYPE=\'END\' /\n'],
+                     restrained_residue) + '&wt TYPE=\'TEMP0\', istep1=0, istep2=100000, value1=300.0,value2=100.0 /\n&wt TYPE=\'END\' /\n{}'.format(restrain.replace('&wt TYPE=\'END\' /',''))],
                 # 5
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[0], restrained_residue)],  # 6
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[0], restrained_residue, restrain)],  # 6
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[1], restrained_residue)],  # 7
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[1], restrained_residue, restrain)],  # 7
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[2], restrained_residue)],  # 8
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[2], restrained_residue, restrain)],  # 8
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[3], restrained_residue)],  # 9
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[3], restrained_residue, restrain)],  # 9
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[4], restrained_residue)],  # 10
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[4], restrained_residue, restrain)],  # 10
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[5], restrained_residue)],  # 11
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[5], restrained_residue, restrain)],  # 11
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[6], restrained_residue)],  # 12
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[6], restrained_residue, restrain)],  # 12
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[7], restrained_residue)],  # 13
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[7], restrained_residue, restrain)],  # 13
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[8], restrained_residue)],  # 14
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[8], restrained_residue, restrain)],  # 14
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[9], restrained_residue)],  # 15
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[9], restrained_residue, restrain)],  # 15
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[10], restrained_residue)],  # 16
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[10], restrained_residue, restrain)],  # 16
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[11], restrained_residue)],  # 17
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[11], restrained_residue, restrain)],  # 17
                 [minheader,
-                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n'.format(minseq[12], restrained_residue)],  # 18
+                 'restraint_wt={:0.1f},restraintmask="!@H=&:{}",\n/\n{}'.format(minseq[12], restrained_residue, restrain)],  # 18
                 [nvtheader.replace(',ntr=1', ''),
-                 'nstlim=200000,dt=0.001,nmropt=1,\n/\n' + '&wt TYPE=\'TEMP0\', istep1=0, istep2=200000, value1=100.0,value2=300.0 /\n&wt TYPE=\'END\' /\n'],
+                 'nstlim=200000,dt=0.001,nmropt=1,\n/\n' + '&wt TYPE=\'TEMP0\', istep1=0, istep2=200000, value1=100.0,value2=300.0 /\n&wt TYPE=\'END\' /\n{}'.format(restrain.replace('&wt TYPE=\'END\' /',''))],
                 # 19
-                [nptheader, 'nstlim=50000,dt=0.001,\n/\n']]  # 20
+                [nptheader, 'nstlim=50000,dt=0.001,\n/\n{}'.format(restrain)]]  # 20
 
         # write input files
         for i in range(21):
@@ -460,6 +468,6 @@ quit
         f.write(file)
         f.close()
 
-    def prepare(self, path):
+    def prepare(self, path, restrain: str = None):
         self.checkpath()
-        self.equil(path)
+        self.equil(path, restrain=restrain)

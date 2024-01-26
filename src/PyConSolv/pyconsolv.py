@@ -24,6 +24,7 @@ def main():
     parser.add_argument('-box', '--box', nargs='?', default=10, type=int, help='set the box size to use with ambertools, for solvating the system')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str,
                         help='MD engine to be used for equilibration and simulation')
+    parser.add_argument('-rst','--restraint',action='store_true', help='set up system for a restrained simulation')
 
     #analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
@@ -60,7 +61,7 @@ def main():
     else:
         conf = PyConSolv(inputfilepath)
         conf.run(charge= args.charge , method = args.method, basis = args.basis , dsp = args.dispersion , cpu = args.cpu ,
-                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt, box = args.box )
+                solvent = args.solvent, multiplicity = args.multiplicity, engine = args.engine, opt = args.noopt, box = args.box, ts = args.ts )
     sys.exit()
 
 if __name__ == '__main__':
