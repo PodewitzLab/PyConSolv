@@ -722,7 +722,7 @@ Calculations will be set up in:
         print('Generating restraints file for TS\n')
         restraintTemplate = '''parm LIG_dry.prmtop
         reference LIG_dry.pdb
-        rst {} reference offset 1.0 rk2 30.0 rk3 30.0 out disang.{}
+        rst {} reference offset 2.0 rk2 30.0 rk3 30.0 out disang.{}
         run
         quit'''
         restraintFile = []
