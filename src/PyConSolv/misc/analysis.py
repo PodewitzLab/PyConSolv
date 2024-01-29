@@ -3,8 +3,6 @@ import shutil
 import subprocess
 import sys
 
-import numpy as np
-
 from .clustering import Cluster
 from .solvent import Solvent
 from ..interfaces.calculate import Calculation
