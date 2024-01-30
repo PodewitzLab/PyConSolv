@@ -6,6 +6,7 @@ import numpy as np
 from .interfaces.cpptraj import CPPtraj
 from .interfaces.mdengines import MDEngine
 from .interfaces.parmed import Parmed
+from .misc.coordinateCheck import XYZMapper
 from .misc.counterion import Counterion
 from .misc.counterionGen import counterionParametrizer
 from .misc.frcmod import frcmodParser
@@ -90,6 +91,8 @@ class PyConSolv:
         - self.bondsRT - list of bonds to be added for the restrained simulation
         - self.strengthRT - list of harmonic potential offsets
         - self.forceConstants - list of harmonic potential force constants
+        - self.restraintWidth - list of restraint widths
+        - self.map - map of atom id mapping to original file
     """
 
     def __init__(self, path):
@@ -101,7 +104,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.6.1'
+        self.version = '1.0.6.2'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -146,6 +149,8 @@ class PyConSolv:
         self.bondsRT = []
         self.strenghtRT = []
         self.forceConstants = []
+        self.restraintWidth = []
+        self.map = None
 
 
         self.startInfo()
@@ -351,6 +356,8 @@ class PyConSolv:
         f.close()
 
         print(Color.GREEN + 'Setup is complete, moving on to ORCA calculations...\n' + Color.END)
+
+        self.map = self.mapper()
 
         self.restarter = RestartFile(self.inputpath)
 
@@ -700,7 +707,7 @@ class PyConSolv:
         print('Generating restraints file\n')
         restraintTemplate = '''parm LIG_dry.prmtop
         reference LIG_dry.pdb
-        rst {} reference offset {} rk2 {} rk3 {} out disang.{}
+        rst {} reference offset {} rk2 {} rk3 {} out disang.{} width {}
         run
         quit'''
         restraintFile = []
@@ -713,7 +720,7 @@ class PyConSolv:
             for unit in restraint:
                 atoms = atoms + ':1@{} '.format(unit)
             with open(self.MCPB + '/restraint.in', 'w') as f:
-                f.write(restraintTemplate.format(atoms, self.strenghtRT[counter],self.forceConstants[counter],self.forceConstants[counter],counter))
+                f.write(restraintTemplate.format(atoms, self.strenghtRT[counter],self.forceConstants[counter],self.forceConstants[counter],counter, self.restraintWidth[counter]))
             cpptraj.run('restraint')
             with open(self.MCPB + '/disang.{}'.format(counter), 'r') as f:
                 for line in f:
@@ -846,10 +853,11 @@ class PyConSolv:
         This function will require input from the user to define restraints to be used in the simulation.
         :return:
         '''
-
+        Mapper = self.mapper()
         self.bondsRT = []
         self.strenghtRT = []
         self.forceConstants = []
+        self.restraintWidth = []
         stop = False
         print('You have selected to perform a restrained simulation. In this approach, the position of the atoms you '
               'selected will be held in place via the utilization of virtual bonds, angles or dihedrals between them,'
@@ -858,29 +866,47 @@ class PyConSolv:
         while not stop:
             bond = input(Color.CYAN + 'Please input the virtual bonds in the format "atomid 1 - atomid 2" e.g. 1-2:\n' + Color.END)
             if (len(bond.split('-')) < 2 or len(bond.split('-')) > 4) and bond != 'n':
-                print('Input is not correct format\n')
+                print(Color.RED + 'Input is incorrect! Try again\n' + Color.END)
                 continue
 
             if bond != 'n':
                 try:
-                    strength = int(input('Please enter bond restraint offset (kcal/mol, default 1):\n') or "1")
+                    strength = float(input('Value to offset distance/angle/torsion in reference by (default 0):\n') or "0")
                 except:
-                    print('Input is incorrect \n')
+                    print(Color.RED + 'Input is incorrect! Try again\n' + Color.END)
                     continue
                 try:
-                    force = int(input('Please enter bond restraint force constant (kcal/mol, default 30):\n') or "30")
+                    force = float(input('Please enter distance/angle/torsion restraint force constant (kcal/mol, default 30):\n') or "30")
                 except:
-                    print('Input is incorrect \n')
+                    print(Color.RED + 'Input is incorrect! Try again\n' + Color.END)
                     continue
-                self.bondsRT.append(bond.split('-'))
+                try:
+                    width = float(input('Please enter distance/angle/torsion restraint width (Angstrom, default 0):\n') or "0")
+                except:
+                    print(Color.RED + 'Input is incorrect! Try again\n' + Color.END)
+                    continue
+                tmp = []
+                for atom in bond.split('-'):
+                    tmp.append(str(Mapper.mapReference(int(atom))))
+                self.bondsRT.append(tmp)
                 self.strenghtRT.append(strength)
                 self.forceConstants.append(force)
+                self.restraintWidth.append(width)
                 print('Added restraint, enter "n" to stop\n')
             else:
                 stop = True
         with open(self.inputpath + '/restraints', 'w') as f:
             for i in range(len(self.bondsRT)):
                 f.write('{}-{}-{}\n'.format('-'.join(self.bondsRT[i]), self.strenghtRT[i],self.forceConstants[i]))
+
+    def mapper(self) -> XYZMapper:
+        '''
+        Map optimized XYZ file back to the original XYZ file
+        :return: XYZMapper object to help remap the MCPB.py optimized structure back to original input XYZ file atom ordering
+        '''
+        Mapper = XYZMapper(self.inputpath + '/input.xyz.original')
+        Mapper.mapXYZ(self.inputpath + '/input.xyz')
+        return Mapper
 
 
 
@@ -908,11 +934,12 @@ class PyConSolv:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
 
-        if rst:
-            self.checkRT()
+
 
         self.checkRestart()
         self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
+        if rst:
+            self.checkRT()
 
         if self.restart < 2:
             if self.orca(opt = opt) == 0:

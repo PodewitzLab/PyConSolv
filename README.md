@@ -1,5 +1,5 @@
 ![License](https://img.shields.io/badge/license-GPL3-blue)
-[![Latest Version](https://img.shields.io/badge/release-v.1.0.6.1-red)](https://pypi.org/project/PyConSolv/1.0.6.1/)
+[![Latest Version](https://img.shields.io/badge/release-v.1.0.6.2-red)](https://pypi.org/project/PyConSolv/1.0.6.2/)
 [![DOI](https://img.shields.io/badge/DOI-10.1021%2Facs.jcim.3c00798-blue)](https://pubs.acs.org/doi/full/10.1021/acs.jcim.3c00798)
 
 # Latest:
