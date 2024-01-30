@@ -881,16 +881,17 @@ class PyConSolv:
                     print(Color.RED + 'Input is incorrect! Try again\n' + Color.END)
                     continue
                 try:
-                    force = float(input('Please enter distance/angle/torsion restraint width (Angstrom, default 0):\n') or "0")
+                    width = float(input('Please enter distance/angle/torsion restraint width (Angstrom, default 0):\n') or "0")
                 except:
                     print(Color.RED + 'Input is incorrect! Try again\n' + Color.END)
                     continue
                 tmp = []
                 for atom in bond.split('-'):
-                    tmp.append(Mapper.mapAtom(int(atom)))
+                    tmp.append(str(Mapper.mapReference(int(atom))))
                 self.bondsRT.append(tmp)
                 self.strenghtRT.append(strength)
                 self.forceConstants.append(force)
+                self.restraintWidth.append(width)
                 print('Added restraint, enter "n" to stop\n')
             else:
                 stop = True
@@ -899,6 +900,10 @@ class PyConSolv:
                 f.write('{}-{}-{}\n'.format('-'.join(self.bondsRT[i]), self.strenghtRT[i],self.forceConstants[i]))
 
     def mapper(self) -> XYZMapper:
+        '''
+        Map optimized XYZ file back to the original XYZ file
+        :return: XYZMapper object to help remap the MCPB.py optimized structure back to original input XYZ file atom ordering
+        '''
         Mapper = XYZMapper(self.inputpath + '/input.xyz.original')
         Mapper.mapXYZ(self.inputpath + '/input.xyz')
         return Mapper
