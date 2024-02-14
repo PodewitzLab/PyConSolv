@@ -109,7 +109,7 @@ class GUI:
         print('\n')
         print('Map written to {}'.format(self.path + '/chargeMap.dat\n'))
 
-    def getPDBasImage(self, file: str):
+    def getPDBasImage(self, file: str, type: str = 'pdb'):
         """
         Creates a 2D image of a pdb file using RDkit and returns a numpy array containing an image
 
@@ -121,12 +121,15 @@ class GUI:
         Returns:
             - mol_img = image as a 3D numpy array (RGB)
         """
-        pdb = Chem.MolFromPDBFile(file, removeHs=False)
-        AllChem.Compute2DCoords(pdb)
-        for atom in pdb.GetAtoms():
+        if type == 'pdb':
+            mol = Chem.MolFromPDBFile(file, removeHs=False)
+        else:
+            mol = Chem.MolFromXYZFile(file, removeHs=False)
+        AllChem.Compute2DCoords(mol)
+        for atom in mol.GetAtoms():
             if atom.GetSymbol() != 'C':
                 atom.SetProp("atomLabel", atom.GetSymbol())
-        mol_img = Chem.Draw.MolToImage(pdb, size=(600, 600))
+        mol_img = Chem.Draw.MolToImage(mol, size=(600, 600))
         mol_img = np.asarray(mol_img)
         return mol_img
 

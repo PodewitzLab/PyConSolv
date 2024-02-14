@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
+import shutil
 import sys
 import os
 import argparse
 
-from PyConSolv.ConfGen import PyConSolv
+from PyConSolv.misc.Task import Task
 from PyConSolv.misc.analysis import Analysis
 
 
@@ -32,8 +33,10 @@ def main():
                         help='set the box size to use with ambertools, for solvating the system')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str,
                         help='MD engine to be used for equilibration and simulation')
-    parser.add_argument('-rst', '--restraint', nargs='?', action='store_true', help='set up system for a restrained simulation')
-    parser.add_argument('-f', '--fragment', nargs='?', action='store_true', help='perform a substructure parametrization')
+    parser.add_argument('-rst', '--restraint', action='store_true',
+                        help='set up system for a restrained simulation')
+    parser.add_argument('-f', '--fragment', action='store_true',
+                        help='perform a substructure parametrization')
 
     # analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
@@ -70,10 +73,18 @@ def main():
         sys.exit()
 
     else:
-        conf = PyConSolv(inputfilepath)
-        conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
-                 solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
-                 rst=args.restraint)
+        task = Task()
+        if args.fragment:
+            task.fragment(inputfilepath)
+
+        # conf = PyConSolv(inputfilepath)
+        # conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
+        #          solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
+        #          rst=args.restraint, fragment = args.fragment)
+        else:
+            task.parametrize(inputfilepath, charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
+                      solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
+                      rst=args.restraint, fragment = args.fragment)
     sys.exit()
 
 

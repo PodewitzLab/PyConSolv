@@ -1,9 +1,8 @@
 import rdkit.Chem
 
-from PyConSolv.misc.inputparser import XYZ
+from .inputparser import XYZ
 from rdkit import Chem
 import os
-from rdkit.Chem import rdDetermineBonds
 
 class Fragmentor:
     def __init__(self, path: str= None, radius: float = 4):
@@ -219,7 +218,7 @@ Substructure extracted by pyconsolv with radius {}
                         bonded.append([i, element])
         Chem.SanitizeMol(mol)
 
-    def run(self, maxringsize: int = 10):
+    def run(self, maxringsize: int = 10, filename: str = 'substructure.xyz'):
         self.checkBreakPoint(maxringsize=maxringsize)
         coords = self.cutStructure()
-        self.writeXYZ(coords)
+        self.writeXYZ(coords, filename = filename)

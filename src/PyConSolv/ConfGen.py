@@ -912,7 +912,8 @@ class PyConSolv:
 
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, rst: bool = False):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20,
+            rst: bool = False, fragment: bool = False):
         """
         Run the conformer generation
 
@@ -929,6 +930,7 @@ class PyConSolv:
             :param bool opt : if set to False, no geometry optimization will be performed
             :param int box : set box size for amber tleap
             :param bool rst : set if the simulation is of a transition state
+            :param bool fragment : set if the structure should be fragmented
 
         Class variables:
         """
