@@ -97,6 +97,8 @@ class XYZ:
         f = open(path, 'r')
         counter = 0
         for line in f:
+            if line.split() == []:
+                continue
             if counter < 2:
                 counter = counter + 1
                 continue

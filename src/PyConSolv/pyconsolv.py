@@ -32,7 +32,8 @@ def main():
                         help='set the box size to use with ambertools, for solvating the system')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str,
                         help='MD engine to be used for equilibration and simulation')
-    parser.add_argument('-rst', '--restraint', action='store_true', help='set up system for a restrained simulation')
+    parser.add_argument('-rst', '--restraint', nargs='?', action='store_true', help='set up system for a restrained simulation')
+    parser.add_argument('-f', '--fragment', nargs='?', action='store_true', help='perform a substructure parametrization')
 
     # analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
