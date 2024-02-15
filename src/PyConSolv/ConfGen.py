@@ -153,8 +153,6 @@ class PyConSolv:
         self.map = None
 
 
-        self.startInfo()
-
     def startInfo(self):
         print(Color.BLUE + r'''
 
@@ -277,11 +275,12 @@ class PyConSolv:
 
 
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
-              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, opt: bool = True) -> int:
+              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, opt: bool = True, customOrcaInput: str = None) -> int:
         """
         Run setup for creating the appropriate folders and parse XYZ file
 
         Parameters:
+            :param str customOrcaInput: Custom orca input to use
             :param int charge: charge of the complete system
             :param string method: ORCA 5 method line
             :param string basis: Basis set for ORCA calculations
@@ -311,6 +310,8 @@ class PyConSolv:
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
             setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity, opt = opt)
+            if customOrcaInput:
+                setup.orca_inp = customOrcaInput
             setup.Method(method, basis, dsp, cpcmname, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
@@ -913,7 +914,7 @@ class PyConSolv:
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
             solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20,
-            rst: bool = False, fragment: bool = False):
+            rst: bool = False):
         """
         Run the conformer generation
 
@@ -930,7 +931,6 @@ class PyConSolv:
             :param bool opt : if set to False, no geometry optimization will be performed
             :param int box : set box size for amber tleap
             :param bool rst : set if the simulation is of a transition state
-            :param bool fragment : set if the structure should be fragmented
 
         Class variables:
         """

@@ -73,18 +73,20 @@ def main():
         sys.exit()
 
     else:
-        task = Task()
+        task = Task(inputfilepath)
         if args.fragment:
-            task.fragment(inputfilepath)
+            task.fragment(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
+                      solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
+                      rst=args.restraint)
 
         # conf = PyConSolv(inputfilepath)
         # conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
         #          solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
         #          rst=args.restraint, fragment = args.fragment)
         else:
-            task.parametrize(inputfilepath, charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
+            task.parametrize(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
                       solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
-                      rst=args.restraint, fragment = args.fragment)
+                      rst=args.restraint)
     sys.exit()
 
 
