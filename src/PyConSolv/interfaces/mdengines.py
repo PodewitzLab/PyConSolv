@@ -11,8 +11,8 @@ class MDEngine:
             case 'gromacs':
                 self.MD = gromacsInterface(path)
 
-    def run(self, path, cpus, restrain: str=None):
-        self.MD.prepare(path,restrain = restrain)
+    def run(self, path, cpus, restrain: str=None, cart: str = None, cartstr: int = 100):
+        self.MD.prepare(path,restrain = restrain, cart= cart, cartstr = cartstr)
         self.status = self.MD.equilibrate(cpus)
         return self.status
 

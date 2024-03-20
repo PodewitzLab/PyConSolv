@@ -1,6 +1,7 @@
 import os
 import shutil
 import subprocess
+import numpy as np
 
 from .parmed import Parmed
 from ..misc.tleapAdderInterface import TleapAdder
@@ -232,7 +233,7 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             self.status = 0
             return self.status
 
-    def equil(self, path: str, restrained_residue: str='1', restrain: str = None):
+    def equil(self, path: str, restrained_residue: str='1', restrain: str = None, cart: str = None, cartstr: int = 100):
         """
         Create input files for a stepwise equilibration
 
@@ -240,12 +241,17 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
             :param string path: full path to the location of the solvated structure
             :param string restrained_residue: residue to be restrained in steps 1-19
             :param str restrain: definition of restraint
+            :param str cart: labels of cartesian restraints
+            :param int cartstr: strength of cartesian restrains
 
         Class variables:
         """
 
+        minseq = np.array([1000, 500, 200, 100, 50, 20, 10, 5, 4, 3, 2, 1, 0.5])
         # print('Restrain Y is:\n {}'.format(restrain))
-        minseq = [1000, 500, 200, 100, 50, 20, 10, 5, 4, 3, 2, 1, 0.5]
+        if cart is not None:
+            minseq[np.argwhere(minseq < cartstr)] = cartstr
+            restrained_residue = cart
 
         if restrain is not None:
             nmropt = ', nmropt = 1'
@@ -305,7 +311,13 @@ frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.jo
                 [nptheader, 'nstlim=50000,dt=0.001,\n/\n{}'.format(restrain)]]  # 20
 
         # write input files
+        if cart is not None:
+            data[19][1] = data[19][1].replace('nmropt=1',
+                                'nmropt=1,ntr=1,\nrestraint_wt={},restraintmask="!@H=&:{}"'.format(cartstr,cart))
+            data[20][1] = data[20][1].replace('dt=0.001,',
+                                'dt=0.001,ntr=1,\nrestraint_wt={},restraintmask="!@H=&:{}",'.format(cartstr, cart))
         for i in range(21):
+
             f = open(path + '/equilibration/{:>02}.in'.format(i + 1), 'w')
             f.write(data[i][0])
             f.write(data[i][1])
@@ -478,6 +490,6 @@ quit
         f.write(file)
         f.close()
 
-    def prepare(self, path, restrain: str = None):
+    def prepare(self, path, restrain: str = None, cart: str = None, cartstr: int = 100):
         self.checkpath()
-        self.equil(path, restrain=restrain)
+        self.equil(path, restrain=restrain, cart= cart, cartstr= cartstr)
