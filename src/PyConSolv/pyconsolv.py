@@ -8,7 +8,7 @@ from PyConSolv.misc.analysis import Analysis
 
 
 def main():
-    ver = '1.0.6.2'
+    ver = '1.0.6.3'
     parser = argparse.ArgumentParser(prog='PyConSolv', description='Process commandline arguments for PyconSolv')
     parser.add_argument('input', help='input file in XYZ format')
 
@@ -32,7 +32,12 @@ def main():
                         help='set the box size to use with ambertools, for solvating the system')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str,
                         help='MD engine to be used for equilibration and simulation')
-    parser.add_argument('-rst', '--restraint', action='store_true', help='set up system for a restrained simulation')
+    parser.add_argument('-rst', '--restraint', action='store_true',
+                        help='set up system for a restrained simulation')
+    parser.add_argument('-cart', '--cartesianrst', nargs='?', default='all', type=str,
+                        help='set up system for a simulation with cartesian restraints')
+    parser.add_argument('-cartstr', '--cartesianrststr', nargs='?', default=100, type=int,
+                        help='strength of cartesian restraints in kcal/mol')
 
     # analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
@@ -72,7 +77,7 @@ def main():
         conf = PyConSolv(inputfilepath)
         conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
                  solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
-                 rst=args.restraint)
+                 rst=args.restraint, cart = args.cartesianrst, cartstr = args.cartesianrststr)
     sys.exit()
 
 

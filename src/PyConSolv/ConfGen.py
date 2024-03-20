@@ -104,7 +104,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.6.2'
+        self.version = '1.0.6.3'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -644,13 +644,15 @@ class PyConSolv:
         parmed.checkTop('LIG_solv')
         parmed.checkTop('LIG_dry')
 
-    def equilibration(self, cpu: int = 12, engine = 'amber'):
+    def equilibration(self, cpu: int = 12, engine = 'amber', cart: str = None, cartstr: int = 100):
         """
         Run system equilibration
 
         Parameters:
             :param int cpu = number of cpus to be used for the equilibration
             :param string engine = MD engine to be used for equilibration
+            :param str cart: labels of cartesian restraints
+            :param int cartstr: strength of cartesian restrains
 
         Class variables:
         """
@@ -659,6 +661,7 @@ class PyConSolv:
 
         print(Color.GREEN + 'Setting up system equilibration...\n' + Color.END)
         print('Writing input files in the equilibration folder...\n')
+
 
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
@@ -682,10 +685,14 @@ class PyConSolv:
         if self.bondsRT != []:
             restrain = self.setupRestraint()
 
+        if cart is not None:
+            print('Restraining ids {} to cartesian coordinates with the strength of {}'.format(cart,cartstr))
+            if cart == 'all':
+                cart = '1-{}'.format(len(self.xyz.files))
         self.MDEngine = MDEngine(self.MCPB, engine = self.engine)
         print('Done!\n')
         print(Color.GREEN + 'Starting equilibration...' + Color.END)
-        self.status = self.MDEngine.run(self.inputpath, cpus = cpu, restrain=restrain)
+        self.status = self.MDEngine.run(self.inputpath, cpus = cpu, restrain=restrain, cart = cart, cartstr = cartstr)
 
 
         if self.status == 0:
@@ -734,17 +741,20 @@ class PyConSolv:
         shutil.copyfile(self.MCPB + '/disang.r', self.inputpath + '/simulation/disang.r')
         return restrain
 
-    def prepareSimulation(self, solvent: str, engine: str = 'amber'):
+    def prepareSimulation(self, solvent: str, engine: str = 'amber', cart: str = None, cartstr: int = 100 ):
         """
         Function to copy scripts and inputs needed for running and analysing the simulation
 
         Parameters:
             :param string solvent = 3 letter keyword for the solvent used for the simulation
+            :param string cart: id of the residues/atoms that should be restrained
+            :param int cartstr: strength of the cartesian restraints in kcal/mol
 
 
         """
         self.restarter.write('equilibration')
         print('Preparing simulation...\n')
+
         sourceloc = os.path.split(__file__)[0]
         try:
             # PyConSolv / scripts_and_inputs
@@ -787,6 +797,26 @@ class PyConSolv:
             if self.bondsRT != []:
                 shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation_restraint.in',
                                 self.inputpath + '/simulation/simulation.in')
+            elif cart is not None:
+                if self.xyz is None:
+                    self.xyz = XYZ(self.db_file, self.db_metal_file)
+                    self.xyz.readFilenames(self.MCPB)
+                if cart == 'all':
+                    cart = '1-{}'.format(len(self.xyz.filenames))
+                shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation_cart.in',
+                                self.inputpath + '/simulation/simulation.in')
+                tmp = []
+                with open(self.inputpath + '/simulation/simulation.in', 'r') as f:
+                    ln = '   restraint_wt = {}, restraintmask = "!@H=&:{}",\n'.format(cartstr, cart)
+                    for line in f:
+                        if 'here' in line:
+                            tmp.append(ln)
+                        else:
+                            tmp.append(line)
+                print(tmp)
+                with open(self.inputpath + '/simulation/simulation.in', 'w') as f:
+                    for line in tmp:
+                        f.write(line)
             else:
                 shutil.copyfile(sourceloc + '/scripts_and_inputs/simulation.in', self.inputpath + '/simulation/simulation.in')
 
@@ -912,7 +942,8 @@ class PyConSolv:
 
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, rst: bool = False):
+            solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, rst: bool = False,
+            cart: str = None, cartstr: int = 100):
         """
         Run the conformer generation
 
@@ -929,6 +960,8 @@ class PyConSolv:
             :param bool opt : if set to False, no geometry optimization will be performed
             :param int box : set box size for amber tleap
             :param bool rst : set if the simulation is of a transition state
+            :param str cart : which coordinates should be restrained at a cartesian level
+            :param int cartstr : strength of the cartesian coordinate restraints
 
         Class variables:
         """
@@ -966,11 +999,11 @@ class PyConSolv:
                 return
 
         if self.restart < 8:
-            if self.equilibration(cpu, engine) == 0:
+            if self.equilibration(cpu, engine, cart=cart, cartstr=cartstr) == 0:
                 return
 
         if self.restart < 9:
-            if self.prepareSimulation(solvent, engine) == 0:
+            if self.prepareSimulation(solvent, engine, cart = cart, cartstr=cartstr) == 0:
                 return
         if self.restart == 9:
             print('This structure has already completed parametrization, please make sure you are using the correct input\n')
