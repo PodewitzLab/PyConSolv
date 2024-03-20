@@ -813,7 +813,6 @@ class PyConSolv:
                             tmp.append(ln)
                         else:
                             tmp.append(line)
-                print(tmp)
                 with open(self.inputpath + '/simulation/simulation.in', 'w') as f:
                     for line in tmp:
                         f.write(line)
@@ -966,7 +965,7 @@ class PyConSolv:
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
-
+        print(cart,cartstr)
 
 
         self.checkRestart()
@@ -999,7 +998,7 @@ class PyConSolv:
                 return
 
         if self.restart < 8:
-            if self.equilibration(cpu, engine, cart=cart, cartstr=cartstr) == 0:
+            if self.equilibration(cpu, engine, cart=cart, cartstr = cartstr) == 0:
                 return
 
         if self.restart < 9:

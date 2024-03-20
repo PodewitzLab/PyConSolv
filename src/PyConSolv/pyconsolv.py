@@ -34,7 +34,7 @@ def main():
                         help='MD engine to be used for equilibration and simulation')
     parser.add_argument('-rst', '--restraint', action='store_true',
                         help='set up system for a restrained simulation')
-    parser.add_argument('-cart', '--cartesianrst', nargs='?', default='all', type=str,
+    parser.add_argument('-cart', '--cartesianrst', nargs='?', default=None, type=str,
                         help='set up system for a simulation with cartesian restraints')
     parser.add_argument('-cartstr', '--cartesianrststr', nargs='?', default=100, type=int,
                         help='strength of cartesian restraints in kcal/mol')
