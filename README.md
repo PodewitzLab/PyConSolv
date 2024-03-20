@@ -97,7 +97,9 @@ input file in XYZ format
   -box specify box size for your system  
   -e, --engine         choice of simulation engine  
   -rst, --restraint perform a restrained simulation, useful for transition states  
-  
+  -cart, --cartesianrst [Mask] set up system for a simulation with cartesian restraints, uses the amber mask format. Use all for all solvent residues
+  -cartstr, --cartesianrststr [Value] strength of cartesian restraints in kcal/mol
+
 **options that affect analysis**:   
   -a , --analyze analyze a simulation  
   -mask [MASK], --mask [MASK] atomid mask for clustering  
