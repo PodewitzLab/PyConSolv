@@ -39,7 +39,7 @@ class Faker:
                 f.write(' {:14E}'.format(np.double(list_f[i * 5:(i + 1) * 5][j]) * factor))
             f.write('\n')
         if len(list_f) % 5 != 0:
-            for i in range(len(list_f) % 5):
+            for i in range(len(list_f) % 5)[::-1]: #Reverse the list, as otherwize the list will be flipped -> issue #64
                 f.write(' {:14E}'.format(np.double(list_f[-(i + 1)]) * factor))
         f.write('\n')
         f.close()

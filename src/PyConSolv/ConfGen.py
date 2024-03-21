@@ -104,7 +104,7 @@ class PyConSolv:
         self.refrac = None
         self.epsilon = None
         self.solventParamPath = None
-        self.version = '1.0.6.3'
+        self.version = '1.0.6.3.1'
         self.metals = ['LI', 'BE', 'NA', 'MG', 'AL', 'SI', 'K', 'CA', 'SC', 'TI', 'V', 'CR', 'MN', 'FE',
                        'CO', 'NI', 'CU', 'ZN',
                        'GA', 'GE', 'AS', 'SE', 'BR', 'RB', 'SR', 'Y', 'ZR', 'NB', 'MO', 'TC', 'RU', 'RH', 'PD', 'AG',
@@ -965,7 +965,6 @@ class PyConSolv:
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
-        print(cart,cartstr)
 
 
         self.checkRestart()
