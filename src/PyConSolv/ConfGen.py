@@ -965,7 +965,6 @@ class PyConSolv:
         Class variables:
         """
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
-        print(cart,cartstr)
 
 
         self.checkRestart()
