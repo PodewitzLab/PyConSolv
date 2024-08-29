@@ -5,7 +5,7 @@ from ..utils.colorgen import Color
 
 
 class Setup:
-    def __init__(self, path: str, charge: int = 0, multi: int = 1, opt: bool = True) -> NotImplemented:
+    def __init__(self, path: str, charge: int = 0, multi: int = 1, opt: bool = True, memory: int = 2000) -> NotImplemented:
         """
         Class for setting up all the necessary input files and folders for the generation of the parameters
 
@@ -14,6 +14,7 @@ class Setup:
             - charge = charge of the structure, default is 0
             - multi = multiplicity, default is 1
             - opt = perform geometry optimization, default is true
+            - memory = amount of memory for ORCA calculation, default is 2000
 
         Class variables:
             - self.db_file = path to database file which contains atom radius information
@@ -30,6 +31,7 @@ class Setup:
             - self.equilibration_folder = folder where system equilibration will be performed
             - self.simulation_folder = folder where a CMD will be performed
             - self.opt = perform geometry optimization whent true
+            - self.memory = amount of memory for ORCA calculation
         """
         self.db_file = os.path.split(__file__)[0] + '/db/atom-radius.txt'
         self.path = '/'.join(path.split('/')[:-1])
@@ -44,12 +46,14 @@ class Setup:
         self.optimization_folder = self.calculation_folder + '/' + 'opt'
         self.MCPB_folder = self.path + '/' + 'MCPB_setup'
         self.opt = opt
+        self.memory=memory
         # ORCA input file template
         self.orca_inp = '''{}
 {}
 {}
 
 %PAL NPROCS {} END
+%maxcore {}
 
 %scf
 maxiter 350
@@ -100,15 +104,15 @@ end
             keyword = '! OPT'
         else:
             keyword = '! SP'
-        f.write(self.orca_inp.format(self.method, keyword, self.solvent, self.cores, self.charge, self.multi))
+        f.write(self.orca_inp.format(self.method, keyword, self.solvent, self.cores, self.memory, self.charge, self.multi))
         f.close()
 
         f = open(self.frequency_folder + '/orca_freq.inp', 'w')
-        f.write(self.orca_inp.format(self.method, '! FREQ', self.solvent, self.cores, self.charge, self.multi))
+        f.write(self.orca_inp.format(self.method, '! FREQ', self.solvent, self.cores, self.memory, self.charge, self.multi))
         f.close()
 
         f = open(self.simulation_folder + '/orca_sp.inp', 'w')
-        f.write(self.orca_inp.format(self.method, '! SP', self.solvent, self.cores, self.charge, self.multi))
+        f.write(self.orca_inp.format(self.method, '! SP', self.solvent, self.cores, self.memory, self.charge, self.multi))
         f.close()
 
         shutil.copy(self.path + '/' + self.inputFile, self.optimization_folder + '/' + self.inputFile)
@@ -193,7 +197,8 @@ Basis :     {}
 Dispersion: {}
 Solvent:    {}
 CPU Cores:  {}
+Memory/Core:{}
             '''.format(self.path, *self.method.replace('!', '').split(), self.solvent.replace('END\n', ''),
-                       self.cores))
+                       self.cores, self.memory))
             status = 1
         return status

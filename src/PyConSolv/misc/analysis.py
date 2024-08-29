@@ -423,6 +423,7 @@ end
 
         self.qmmm = qmmm
         self.pyconsolv = self.checkPyConSolv()
+        opt=False
         if self.pyconsolv is False:
             print(
                 'This simulation was not created using PyConSolv, but can still be analyzed. Skipping to clustering...\n')
@@ -468,7 +469,7 @@ end
                 else:
                     self.Calculation(rep)
             self.rankClusters()
-            if opt:
+            if opt and self.qmmm:
                 print(
                     Color.BLUE + '\n\nNotice: The reported energy is the QM/MM Energy, it is recommended to run a single point calculation to obtain the QM zone energy\n\n' + Color.END)
             print(Color.CYAN + '\nCluster Energy\n' + Color.END)

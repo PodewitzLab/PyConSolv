@@ -277,7 +277,7 @@ class PyConSolv:
 
 
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
-              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, opt: bool = True) -> int:
+              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, memory: int = 2000, opt: bool = True) -> int:
         """
         Run setup for creating the appropriate folders and parse XYZ file
 
@@ -289,6 +289,7 @@ class PyConSolv:
             :param string cpcm: CPCM solvation model solvent
             :param int cpu: number of CPU cores to be used
             :param int multiplicity: multiplicity for the system
+            :param int memory: memory to used for OCA calulations
 
         Class variables:
         """
@@ -310,7 +311,7 @@ class PyConSolv:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
-            setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity, opt = opt)
+            setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity, memory=memory, opt = opt)
             setup.Method(method, basis, dsp, cpcmname, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
@@ -688,7 +689,7 @@ class PyConSolv:
         if cart is not None:
             print('Restraining ids {} to cartesian coordinates with the strength of {}'.format(cart,cartstr))
             if cart == 'all':
-                cart = '1-{}'.format(len(self.xyz.files))
+                cart = '1-{}'.format(len(self.xyz.filenamess))
         self.MDEngine = MDEngine(self.MCPB, engine = self.engine)
         print('Done!\n')
         print(Color.GREEN + 'Starting equilibration...' + Color.END)

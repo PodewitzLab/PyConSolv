@@ -24,6 +24,8 @@ def main():
                         help='solvent to be used for MD simulations/ OM Calculations, default Water')
     parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int,
                         help='number of cpu cores to be used for calculations, default 12')
+    parser.add_argument('-mem', '--memory', nargs='?', default=2000, type=int,
+                        help='Memory/Core to use for ORCA calculation, default 2000')
     parser.add_argument('-mult', '--multiplicity', nargs='?', default=1, type=int,
                         help='multiplicity of the system, default 1')
     parser.add_argument('-noopt', '--noopt', action='store_false',
@@ -77,7 +79,7 @@ def main():
         conf = PyConSolv(inputfilepath)
         conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
                  solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
-                 rst=args.restraint, cart = args.cartesianrst, cartstr = args.cartesianrststr)
+                 rst=args.restraint, cart = args.cartesianrst, cartstr = args.cartesianrststr, memory=args.memory)
     sys.exit()
 
 
