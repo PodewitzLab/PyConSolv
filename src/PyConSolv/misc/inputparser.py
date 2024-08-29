@@ -351,6 +351,7 @@ class XYZ:
                 line = line + '\n'
 
                 file.append(line)
+
             file.append('TER\n')
             if metal:
                 self.files = [file] + self.files
@@ -371,15 +372,21 @@ class XYZ:
         self.hasMetal = False
         chrstart = 65
         atomid = 0
+        atomids = {}
+        self.atomtypes = []
         for i in range(len(self.files)):
             if len(self.files[i]) == 2:  # single atom ligands need to be treated differently to work with MCPB.py
                 name = self.files[i][0].split()[-1].upper()
+                if name not in atomids.keys():
+                    atomids[name] = 0
 
+                atomid +=1
                 if self.isMetal(name):
                     if name == 'B':
                         chrstart = 67
                     s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name) + '{:>3}'.format(name) + \
                         self.files[i][0][20:]
+                    self.atomtypes.append(name)
                     if [name + '.pdb', name] in self.metals:
                         self.filenames.append(name + str(len(self.metals)) +'.pdb')
                     else:
@@ -388,12 +395,15 @@ class XYZ:
                     s = s.upper()
                     self.metals.append([name + '.pdb', name])
                 else:
-                    s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name + str(atomid)) + '{:>3}'.format(chr(chrstart + i)) + \
+                    s = self.files[i][0][:7] + '{:>4}'.format(1) + ' ' + '{:<5}'.format(name + str(atomids[name])) + '{:>3}'.format(chr(chrstart + i)) + \
                         self.files[i][0][20:]
-                    atomid += 1
+                    self.atomtypes.append(name + str(atomids[name]))
+                    atomids[name] += 1
                     self.filenames.append(chr(chrstart + i) + '.pdb')
                     name = chr(chrstart + i)
                     self.ligands.append([chr(chrstart + i) + '.pdb', chr(chrstart + i)])
+
+
                 f = open(self.path + '/' + name + '.pdb', 'w')
                 f.write(s)
                 f.write('TER')
@@ -406,9 +416,15 @@ class XYZ:
                     if 'TER' in line:
                         f.write('END')
                     else:
+                        name = line.split()[-1].upper()
+                        if name not in atomids.keys():
+                            atomids[name] = 0
+
+                        atomids[name] += 1
                         atomid += 1
                         f.write(line[:7] + '{:>4}'.format(atomid) + ' ' + '{:<5}'.format(
-                            line[11:16].strip() + str(atomid)) + line[17:])
+                            line[11:16].strip() + str(atomids[name])) + line[17:])
+                        self.atomtypes.append(name + str(atomids[name]))
                 f.close()
                 self.ligands.append([chr(chrstart + i) + '.pdb', chr(chrstart + i)])
         tmp = []
@@ -458,7 +474,7 @@ class XYZ:
                 if not self.isMetal(name):
                     atomtype = name
                     name = self.charges[i][0]
-                    atomlabel = atomlabel + str(atomindex-1)
+                    atomlabel = self.atomtypes[atomindex]
                     metal = False
                 else:
                     metal = True
@@ -783,3 +799,4 @@ USER_CHARGES
             bondlen = bondlen + len(bond)
         f.close()
         f2.close()
+

@@ -942,6 +942,7 @@ class PyConSolv:
 
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
+            memory: int = 2000,
             solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, rst: bool = False,
             cart: str = None, cartstr: int = 100):
         """
@@ -962,6 +963,7 @@ class PyConSolv:
             :param bool rst : set if the simulation is of a transition state
             :param str cart : which coordinates should be restrained at a cartesian level
             :param int cartstr : strength of the cartesian coordinate restraints
+            :param int memory: memory for ORCA calculations
 
         Class variables:
         """
@@ -969,7 +971,8 @@ class PyConSolv:
 
 
         self.checkRestart()
-        self.setup(charge, method, basis, dsp, solvent, cpu, multiplicity, opt)
+        self.setup(charge=charge, method=method, basis=basis, dsp=dsp, cpcm=solvent, cpu=cpu, memory=memory,
+                   multiplicity=multiplicity, opt=opt)
         if rst:
             self.checkRT()
 
