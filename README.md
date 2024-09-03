@@ -62,7 +62,7 @@ The creation of a new virtual environment is highly recommended:
 
 using conda:
 ```
-conda create -c conda-forge --name PyConSolv python=3.10 rdkit numpy pandas parmed
+conda create -c conda-forge --name PyConSolv python=3.10 rdkit numpy<2.0 pandas parmed
 conda activate PyConSolv
 pip install PyConSolv
 ```
