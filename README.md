@@ -3,7 +3,7 @@
 [![DOI](https://img.shields.io/badge/DOI-10.1021%2Facs.jcim.3c00798-blue)](https://pubs.acs.org/doi/full/10.1021/acs.jcim.3c00798)
 
 # Latest:
-Please update version 1.0.2 to 1.0.3.1+ to fix a bug with generating parameters. Versions before 1.0.2 should not be affected.
+Notice: Latest version of Ambertools does not yet support Numpy > 1.26. If you encounter numpy related errors, make sure you are using a compatible version of numpy
 
 Changelog from v 1.0.1:
 
@@ -62,7 +62,7 @@ The creation of a new virtual environment is highly recommended:
 
 using conda:
 ```
-conda create -c conda-forge --name PyConSolv python=3.10 rdkit numpy<2.0 pandas parmed
+conda create -c conda-forge --name PyConSolv python=3.10 numpy==1.26 rdkit pandas parmed
 conda activate PyConSolv
 pip install PyConSolv
 ```
@@ -71,7 +71,7 @@ using pip:
 ```
 python3 -m venv env
 source env/bin/activate
-pip install numpy pandas rdkit parmed PyConSolv
+pip install numpy==1.26 pandas rdkit parmed PyConSolv
 ```
 
 ## Usage
