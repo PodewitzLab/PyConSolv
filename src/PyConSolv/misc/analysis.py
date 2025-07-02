@@ -421,9 +421,10 @@ end
         Class variables:
         """
 
+
+        opt=False
         self.qmmm = qmmm
         self.pyconsolv = self.checkPyConSolv()
-        opt=False
         if self.pyconsolv is False:
             print(
                 'This simulation was not created using PyConSolv, but can still be analyzed. Skipping to clustering...\n')
