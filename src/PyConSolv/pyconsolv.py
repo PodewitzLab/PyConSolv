@@ -14,20 +14,8 @@ def main():
 
     # parametrization
     parser.add_argument('-c', '--charge', nargs='?', default=0, type=int, help='charge of the system, default 0')
-    parser.add_argument('-m', '--method', nargs='?', default='PBE0', type=str,
-                        help='ORCA optimization/frequency calculations method of choice, default PBE0')
-    parser.add_argument('-b', '--basis', nargs='?', default='def2-SVP', type=str,
-                        help='basis set to be used for calculations, default def2-SVP')
-    parser.add_argument('-d', '--dispersion', nargs='?', default='D4', type=str,
-                        help='dispersion corrections, default = D4')
     parser.add_argument('-s', '--solvent', nargs='?', default='Water', type=str,
                         help='solvent to be used for MD simulations/ OM Calculations, default Water')
-    parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int,
-                        help='number of cpu cores to be used for calculations, default 12')
-    parser.add_argument('-mem', '--memory', nargs='?', default=2000, type=int,
-                        help='Memory/Core to use for ORCA calculation, default 2000')
-    parser.add_argument('-mult', '--multiplicity', nargs='?', default=1, type=int,
-                        help='multiplicity of the system, default 1')
     parser.add_argument('-noopt', '--noopt', action='store_false',
                         help='do not perform geometry optimization for parametrization')
     parser.add_argument('-box', '--box', nargs='?', default=10, type=int,
@@ -41,6 +29,19 @@ def main():
     parser.add_argument('-cartstr', '--cartesianrststr', nargs='?', default=100, type=int,
                         help='strength of cartesian restraints in kcal/mol')
 
+    # ORCA settings
+    parser.add_argument('-m', '--method', nargs='?', default='PBE0', type=str,
+                        help='ORCA optimization/frequency calculations method of choice, default PBE0')
+    parser.add_argument('-d', '--dispersion', nargs='?', default='D4', type=str,
+                        help='ORCA optimization/frequency calculations dispersion correction, default D4, N for no dispersion')
+    parser.add_argument('-b', '--basis', nargs='?', default='def2-SVP', type=str,
+                        help='basis set to be used for calculations, default def2-SVP')
+    parser.add_argument('-p', '--cpu', nargs='?', default=12, type=int,
+                        help='number of cpu cores to be used for calculations, default 12')
+    parser.add_argument('-mem', '--memory', nargs='?', default=2000, type=int,
+                        help='Memory/Core to use for ORCA calculation, default 2000')
+    parser.add_argument('-mult', '--multiplicity', nargs='?', default=1, type=int,
+                        help='multiplicity of the system, default 1')
     # analysis
     parser.add_argument('-a', '--analyze', action='store_true', help='analyze a simulation')
     parser.add_argument('-nosp', '--nosp', action='store_true', help='do not run single point calculations')
@@ -77,7 +78,9 @@ def main():
 
     else:
         conf = PyConSolv(inputfilepath)
-        conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=args.dispersion, cpu=args.cpu,
+        if args.dispersion == 'N':
+            dsp = ''
+        conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=dsp, cpu=args.cpu,
                  solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
                  rst=args.restraint, cart = args.cartesianrst, cartstr = args.cartesianrststr, memory=args.memory)
     sys.exit()

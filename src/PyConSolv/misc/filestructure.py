@@ -5,7 +5,7 @@ from ..utils.colorgen import Color
 
 
 class Setup:
-    def __init__(self, path: str, charge: int = 0, multi: int = 1, opt: bool = True, memory: int = 2000) -> NotImplemented:
+    def __init__(self, path: str, charge: int = 0, multi: int = 1, opt: bool = True, memory: int = 3000) -> NotImplemented:
         """
         Class for setting up all the necessary input files and folders for the generation of the parameters
 

@@ -277,7 +277,7 @@ class PyConSolv:
 
 
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
-              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, memory: int = 2000, opt: bool = True) -> int:
+              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, memory: int = 3000, opt: bool = True) -> int:
         """
         Run setup for creating the appropriate folders and parse XYZ file
 
@@ -942,7 +942,7 @@ class PyConSolv:
 
 
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
-            memory: int = 2000,
+            memory: int = 3000,
             solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, rst: bool = False,
             cart: str = None, cartstr: int = 100):
         """
