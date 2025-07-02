@@ -689,7 +689,7 @@ class PyConSolv:
         if cart is not None:
             print('Restraining ids {} to cartesian coordinates with the strength of {}'.format(cart,cartstr))
             if cart == 'all':
-                cart = '1-{}'.format(len(self.xyz.filenamess))
+                cart = '1-{}'.format(len(self.xyz.filenames))
         self.MDEngine = MDEngine(self.MCPB, engine = self.engine)
         print('Done!\n')
         print(Color.GREEN + 'Starting equilibration...' + Color.END)
