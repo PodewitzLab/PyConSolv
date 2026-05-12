@@ -3,7 +3,8 @@ import shutil
 import unittest
 import filecmp
 import numpy as np
-from ..src.PyConSolv.misc.inputparser import XYZ
+import tests  # noqa: F401
+from PyConSolv.misc.inputparser import XYZ
 
 
 class TestSetup(unittest.TestCase):

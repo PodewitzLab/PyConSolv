@@ -1,7 +1,8 @@
 import os
 import unittest
 import filecmp
-from ..src.PyConSolv.misc.filestructure import Setup
+import tests  # noqa: F401
+from PyConSolv.misc.filestructure import Setup
 
 
 class TestSetup(unittest.TestCase):

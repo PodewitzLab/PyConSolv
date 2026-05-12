@@ -100,6 +100,8 @@ class XYZ:
             if counter < 2:
                 counter = counter + 1
                 continue
+            if line.split() == []:
+                continue
             else:
                 self.atoms.append(line.split()[0])
                 self.coords.append(line.split()[1:])
@@ -137,6 +139,7 @@ class XYZ:
         """
 
         self.Adjmat = np.zeros(self.Dmat.shape)
+        recorded_metal_bonds = set()  # Track recorded bonds to avoid duplicates
         for i in range(self.Dmat.shape[0]):
             for j in range(self.Dmat.shape[1]):
                 met = False
@@ -147,15 +150,25 @@ class XYZ:
                 if self.Dmat[i][j] <= dist * 0.6:
                     self.Adjmat[i][j] = 1
                 if self.isMetal(a[0]) and self.isMetal(a[1]):
+                    # Metal-metal bond
                     dist = self.metalRadius.get(a[0].upper()) + self.metalRadius.get(a[1].upper())
                     met = True
                 elif self.isMetal(a[0]):
+                    # Metal-ligand bond (metal is first atom)
                     dist = self.metalRadius.get(a[0].upper()) + self.db[a[1]]
+                    met = True
+                elif self.isMetal(a[1]):
+                    # Metal-ligand bond (metal is second atom) - record from metal's perspective
+                    dist = self.db[a[0]] + self.metalRadius.get(a[1].upper())
                     met = True
                 if met:
                     self.Adjmat[i][j] = 0
                     if self.Dmat[i][j] <= dist * 1.0:
-                        self.metalBonds.append('{} @{}{} {}'.format(str(i), a[1], str(j), str(j)))
+                        # Avoid duplicate bonds by using sorted tuple as key
+                        bond_key = tuple(sorted([i, j]))
+                        if bond_key not in recorded_metal_bonds:
+                            self.metalBonds.append('{} @{}{} {}'.format(str(i), a[1], str(j), str(j)))
+                            recorded_metal_bonds.add(bond_key)
 
     def generateLinkList(self):
         """

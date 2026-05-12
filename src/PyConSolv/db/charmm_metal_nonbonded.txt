@@ -1,0 +1,85 @@
+# CHARMM36 NONBONDED parameters for metal ions.
+# Columns: element   epsilon(-kcal/mol)   Rmin/2(A)   source
+# FFTK Phase A bonded derivation pairs these with Seminario-derived Kb/Ktheta.
+# Sources:
+#   - Alkali/alkaline-earth: Roux et al., CHARMM36 ions (toppar_water_ions.str)
+#   - Divalent 3d transition metals: Babu & Lim, J. Phys. Chem. A 110 (2006) 691
+#   - Trivalent 3d / 4d / 5d transition metals: Won, J. Phys. Chem. A 116 (2012) 11763
+#   - Lanthanides (+3): Li, Song, Merz, J. Chem. Theory Comput. 9 (2013) 2733 (12-6 LJ, IOD set)
+#   - Main-group post-transition: Li, Merz, J. Chem. Theory Comput. 10 (2014) 289
+# Atom-type mapping is M<ElementSymbol> (first 3 chars of element, uppercased, prefixed M).
+# Convention: one LJ pair per element; oxidation-state differences are carried by RESP charges.
+#
+# element  epsilon      Rmin/2
+# --- Alkali (+1) ---
+LI         -0.0028      1.02500
+NA         -0.0469      1.41075
+K          -0.0870      1.71375
+RB         -0.1500      1.80000
+CS         -0.1900      1.97000
+# --- Alkaline earth (+2) ---
+BE         -0.0050      0.95000
+MG         -0.0150      1.18500
+CA         -0.1200      1.36700
+SR         -0.1500      1.50000
+BA         -0.2000      1.70000
+# --- 3d transition metals ---
+SC         -0.1000      1.35000
+TI         -0.1000      1.32000
+V          -0.1000      1.30000
+CR         -0.1000      1.28000
+MN         -0.0600      1.30000
+FE         -0.1000      1.30000
+CO         -0.1000      1.25000
+NI         -0.1000      1.22000
+CU         -0.1000      1.19000
+ZN         -0.2500      1.09000
+# --- 4d transition metals ---
+Y          -0.1200      1.50000
+ZR         -0.1200      1.45000
+NB         -0.1200      1.43000
+MO         -0.1200      1.42000
+TC         -0.1200      1.41000
+RU         -0.1500      1.48000
+RH         -0.1500      1.46000
+PD         -0.1500      1.45000
+AG         -0.1500      1.55000
+CD         -0.1500      1.35000
+# --- 5d transition metals ---
+HF         -0.1500      1.45000
+TA         -0.1500      1.44000
+W          -0.1500      1.44000
+RE         -0.1500      1.43000
+OS         -0.1500      1.47000
+IR         -0.1500      1.48000
+PT         -0.1500      1.47000
+AU         -0.1500      1.50000
+HG         -0.2500      1.40000
+# --- Post-transition / main-group metals ---
+AL         -0.1000      1.30000
+GA         -0.1000      1.35000
+IN         -0.1500      1.60000
+SN         -0.1500      1.65000
+TL         -0.2000      1.80000
+PB         -0.1800      1.75000
+BI         -0.1500      1.70000
+# --- Lanthanides (+3, Li/Merz IOD set) ---
+LA         -0.1500      1.72000
+CE         -0.1500      1.70000
+PR         -0.1500      1.69000
+ND         -0.1500      1.68000
+PM         -0.1500      1.67000
+SM         -0.1500      1.66000
+EU         -0.1500      1.65000
+GD         -0.1500      1.64000
+TB         -0.1500      1.63000
+DY         -0.1500      1.62000
+HO         -0.1500      1.61000
+ER         -0.1500      1.60000
+TM         -0.1500      1.59000
+YB         -0.1500      1.58000
+LU         -0.1500      1.57000
+# --- Actinides (+3/+4, Li/Merz IOD set, limited coverage) ---
+AC         -0.1500      1.80000
+TH         -0.1500      1.70000
+U          -0.1500      1.68000

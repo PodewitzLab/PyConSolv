@@ -1,0 +1,26 @@
+# Minimal element -> CHARMM36 atom type mapping.
+# Columns: element   default_cgenff_type   notes
+# Metals use the 'M<sym>' naming from interfaces/fftk.py (e.g. MFE, MCU).
+# Entries below are fallbacks used when CGenFF has not assigned a type.
+H    HGA1    generic aliphatic hydrogen
+C    CG331   generic sp3 carbon
+N    NG311   generic sp3 nitrogen
+O    OG311   generic hydroxyl/ether oxygen
+S    SG311   generic sulfur
+P    PG1     generic phosphorus
+F    FGA1    fluorine
+CL   CLGA1   chlorine
+BR   BRGA1   bromine
+I    IGR1    iodine
+# transition metals (fallback mass; FFTK emits the real M<sym> type)
+FE   FE      iron
+CU   CU      copper
+ZN   ZN      zinc
+NI   NI      nickel
+CO   CO      cobalt
+MN   MN      manganese
+RU   RU      ruthenium
+PD   PD      palladium
+PT   PT      platinum
+AU   AU      gold
+AG   AG      silver

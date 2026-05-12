@@ -5,6 +5,7 @@ import argparse
 
 from PyConSolv.ConfGen import PyConSolv
 from PyConSolv.misc.analysis import Analysis
+from PyConSolv.misc.Task import Task
 
 
 def main():
@@ -22,12 +23,24 @@ def main():
                         help='set the box size to use with ambertools, for solvating the system')
     parser.add_argument('-e', '--engine', nargs='?', default='amber', type=str,
                         help='MD engine to be used for equilibration and simulation')
+    parser.add_argument('-ff', '--forcefield', nargs='?', default='amber', type=str,
+                        choices=['amber', 'charmm'],
+                        help='force field family for parametrization (amber=GAFF/MCPB, charmm=CGenFF/easyPARM)')
+    parser.add_argument('--charge-method', nargs='?', default='resp', type=str,
+                        choices=['resp', 'water-interaction'],
+                        help='CHARMM-path only: charge derivation method. '
+                             'resp = RESP via MultiWfn (default). '
+                             'water-interaction = FFTK-style probe-water QM fit.')
     parser.add_argument('-rst', '--restraint', action='store_true',
                         help='set up system for a restrained simulation')
     parser.add_argument('-cart', '--cartesianrst', nargs='?', default=None, type=str,
                         help='set up system for a simulation with cartesian restraints')
     parser.add_argument('-cartstr', '--cartesianrststr', nargs='?', default=100, type=int,
                         help='strength of cartesian restraints in kcal/mol')
+    parser.add_argument('-f', '--fragment', action='store_true',
+                        help='enable substructure/fragment parametrization mode')
+    parser.add_argument('-r', '--radius', nargs='?', default=4.0, type=float,
+                        help='radius around metal for substructure extraction (Angstroms), default 4.0')
 
     # ORCA settings
     parser.add_argument('-m', '--method', nargs='?', default='PBE0', type=str,
@@ -77,12 +90,33 @@ def main():
         sys.exit()
 
     else:
-        conf = PyConSolv(inputfilepath)
         if args.dispersion == 'N':
             dsp = ''
-        conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=dsp, cpu=args.cpu,
-                 solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt, box=args.box,
-                 rst=args.restraint, cart = args.cartesianrst, cartstr = args.cartesianrststr, memory=args.memory)
+        else:
+            dsp = args.dispersion
+
+        if args.fragment:
+            task = Task(inputfilepath)
+            task.fragment(charge=args.charge, method=args.method, basis=args.basis,
+                          dsp=dsp, cpu=args.cpu, solvent=args.solvent,
+                          multiplicity=args.multiplicity, engine=args.engine,
+                          opt=args.noopt, box=args.box, rst=args.restraint,
+                          memory=args.memory, radius=args.radius,
+                          cart=args.cartesianrst, cartstr=args.cartesianrststr,
+                          forcefield=args.forcefield,
+                          charge_method=args.charge_method)
+        else:
+            conf = PyConSolv(inputfilepath)
+            if args.forcefield == 'charmm':
+                conf.runCharmm(charge=args.charge, method=args.method, basis=args.basis, dsp=dsp,
+                               cpu=args.cpu, solvent=args.solvent, multiplicity=args.multiplicity,
+                               opt=args.noopt, box=args.box, memory=args.memory,
+                               charge_method=args.charge_method)
+            else:
+                conf.run(charge=args.charge, method=args.method, basis=args.basis, dsp=dsp, cpu=args.cpu,
+                         solvent=args.solvent, multiplicity=args.multiplicity, engine=args.engine, opt=args.noopt,
+                         box=args.box, rst=args.restraint, cart=args.cartesianrst, cartstr=args.cartesianrststr,
+                         memory=args.memory)
     sys.exit()
 
 

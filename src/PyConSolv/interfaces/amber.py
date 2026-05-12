@@ -47,26 +47,40 @@ class amberInterface:
         else:
             self.status = 1
 
-    def inputFileGenerator(self, metals: str, ligands: list):
+    def inputFileGenerator(self, metals, ligands: list):
         """
         Creates an input file for MCPB.py.
 
         Parameters:
-            :param string metals: basename of the metal containing files - string
+            :param metals: basename of the metal containing files - string or list of strings
             :param list[string] ligands: basename of the ligand containing files - list of strings
 
         Class variables:
             - self.inputfile = MCPB.py input file
         """
-        # TODO: change input file to handle multiple ion IDs
-        self.inputfile = '''original_pdb Full_PDB.pdb
+        # Handle both single metal (string) and multiple metals (list)
+        if isinstance(metals, str):
+            metals = [metals]
+
+        # Generate ion_ids (1-indexed, one for each metal)
+        ion_ids = ' '.join(str(i + 1) for i in range(len(metals)))
+
+        # Generate ion_mol2files line
+        ion_mol2files = ' '.join(f'{m}.mol2' for m in metals)
+
+        # Generate naa_mol2files and frcmod_files lines
+        naa_mol2files = '.mol2 '.join(ligands) + '.mol2' if ligands else ''
+        frcmod_files = '.frcmod '.join(ligands) + '.frcmod' if ligands else ''
+
+        self.inputfile = f'''original_pdb Full_PDB.pdb
 group_name LIG
 cut_off 2.8
-ion_ids 1
+ion_ids {ion_ids}
 software_version g16
-ion_mol2files {}.mol2
-naa_mol2files {}.mol2
-frcmod_files {}.frcmod\n'''.format(metals, '.mol2 '.join(ligands), '.frcmod '.join(ligands))
+ion_mol2files {ion_mol2files}
+naa_mol2files {naa_mol2files}
+frcmod_files {frcmod_files}
+'''
 
         f = open(self.path + '/input.in', 'w')
         f.write(self.inputfile)

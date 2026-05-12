@@ -13,6 +13,9 @@ Changelog from v 1.0.1:
 - Support for QM/MM calculations as criteria for the energy ranking of generated conformers
 - Support for restrained simulations involving transition states (Currently only for AmberMD)
 - Support for cartesian coordinate restraints for residues, suitable for GIST analysis using `-cart` for the residues and `-cartstr` for the restraint strength
+- **Fragment / substructure parametrization** via `-f` and `-r` flags
+- **Multi-metal and metal-metal bond support** (bimetallic complexes)
+- **CHARMM36 force field support** via `-ff charmm` (CGenFF + easyPARM + Packmol)
 
 # PyConSolv
 
@@ -55,6 +58,16 @@ AmberTools >= 20
 ORCA >= 5.0
 
 MultiWfn >= 3.8
+
+**Optional (CHARMM force field mode, `-ff charmm`):**
+
+Packmol (solvent box builder)
+
+CGenFF (SilcsBio, local binary) – organic ligand parameters
+
+ParmEd (already required) – PSF assembly
+
+Metal-center bonded parameters are derived natively in pure CHARMM36 format from the ORCA Hessian (Seminario/FFTK-style), no external parametrization tool required.
 
 ## Installation
 
@@ -99,6 +112,7 @@ input file in XYZ format
   -rst, --restraint perform a restrained simulation, useful for transition states  
   -cart, --cartesianrst [Mask] set up system for a simulation with cartesian restraints, uses the amber mask format. Use all for all solvent residues
   -cartstr, --cartesianrststr [Value] strength of cartesian restraints in kcal/mol
+  -ff, --forcefield [{amber,charmm}] force field to use, default amber. Selecting charmm switches the parametrization pipeline to CGenFF + easyPARM + Packmol and produces PSF/PRM/PDB output suitable for NAMD/OpenMM
 
 **options that affect analysis**:   
   -a , --analyze analyze a simulation  
@@ -115,6 +129,14 @@ input file in XYZ format
 
 see user manual for more details
 
+
+### CHARMM36 parametrization
+
+```
+pyconsolv input.xyz -c 0 -ff charmm
+```
+
+This runs ORCA → antechamber → CGenFF for ligand atom types and initial parameters → MultiWfn RESP → CGenFF charges overwritten with RESP values in the RTF → native Seminario/FFTK derivation of metal + high-penalty bonded terms from the ORCA Hessian → ParmEd PSF assembly → Packmol solvent box. Output is PSF/PRM/PDB ready for NAMD or OpenMM. No VMD and no easyPARM required.
 
 ### Jupyter Notebook
 

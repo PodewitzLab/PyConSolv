@@ -2,7 +2,8 @@ import os
 import shutil
 import unittest
 import filecmp
-from ..src.PyConSolv.interfaces.amber import amberInterface
+import tests  # noqa: F401
+from PyConSolv.interfaces.amber import amberInterface
 
 
 class TestSetup(unittest.TestCase):

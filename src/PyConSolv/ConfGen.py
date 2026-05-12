@@ -18,6 +18,8 @@ from .misc.solvenGen import solventParametrizer
 from .misc.solvent import Solvent
 from .utils.colorgen import Color
 from .interfaces.amber import amberInterface
+from .interfaces.charmm import CharmmInterface
+from .misc.charmm_formats import xyzToCharmmPDB
 from .interfaces.calculate import Calculation
 from .misc.filestructure import Setup
 from .misc.inputparser import XYZ
@@ -152,9 +154,6 @@ class PyConSolv:
         self.restraintWidth = []
         self.map = None
 
-
-        self.startInfo()
-
     def startInfo(self):
         print(Color.BLUE + r'''
 
@@ -277,7 +276,8 @@ class PyConSolv:
 
 
     def setup(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4',
-              cpcm: str = 'Water', cpu: int = 12, multiplicity:int  = 1, memory: int = 3000, opt: bool = True) -> int:
+              cpcm: str = 'Water', cpu: int = 12, multiplicity: int = 1, memory: int = 3000,
+              opt: bool = True, customOrcaInput: str = None) -> int:
         """
         Run setup for creating the appropriate folders and parse XYZ file
 
@@ -289,7 +289,9 @@ class PyConSolv:
             :param string cpcm: CPCM solvation model solvent
             :param int cpu: number of CPU cores to be used
             :param int multiplicity: multiplicity for the system
-            :param int memory: memory to used for OCA calulations
+            :param int memory: memory to used for ORCA calculations
+            :param bool opt: whether to perform geometry optimization
+            :param string customOrcaInput: custom ORCA input template (optional)
 
         Class variables:
         """
@@ -311,7 +313,9 @@ class PyConSolv:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.prepareInput(self.inputpath + '/input.xyz')
             self.xyz = None
-            setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi = multiplicity, memory=memory, opt = opt)
+            setup = Setup(self.inputpath + '/' + self.inputFile, charge=charge, multi=multiplicity, memory=memory, opt=opt)
+            if customOrcaInput:
+                setup.orca_inp = customOrcaInput
             setup.Method(method, basis, dsp, cpcmname, cpu, self.epsilon, self.refrac)
             self.status = setup.run()
             if self.status == 0:
@@ -438,7 +442,9 @@ class PyConSolv:
             metals = self.xyz.metals
             self.xyz.writeMetalConnections(self.MCPB)  # write out metal connections file
             self.xyz.writeConnections(self.MCPB)  # write out connections file
-            self.amber.inputFileGenerator(metals[0][1], ligands[:, 1])
+            # Pass all metal names to support multi-metal complexes
+            metal_names = [m[1] for m in metals]
+            self.amber.inputFileGenerator(metal_names, ligands[:, 1])
             self.restarter.write('frcmod')
             return 1
 
@@ -941,6 +947,495 @@ class PyConSolv:
 
 
 
+    def runCharmm(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP',
+                  dsp: str = 'D4', cpu: int = 12, memory: int = 3000,
+                  solvent: str = 'Water', multiplicity: int = 1, opt: bool = True,
+                  box: int = 20, ion_concentration: float = 0.15,
+                  charge_method: str = 'resp'):
+        """Alternative parametrization pipeline that emits CHARMM36 topology.
+
+        Shares the ORCA front-end of the AMBER workflow, then switches to
+        CGenFF (ligand) + native Seminario/FFTK (metal + high-penalty bonded
+        terms) for parameters and ParmEd + Packmol for PSF assembly and
+        solvation. No VMD and no easyPARM required.
+
+        charge_method:
+          'resp'              - RESP via MultiWfn (default; matches AMBER path)
+          'water-interaction' - FFTK-style probe-water QM fit
+        """
+        self.startInfo()
+        print(Color.GREEN + 'Entering CHARMM parametrization...\n' + Color.END)
+
+        self.checkRestart()
+        self.setup(charge=charge, method=method, basis=basis, dsp=dsp, cpcm=solvent,
+                   cpu=cpu, memory=memory, multiplicity=multiplicity, opt=opt)
+
+        if self.restart < 2:
+            if self.orca(opt=opt) == 0:
+                return
+
+        charmm_dir = os.path.join(self.inputpath, 'charmm_setup')
+        os.makedirs(charmm_dir, exist_ok=True)
+        opt_xyz = os.path.join(self.inputpath, 'orca_calculations/opt/orca_opt.xyz')
+        if not os.path.isfile(opt_xyz):
+            opt_xyz = self.path
+
+        charmm = CharmmInterface(charmm_dir)
+        if not charmm.checkDependencies():
+            error('CHARMM dependency check (CGenFF / Packmol)')
+            return 0
+
+        self.xyz = XYZ(self.db_file, self.db_metal_file)
+        self.xyz.readXYZ(opt_xyz)
+        self.xyz.calculateDistanceMatrix()
+        self.xyz.generateAdjacencyMatrix()
+        self.xyz.generateLinkList()
+
+        # Ligand parametrization via CGenFF (one mol2 per ligand).
+        ligand_pdb = os.path.join(charmm_dir, 'LIG.pdb')
+        xyzToCharmmPDB(opt_xyz, ligand_pdb, resname='LIG', segid='LIG')
+        ligand_mol2 = os.path.join(charmm_dir, 'LIG.mol2')
+        import subprocess
+        subprocess.run(['antechamber -fi pdb -fo mol2 -i LIG.pdb -o LIG.mol2 -c bcc '
+                        '-pf y -nc {} > antechamber.out'.format(int(charge))],
+                       shell=True, cwd=charmm_dir)
+        cgenff_str = ''
+        lig_rtf_path = ''
+        lig_prm_path = ''
+        if os.path.isfile(ligand_mol2):
+            lig_rtf_path, lig_prm_path = charmm.generateLigandParams(ligand_mol2)
+            cgenff_str = os.path.join(charmm_dir,
+                                       os.path.splitext(os.path.basename(ligand_mol2))[0] + '.str')
+
+        if charge_method == 'water-interaction':
+            self._charmmApplyWaterInteractionCharges(
+                charmm, lig_rtf_path, lig_prm_path, opt_xyz,
+                charge, cpu, memory)
+        else:
+            self._charmmApplyRESP(charmm, lig_rtf_path, cpu, charge)
+
+        # Metal parameters from the ORCA Hessian (if a metal is present).
+        hess_file = os.path.join(self.inputpath, 'orca_calculations/freq/orca.hess')
+        if self.hasMetal and os.path.isfile(hess_file):
+            bonds, angles, metal_indices = self._charmmBuildConnectivity()
+            atom_types = self._charmmResolveAtomTypes(cgenff_str)
+            coords = np.asarray(self.xyz.coords, dtype=float)
+            charmm.generateMetalParams(
+                xyz_coords_ang=coords,
+                elements=list(self.xyz.atoms),
+                hessian_file=hess_file,
+                bonds=bonds,
+                angles=angles,
+                metal_indices=metal_indices,
+                atom_types=atom_types,
+            )
+
+        rtf_out, prm_out = charmm.mergeParameters(out_base='system')
+        metal_bonds_idx = self._charmmMetalBondsAsIndices()
+        psf, pdb = charmm.buildPSF(ligand_pdb, metal_bonds=metal_bonds_idx)
+        if not psf:
+            error('PSF generation')
+            return 0
+
+        psf_solv, pdb_solv = charmm.solvate(padding=float(box),
+                                            solvent_name=solvent.lower(),
+                                            concentration=ion_concentration)
+        if not psf_solv:
+            error('Packmol solvate')
+            return 0
+
+        print(Color.GREEN + 'CHARMM parametrization complete.' + Color.END)
+        print('  topology : {}'.format(rtf_out))
+        print('  params   : {}'.format(prm_out))
+        print('  psf/pdb  : {} / {}'.format(psf_solv, pdb_solv))
+        self.status = 1
+        return 1
+
+    # ------------------------------------------------------------------
+    # CHARMM-path helpers
+    # ------------------------------------------------------------------
+
+    def _charmmApplyRESP(self, charmm, lig_rtf_path: str, cpu: int,
+                         target_charge: int):
+        """Run MultiWfn on the ORCA wavefunction and overwrite CGenFF charges.
+
+        Uses the freq wavefunction when a metal is present (matches the
+        AMBER path), otherwise the opt wavefunction. The resulting .chg
+        file has one line per atom in XYZ order: `<element> x y z q`.
+        """
+        if not lig_rtf_path or not os.path.isfile(lig_rtf_path):
+            return
+        if self.hasMetal:
+            mw_dir = os.path.join(self.inputpath, 'orca_calculations/freq')
+            orcaname = 'orca_freq'
+        else:
+            mw_dir = os.path.join(self.inputpath, 'orca_calculations/opt')
+            orcaname = 'orca_opt'
+        chg_file = os.path.join(mw_dir, orcaname + '.molden.chg')
+        if not os.path.isfile(chg_file):
+            mw = MultiWfnInterface(mw_dir, orcaname=orcaname)
+            if mw.run(cpu) == 0:
+                print(Color.YELLOW + 'MultiWfn RESP failed; keeping CGenFF '
+                                       'charges.' + Color.END)
+                return
+        if not os.path.isfile(chg_file):
+            fallback = os.path.join(mw_dir, orcaname + '.chg')
+            if os.path.isfile(fallback):
+                chg_file = fallback
+            else:
+                return
+        resp_charges = []
+        with open(chg_file) as f:
+            for line in f:
+                parts = line.split()
+                if len(parts) >= 5:
+                    resp_charges.append(float(parts[-1]))
+        if not resp_charges:
+            return
+        # Atom names in the CHARMM PDB follow `{element}{1-based-index}`
+        # (see charmm_formats.xyzToCharmmPDB); the CGenFF RTF uses the
+        # same names, so we can match by name for robustness.
+        atom_names = ['{}{}'.format(el, i + 1)
+                      for i, el in enumerate(self.xyz.atoms)]
+        charmm.applyRESPCharges(lig_rtf_path, resp_charges,
+                                atom_names=atom_names,
+                                target_total=float(target_charge))
+        print(Color.GREEN + 'RESP charges applied to {}'.format(
+            os.path.basename(lig_rtf_path)) + Color.END)
+
+    def _charmmApplyWaterInteractionCharges(self, charmm, lig_rtf_path: str,
+                                              lig_prm_path: str, opt_xyz: str,
+                                              target_charge: int, cpu: int,
+                                              memory: int = 2000):
+        """FFTK-style water-interaction charge fit.
+
+        Runs Phase A (polar-site detection + TIP3P probe placement),
+        Phase B (ORCA SP batch on each probe) and Phase C (constrained
+        least-squares fit) end-to-end and writes the fitted charges back
+        into ``lig_rtf_path``. Any failure (no sites, ORCA missing, fit
+        non-convergent) leaves the CGenFF charges untouched.
+        """
+        from .interfaces.water_interaction import WaterInteractionCharges
+        from .misc.polar_sites import detectPolarSites, placeWaters
+        from .misc.charge_fitter import fitCharges
+        from .misc.charmm_formats import readRTFAtoms, readNonbondedLJ
+
+        if not (lig_rtf_path and os.path.isfile(lig_rtf_path)):
+            return
+        rtf_atoms = readRTFAtoms(lig_rtf_path)
+        if not rtf_atoms:
+            print(Color.YELLOW + 'No CGenFF atoms found in RTF; '
+                                  'keeping defaults' + Color.END)
+            return
+
+        if self.xyz is None or self.xyz.coords is None:
+            self.xyz = XYZ(self.db_file, self.db_metal_file)
+            self.xyz.readXYZ(opt_xyz)
+            self.xyz.calculateDistanceMatrix()
+            self.xyz.generateAdjacencyMatrix()
+            self.xyz.generateLinkList()
+        coords = np.asarray(self.xyz.coords, dtype=float)
+        elements = list(self.xyz.atoms)
+
+        if len(rtf_atoms) != len(elements):
+            print(Color.YELLOW + 'RTF/XYZ atom count mismatch ({} vs {}); '
+                                  'aborting water-interaction fit'.format(
+                                      len(rtf_atoms), len(elements))
+                  + Color.END)
+            return
+        atom_names = [a[0] for a in rtf_atoms]
+        atom_types = [a[1] for a in rtf_atoms]
+        initial_q = np.array([a[2] for a in rtf_atoms])
+
+        ligand_lj = np.zeros((len(rtf_atoms), 2))
+        lj_lookup = readNonbondedLJ(lig_prm_path) if lig_prm_path else {}
+        for i, t in enumerate(atom_types):
+            ligand_lj[i] = lj_lookup.get(t, (-0.05, 2.0))
+
+        bonds = []
+        for i, nbrs in enumerate(self.xyz.linkList):
+            for j in nbrs:
+                if i < j:
+                    bonds.append((i, j))
+        metal_bonded = set()
+        for entry in self.xyz.metalBonds:
+            parts = entry.split()
+            a, b = int(parts[0]), int(parts[2])
+            bonds.append((min(a, b), max(a, b)))
+            metal_bonded.add(b)
+
+        sites = detectPolarSites(coords, elements, bonds, atom_types=atom_types)
+        sites = [s for s in sites if s.heavy_idx not in metal_bonded]
+        if not sites:
+            print(Color.YELLOW + 'No FFTK-fittable polar sites '
+                                  '(all polar atoms metal-bonded?); '
+                                  'keeping CGenFF charges' + Color.END)
+            return
+        print(Color.GREEN + 'Water-interaction fit: {} probe(s) on {} polar '
+                             'site(s)'.format(
+                                 len(sites),
+                                 len({s.heavy_idx for s in sites})) + Color.END)
+        probes = placeWaters(sites, coords)
+
+        wi_dir = os.path.join(self.inputpath, 'water_interaction')
+        wic = WaterInteractionCharges(wi_dir, cpu=cpu, memory=memory)
+        if not wic.checkpath():
+            print(Color.RED + 'ORCA not available; falling back to RESP'
+                  + Color.END)
+            return self._charmmApplyRESP(charmm, lig_rtf_path, cpu,
+                                          target_charge)
+        results = wic.runBatch(probes, coords, elements,
+                                charge=int(target_charge), multiplicity=1)
+        if not results:
+            print(Color.RED + 'Water-interaction QM batch failed; '
+                              'keeping CGenFF charges' + Color.END)
+            return
+
+        type_groups = {}
+        for i, t in enumerate(atom_types):
+            type_groups.setdefault(t, []).append(i)
+        symmetry = [g for g in type_groups.values() if len(g) > 1]
+
+        fit = fitCharges(
+            qm_results=results,
+            ligand_coords=coords,
+            ligand_elements=elements,
+            initial_charges=initial_q,
+            ligand_lj=ligand_lj,
+            total_charge=float(target_charge),
+            symmetry_groups=symmetry,
+        )
+        if not fit.success:
+            print(Color.YELLOW + 'Charge fit did not converge ({}); '
+                                  'keeping CGenFF charges'.format(fit.message)
+                  + Color.END)
+            return
+        print(Color.GREEN + 'Fit RMSD = {:.3f} kcal/mol over {} probes'.format(
+            fit.rmsd, len(results)) + Color.END)
+        charmm.applyRESPCharges(lig_rtf_path, list(fit.charges),
+                                  atom_names=atom_names,
+                                  target_total=float(target_charge))
+
+    def _charmmBuildConnectivity(self):
+        """Return (bonds, angles, metal_indices) derived from self.xyz.
+
+        bonds is a list of unique (i, j) pairs with i < j, including the
+        metal-ligand bonds that generateLinkList() excludes. Angles are all
+        unique triples (i, j, k) with j as apex.
+        """
+        neighbours = [set(n) for n in self.xyz.linkList]
+        for entry in self.xyz.metalBonds:
+            parts = entry.split()
+            a = int(parts[0])
+            b = int(parts[2])
+            neighbours[a].add(b)
+            neighbours[b].add(a)
+
+        bonds = set()
+        for i, nbrs in enumerate(neighbours):
+            for j in nbrs:
+                if i < j:
+                    bonds.add((i, j))
+
+        angles = set()
+        for j, nbrs in enumerate(neighbours):
+            nlist = sorted(nbrs)
+            for a_idx in range(len(nlist)):
+                for b_idx in range(a_idx + 1, len(nlist)):
+                    i, k = nlist[a_idx], nlist[b_idx]
+                    angles.add((min(i, k), j, max(i, k)))
+
+        metal_indices = [i for i, el in enumerate(self.xyz.atoms)
+                         if self.xyz.isMetal(el)]
+        return sorted(bonds), sorted(angles), metal_indices
+
+    def _charmmResolveAtomTypes(self, cgenff_str_file: str):
+        """Build a per-atom CGenFF type list for self.xyz.atoms.
+
+        Uses CGenFF's RESI ATOM records (in atom order) when available;
+        otherwise falls back to db/charmm_atomtypes.txt element defaults.
+        """
+        from .interfaces.cgenff import CGenFFInterface
+        from .interfaces.fftk import metalAtomType
+
+        default_map = {}
+        atmap_path = os.path.join(os.path.dirname(__file__), 'db',
+                                   'charmm_atomtypes.txt')
+        if os.path.isfile(atmap_path):
+            with open(atmap_path) as f:
+                for line in f:
+                    s = line.split('#', 1)[0].split()
+                    if len(s) >= 2:
+                        default_map[s[0].upper()] = s[1]
+
+        cgenff_types = {}
+        if cgenff_str_file and os.path.isfile(cgenff_str_file):
+            cgenff_types = CGenFFInterface().parseAtomTypes(cgenff_str_file)
+
+        types = []
+        for i, el in enumerate(self.xyz.atoms):
+            if self.xyz.isMetal(el):
+                types.append(metalAtomType(el))
+                continue
+            name = '{}{}'.format(el, i + 1)
+            if name in cgenff_types:
+                types.append(cgenff_types[name])
+            else:
+                types.append(default_map.get(el.upper(), el.upper()))
+        return types
+
+    def runCharmmFromFragment(self, fragment_hess_file: str,
+                               fragment_xyz_file: str,
+                               charge: int = 0, method: str = 'PBE0',
+                               basis: str = 'def2-SVP', dsp: str = 'D4',
+                               cpu: int = 12, memory: int = 3000,
+                               solvent: str = 'Water', multiplicity: int = 1,
+                               opt: bool = True, box: int = 20,
+                               ion_concentration: float = 0.15,
+                               charge_method: str = 'resp'):
+        """Fragment-mode CHARMM parametrization.
+
+        The fragment is assumed to have already been optimised and had a
+        frequency calculation run (``fragment_hess_file`` + ``fragment_xyz_file``
+        are the ORCA outputs). Only ORCA opt is run on the full structure —
+        CGenFF handles ligand bonded terms, RESP handles charges, and the
+        fragment Hessian feeds FFTK/Seminario for the metal-local bonds and
+        angles. Metal atom types follow the M<Sym> convention so
+        fragment-derived PRM entries merge cleanly with the full-structure
+        CGenFF output.
+        """
+        from .interfaces.fftk import parseOrcaHessian
+
+        self.startInfo()
+        print(Color.GREEN + 'Entering CHARMM fragment parametrization...\n'
+              + Color.END)
+
+        self.checkRestart()
+        self.setup(charge=charge, method=method, basis=basis, dsp=dsp,
+                   cpcm=solvent, cpu=cpu, memory=memory,
+                   multiplicity=multiplicity, opt=opt)
+
+        if self.restart < 2:
+            if self.orca(opt=opt) == 0:
+                return 0
+
+        charmm_dir = os.path.join(self.inputpath, 'charmm_setup')
+        os.makedirs(charmm_dir, exist_ok=True)
+        opt_xyz = os.path.join(self.inputpath,
+                               'orca_calculations/opt/orca_opt.xyz')
+        if not os.path.isfile(opt_xyz):
+            opt_xyz = self.path
+
+        charmm = CharmmInterface(charmm_dir)
+        if not charmm.checkDependencies():
+            error('CHARMM dependency check (CGenFF / Packmol)')
+            return 0
+
+        self.xyz = XYZ(self.db_file, self.db_metal_file)
+        self.xyz.readXYZ(opt_xyz)
+        self.xyz.calculateDistanceMatrix()
+        self.xyz.generateAdjacencyMatrix()
+        self.xyz.generateLinkList()
+
+        ligand_pdb = os.path.join(charmm_dir, 'LIG.pdb')
+        xyzToCharmmPDB(opt_xyz, ligand_pdb, resname='LIG', segid='LIG')
+        ligand_mol2 = os.path.join(charmm_dir, 'LIG.mol2')
+        import subprocess
+        subprocess.run(['antechamber -fi pdb -fo mol2 -i LIG.pdb -o LIG.mol2 '
+                        '-c bcc -pf y -nc {} > antechamber.out'
+                        .format(int(charge))],
+                       shell=True, cwd=charmm_dir)
+        cgenff_str = ''
+        lig_rtf_path = ''
+        lig_prm_path = ''
+        if os.path.isfile(ligand_mol2):
+            lig_rtf_path, lig_prm_path = charmm.generateLigandParams(ligand_mol2)
+            cgenff_str = os.path.join(
+                charmm_dir,
+                os.path.splitext(os.path.basename(ligand_mol2))[0] + '.str')
+
+        if charge_method == 'water-interaction':
+            self._charmmApplyWaterInteractionCharges(
+                charmm, lig_rtf_path, lig_prm_path, opt_xyz,
+                charge, cpu, memory)
+        else:
+            self._charmmApplyRESP(charmm, lig_rtf_path, cpu, charge)
+
+        # Metal bonded params: derive from the fragment's Hessian, not the
+        # full structure's. Build an independent XYZ for the fragment and
+        # feed its bonds/angles/metal indices into FFTK.
+        if self.hasMetal and os.path.isfile(fragment_hess_file):
+            frag_xyz = XYZ(self.db_file, self.db_metal_file)
+            frag_xyz.readXYZ(fragment_xyz_file)
+            frag_xyz.generateAdjacencyMatrix()
+            frag_xyz.generateLinkList()
+            neighbours = [set(n) for n in frag_xyz.linkList]
+            for entry in frag_xyz.metalBonds:
+                parts = entry.split()
+                neighbours[int(parts[0])].add(int(parts[2]))
+                neighbours[int(parts[2])].add(int(parts[0]))
+            bonds = sorted({(i, j) for i, nbrs in enumerate(neighbours)
+                            for j in nbrs if i < j})
+            angles = set()
+            for j, nbrs in enumerate(neighbours):
+                nlist = sorted(nbrs)
+                for a in range(len(nlist)):
+                    for b in range(a + 1, len(nlist)):
+                        i, k = nlist[a], nlist[b]
+                        angles.add((min(i, k), j, max(i, k)))
+            metal_indices = [i for i, el in enumerate(frag_xyz.atoms)
+                             if frag_xyz.isMetal(el)]
+            # Atom types: CGenFF types on the full structure don't apply to
+            # fragment indices. Fall back to element defaults (sufficient
+            # for metal-local bonds/angles — typing is only used for
+            # metal-ligand param naming).
+            saved_xyz = self.xyz
+            self.xyz = frag_xyz
+            atom_types = self._charmmResolveAtomTypes('')
+            self.xyz = saved_xyz
+            coords = np.asarray(frag_xyz.coords, dtype=float)
+            charmm.generateMetalParams(
+                xyz_coords_ang=coords,
+                elements=list(frag_xyz.atoms),
+                hessian_file=fragment_hess_file,
+                bonds=sorted(bonds),
+                angles=sorted(angles),
+                metal_indices=metal_indices,
+                atom_types=atom_types,
+            )
+
+        rtf_out, prm_out = charmm.mergeParameters(out_base='system')
+        metal_bonds_idx = self._charmmMetalBondsAsIndices()
+        psf, pdb = charmm.buildPSF(ligand_pdb, metal_bonds=metal_bonds_idx)
+        if not psf:
+            error('PSF generation')
+            return 0
+
+        psf_solv, pdb_solv = charmm.solvate(padding=float(box),
+                                            solvent_name=solvent.lower(),
+                                            concentration=ion_concentration)
+        if not psf_solv:
+            error('Packmol solvate')
+            return 0
+
+        print(Color.GREEN + 'CHARMM fragment parametrization complete.'
+              + Color.END)
+        print('  topology : {}'.format(rtf_out))
+        print('  params   : {}'.format(prm_out))
+        print('  psf/pdb  : {} / {}'.format(psf_solv, pdb_solv))
+        self.status = 1
+        return 1
+
+    def _charmmMetalBondsAsIndices(self):
+        """Return metal-ligand bonds as [(i, j), ...] 0-based index tuples."""
+        out = []
+        if not hasattr(self.xyz, 'metalBonds') or not self.xyz.metalBonds:
+            return out
+        for entry in self.xyz.metalBonds:
+            parts = entry.split()
+            out.append((int(parts[0]), int(parts[2])))
+        return out
+
     def run(self, charge: int = 0, method: str = 'PBE0', basis: str = 'def2-SVP', dsp: str = 'D4', cpu: int = 12,
             memory: int = 3000,
             solvent: str = 'Water', multiplicity: int = 1, engine: str = 'amber', opt: bool = True, box: int = 20, rst: bool = False,
@@ -967,8 +1462,8 @@ class PyConSolv:
 
         Class variables:
         """
+        self.startInfo()
         print(Color.GREEN + 'Entering initial setup...\n\n' + Color.END)
-
 
         self.checkRestart()
         self.setup(charge=charge, method=method, basis=basis, dsp=dsp, cpcm=solvent, cpu=cpu, memory=memory,

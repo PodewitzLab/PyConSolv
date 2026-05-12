@@ -1,4 +1,5 @@
 numpy < 2.0
+scipy >= 1.10
 pandas >= 1.4.3
 matplotlib >= 3.5.3
 rdkit >= 2022.09.1
