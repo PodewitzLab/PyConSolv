@@ -1,11 +1,11 @@
 import os
 import sys
-import shutil
 from pathlib import Path
 from tkinter import Tk
 
 from ..ConfGen import PyConSolv
 from .fragmenting import Fragmentor
+from .frcmod_merge import merge_fragment_frcmod
 from .ui import FragmentReviewGUI
 from ..utils.colorgen import Color
 
@@ -210,10 +210,13 @@ end
         if rst:
             self.conf.checkRT()
 
-        # Run ORCA on full structure (or skip if user wants)
+        # Run ORCA on full structure — OPT only, no FREQ. Metal bonded
+        # parameters come from the fragment's Hessian (via the merge step
+        # below), so the expensive full-system frequency calculation is
+        # avoided entirely.
         if self.conf.restart < 2:
-            print(Color.GREEN + 'Running ORCA for full structure...' + Color.END)
-            if self.conf.orca(opt=opt) == 0:
+            print(Color.GREEN + 'Running ORCA OPT for full structure (no FREQ)...' + Color.END)
+            if self.conf.orca(opt=opt, freq=False) == 0:
                 print(Color.RED + 'Full structure ORCA calculation failed!' + Color.END)
                 return
 
@@ -231,17 +234,43 @@ end
                 print(Color.RED + 'Full structure MultiWfn failed!' + Color.END)
                 return
 
-        # === STEP 5: Combine parameters ===
-        print(Color.GREEN + '\n=== Step 5: Combining parameters ===' + Color.END)
+        # === STEP 5: Merge fragment metal parameters into full structure ===
+        # MCPB step 1 sets up the modelling files for the full structure.
+        # MCPB step 2b writes a placeholder frcmod (no QM needed — we don't
+        # have a full-structure Hessian and don't want one). The merger then
+        # replaces that placeholder with the fragment's QM-derived bonded
+        # parameters, retyped to match the full structure's M/Y numbering
+        # (which can differ from the fragment's because bdedatms ordering
+        # depends on PDB atom order). Finally MCPB step 4 generates the
+        # final topology + LIG_tleap.in.
+        print(Color.GREEN + '\n=== Step 5: Merging fragment metal parameters ==='
+              + Color.END)
 
-        # Copy metal-specific frcmod from fragment to full structure's MCPB folder
-        self._combine_parameters(fragment_mcpb_path, Path(self.conf.MCPB))
-
-        # Run MCPB for full structure (uses combined parameters)
         if self.conf.restart < 6:
-            print(Color.GREEN + 'Running MCPB.py for full structure...' + Color.END)
-            if self.conf.MCPB_script() == 0:
-                print(Color.RED + 'Full structure MCPB failed!' + Color.END)
+            print(Color.GREEN + 'Running MCPB steps 1 + 2b on full structure '
+                  '(no QM)...' + Color.END)
+            if self.conf.MCPB_setup_step(use_qm=False) == 0:
+                print(Color.RED + 'Full structure MCPB setup failed!' + Color.END)
+                return
+
+            try:
+                type_map = merge_fragment_frcmod(
+                    fragment_mcpb_path,
+                    Path(self.conf.MCPB),
+                )
+                print(Color.GREEN +
+                      'Fragment → full atom-type translation: {}'
+                      .format(type_map) + Color.END)
+            except (ValueError, FileNotFoundError) as e:
+                print(Color.RED + 'frcmod merge failed: {}'.format(e)
+                      + Color.END)
+                return
+
+            print(Color.GREEN + 'Running MCPB step 4 on full structure '
+                  '(final topology)...' + Color.END)
+            if self.conf.MCPB_finalize() == 0:
+                print(Color.RED + 'Full structure MCPB finalize failed!'
+                      + Color.END)
                 return
 
         # === STEP 6: Build system with tleap ===
@@ -269,45 +298,3 @@ end
         print(Color.GREEN + 'Fragment-based parametrization complete!' + Color.END)
         print(Color.GREEN + '='*50 + Color.END)
 
-    def _combine_parameters(self, fragment_mcpb_path: Path, full_mcpb_path: Path):
-        '''
-        Combine parameters from fragment MCPB with full structure.
-        Copies metal-specific frcmod files from fragment to full structure.
-
-        :param fragment_mcpb_path: Path to fragment's MCPB_setup folder
-        :param full_mcpb_path: Path to full structure's MCPB_setup folder
-        '''
-        print(f'Combining parameters from fragment: {fragment_mcpb_path}')
-        print(f'Into full structure: {full_mcpb_path}')
-
-        # Look for metal frcmod files in fragment
-        # MCPB.py typically creates files like: LIG_mcpbpy.frcmod
-        fragment_frcmod_files = list(fragment_mcpb_path.glob('*mcpbpy*.frcmod'))
-
-        if not fragment_frcmod_files:
-            # Try other patterns
-            fragment_frcmod_files = list(fragment_mcpb_path.glob('*.frcmod'))
-
-        for frcmod_file in fragment_frcmod_files:
-            dest = full_mcpb_path / f'fragment_{frcmod_file.name}'
-            print(f'  Copying {frcmod_file.name} -> {dest.name}')
-            try:
-                shutil.copy(frcmod_file, dest)
-            except Exception as e:
-                print(f'  Warning: Could not copy {frcmod_file}: {e}')
-
-        # Also copy any metal mol2 files that might have special parameters
-        metal_mol2_files = list(fragment_mcpb_path.glob('*[A-Z][A-Z]*.mol2'))  # Metal names are typically 2 uppercase letters
-        for mol2_file in metal_mol2_files:
-            # Check if it's likely a metal file (FE, CU, ZN, etc.)
-            name = mol2_file.stem
-            if len(name) <= 3 and name.isupper():
-                dest = full_mcpb_path / mol2_file.name
-                if not dest.exists():
-                    print(f'  Copying metal mol2: {mol2_file.name}')
-                    try:
-                        shutil.copy(mol2_file, dest)
-                    except Exception as e:
-                        print(f'  Warning: Could not copy {mol2_file}: {e}')
-
-        print('Parameter combination complete.')

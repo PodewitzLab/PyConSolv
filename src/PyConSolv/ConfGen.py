@@ -368,12 +368,15 @@ class PyConSolv:
 
         return 1
 
-    def orca(self, opt: bool = True):
+    def orca(self, opt: bool = True, freq: bool = None):
         """
         Run ORCA optimization and frequency calculations
 
         Parameters:
             :param opt bool: if set to False, a single point calculation will be performed
+            :param freq bool: explicit FREQ override. None (default) → run FREQ iff hasMetal.
+                              False → skip FREQ even when hasMetal (fragment-mode full structure).
+                              True → always run FREQ.
         Class variables:
         """
         try:
@@ -381,8 +384,10 @@ class PyConSolv:
         except AttributeError:
             return 0
 
+        do_freq = self.hasMetal if freq is None else freq
+
         calculation = Calculation(self.inputpath + '/orca_calculations')
-        if self.hasMetal:
+        if do_freq:
             self.status = calculation.run(opt = opt)
         else:
             self.status = calculation.run(freq=False, opt = opt)
@@ -499,7 +504,15 @@ class PyConSolv:
                  chargeChanger.change(self.MCPB + '/A.mol2',
                                          self.MCPB + '/LIG.mol2', 'A', self.xyz.charges)
         else:
-            multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/freq/')
+            # When freq/ exists use the freq wavefunction (standard mode);
+            # otherwise (fragment mode skipped FREQ on the full structure)
+            # fall back to the opt/ wavefunction.
+            freq_dir = self.inputpath + '/orca_calculations/freq/'
+            if os.path.isdir(freq_dir) and os.path.isfile(freq_dir + 'orca_freq.gbw'):
+                multiwfn = MultiWfnInterface(freq_dir)
+            else:
+                multiwfn = MultiWfnInterface(self.inputpath + '/orca_calculations/opt/',
+                                             orcaname='orca_opt')
             self.status = multiwfn.run(cores)
 
         if self.status == 0:
@@ -510,31 +523,42 @@ class PyConSolv:
 
     def MCPB_script(self):
         """
-        Run MCPB.py for the system
+        Run MCPB.py for the system (standard mode: QM-based Seminario step 2).
+
+        Wraps MCPB_setup_step(use_qm=True) + MCPB_finalize() for backwards
+        compatibility with ConfGen.run(). Fragment mode calls these halves
+        directly with a merge step in between.
+        """
+        if self.MCPB_setup_step(use_qm=True) == 0:
+            return 0
+        return self.MCPB_finalize()
+
+    def MCPB_setup_step(self, use_qm: bool = True):
+        """
+        Run MCPB.py steps 1 + 2 (or 1 + 2b for fragment mode).
 
         Parameters:
+            :param use_qm bool: True → step 2 (Seminario, needs ORCA freq Hessian
+                                via Faker conversion). False → step 2b (blank
+                                placeholder frcmod, no QM input needed).
 
-        Class variables:
+        Returns 1 on success, 0 on failure.
         """
-
         if not self.hasMetal:
             self.restarter.write('mcpb')
             return 1
 
         self.restarter.write('multiwfn')
 
-        print(Color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + Color.END)
-
-        faker = Faker(self.inputpath + '/orca_calculations/freq/')
-        faker.fakecrds()
-        # faker.fakeesp()
-        faker.fakeforce()
-
-        shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakechk.fchk',
-                        self.inputpath + '/MCPB_setup/LIG_small_opt.fchk')
-        shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakelog.log',
-                        self.inputpath + '/MCPB_setup/LIG_small_fc.log')
-
+        if use_qm:
+            print(Color.GREEN + 'Converting ORCA output to MCPB.py compatible input...\n' + Color.END)
+            faker = Faker(self.inputpath + '/orca_calculations/freq/')
+            faker.fakecrds()
+            faker.fakeforce()
+            shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakechk.fchk',
+                            self.inputpath + '/MCPB_setup/LIG_small_opt.fchk')
+            shutil.copyfile(self.inputpath + '/orca_calculations/freq/fakelog.log',
+                            self.inputpath + '/MCPB_setup/LIG_small_fc.log')
 
         print(Color.GREEN + 'Proceeding with MCPB steps...\n' + Color.END)
 
@@ -542,36 +566,46 @@ class PyConSolv:
             self.amber = amberInterface(self.MCPB)
 
         self.status = self.amber.runMCPB('1')
-
         if self.status == 0:
             error('MCPB step 1')
             return 0
 
         if not self.amber.checkMCPBBonds(self.MCPB):
             self.status = self.amber.runMCPB('1')
-
             if self.status == 0:
                 error('MCPB step 1')
                 return 0
 
-        self.status = self.amber.runMCPB('2')
-
+        step = '2' if use_qm else '2b'
+        self.status = self.amber.runMCPB(step)
         if self.status == 0:
-            error('MCPB step 2')
+            error('MCPB step {}'.format(step))
             return 0
+
+        return 1
+
+    def MCPB_finalize(self):
+        """
+        Run MCPB.py step 4 (final topology + LIG_tleap.in generation) plus
+        the ParameterChecker pass. Called after MCPB_setup_step (and, in
+        fragment mode, after the frcmod_merge step).
+        """
+        if not self.hasMetal:
+            return 1
+
+        if self.amber is None:
+            self.amber = amberInterface(self.MCPB)
 
         if self.xyz is None:
             self.xyz = XYZ(self.db_file, self.db_metal_file)
             self.xyz.path = self.inputpath + '/MCPB_setup/'
             self.xyz.hasMetal = self.hasMetal
-
         if self.xyz.path is None:
             self.xyz.path = self.inputpath + '/MCPB_setup/'
             self.xyz.hasMetal = self.hasMetal
         self.xyz.createFinalMol2(self.inputpath)
 
         self.status = self.amber.runMCPB('4')
-
         if self.status == 0:
             error('MCPB step 4')
             return 0
